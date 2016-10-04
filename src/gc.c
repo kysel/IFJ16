@@ -11,6 +11,17 @@ typedef struct list_atom {
 
 static list_atom_t *last_atom = NULL;
 
+static void gc_collect_all() {
+	assert(last_atom);
+	list_atom_t * current_atom;
+	do {
+		current_atom = last_atom->prev;
+		if (last_atom)
+			free(last_atom);
+		last_atom = current_atom;
+	} while (last_atom);
+}
+
 void gc_init() {
 	assert(last_atom == NULL);
 	atexit(gc_collect_all);
@@ -38,17 +49,10 @@ void gc_free(void * ptr) {
 	list_atom_t* atom = (list_atom_t*)(char *)ptr - sizeof(list_atom_t);
 	assert(!atom);
 	//todo check if atom is in list
-	atom->prev->next = atom->next;
-	free(atom);
-}
 
-static void gc_collect_all() {
-	assert(last_atom);
-	list_atom_t * current_atom;
-	do {
-		current_atom = last_atom->prev;
-		if (last_atom)
-			free(last_atom);
-		last_atom = current_atom;
-	} while (last_atom);
+	if (atom->prev != NULL)
+		atom->prev->next = atom->next;
+	if (atom->next != NULL)
+		atom->next->prev = atom->prev;
+	free(atom);
 }

@@ -1,7 +1,7 @@
 ﻿#ifndef RETURN_CODES_H_
 #define RETURN_CODES_H_
 
-enum return_code {
+typedef enum {
 	lexical_analysis_error = 1,
 	syntactic_analysis_error = 2,
 	semantic_error_in_code = 3,
@@ -12,6 +12,6 @@ enum return_code {
 	runtime_zero_division = 9,
 	runtime_error = 10,
 	internal_error = 99
-};
+}return_code;
 
 #endif
