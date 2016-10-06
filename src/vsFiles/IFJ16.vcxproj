@@ -47,6 +47,7 @@
   <ItemGroup>
     <ClInclude Include="..\gc.h" />
     <ClInclude Include="..\return_codes.h" />
+    <ClInclude Include="..\scanner.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Makefile">
