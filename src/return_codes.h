@@ -1,6 +1,17 @@
-﻿#ifndef RETURN_CODES_H_
+﻿/** Interpretr jazyka IFJ16
+* @file return_codes.h
+* @author Kyzlink Jiří <xkyzli02@stud.fit.vutbr.cz>
+* @author Kubiš Juraj <xkubis15@stud.fit.vutbr.cz>
+* @author Korček Juraj <xkorce01@stud.fit.vutbr.cz>
+* @author Kovařík Viktor <xkovar77@stud.fit.vutbr.cz>
+*/
+
+#ifndef RETURN_CODES_H_
 #define RETURN_CODES_H_
 
+/**
+ * \brief Return codes from project documentation
+ */
 typedef enum {
 	lexical_analysis_error = 1,
 	syntactic_analysis_error = 2,

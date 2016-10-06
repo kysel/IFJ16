@@ -1,4 +1,12 @@
-﻿#ifndef SCANNER_H_
+﻿/** Interpretr jazyka IFJ16
+* @file scanner.h
+* @author Kyzlink Jiří <xkyzli02@stud.fit.vutbr.cz>
+* @author Kubiš Juraj <xkubis15@stud.fit.vutbr.cz>
+* @author Korček Juraj <xkorce01@stud.fit.vutbr.cz>
+* @author Kovařík Viktor <xkovar77@stud.fit.vutbr.cz>
+*/
+
+#ifndef SCANNER_H_
 #define SCANNER_H_
 
 typedef enum {
