@@ -1,5 +1,5 @@
 ﻿CC=gcc
-CFLAGS=-O2 -std=c11 -Wall -Wextra -pedantic -g
+CFLAGS=-std=c11 -Wall -Wextra -pedantic -g
 
 #source files
 SOURCES=$(wildcard *.c)

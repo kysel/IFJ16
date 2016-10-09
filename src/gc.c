@@ -11,6 +11,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <stdbool.h>
 
 typedef struct list_atom {
 	struct list_atom* prev;
@@ -34,6 +35,31 @@ static void gc_collect_all() {
 	} while (last_atom);
 }
 
+static void remove_from_alloc_list(list_atom_t* atom) {
+	if (atom == last_atom)
+		last_atom = atom->prev;
+	if (atom->prev != NULL)
+		atom->prev->next = atom->next;
+	if (atom->next != NULL)
+		atom->next->prev = atom->prev;
+}
+
+static bool alloc_list_contains(list_atom_t* atom) {
+	list_atom_t * current_atom = last_atom;
+	do {
+		if (current_atom == atom)
+			return true;
+		current_atom = current_atom->prev;
+	} while (current_atom);
+	return false;
+}
+
+static void gc_free_internal(list_atom_t* ptr) {
+	assert(alloc_list_contains(ptr));
+	remove_from_alloc_list(ptr);
+	free(ptr);
+}
+
 /**
  * \brief Initializes GC
  */
@@ -47,17 +73,19 @@ void gc_init() {
 	last_atom->next = NULL;
 }
 
-
 /**
- * \brief Allocates memory block
- * \param size Size of the memory block, in bytes
- * \return Pointer to allocated memory block
- */
-void * gc_alloc(size_t size) {
+* \brief Reallocates memory block
+* \param ptr pointer to old memory block
+* \param size Size of the memory block, in bytes
+* \return Pointer to allocated memory block
+*/
+void *gc_realloc(void* ptr, size_t size) {
+	list_atom_t* atom = ptr == NULL ? NULL : (list_atom_t*)((char *)ptr - sizeof(list_atom_t));
 	// ReSharper disable once CppNonReclaimedResourceAcquisition
-	void * ret = malloc(sizeof(list_atom_t) + size);
-	if(!ret)
-		exit(internal_error);
+	void *ret = realloc(atom, sizeof(list_atom_t) + size);
+
+	if (atom)
+		remove_from_alloc_list(atom);
 
 	last_atom->next = ret;
 	((list_atom_t *)ret)->prev = last_atom;
@@ -67,17 +95,19 @@ void * gc_alloc(size_t size) {
 }
 
 /**
+ * \brief Allocates memory block
+ * \param size Size of the memory block, in bytes
+ * \return Pointer to allocated memory block
+ */
+void * gc_alloc(size_t size) {
+	return gc_realloc(NULL, size);
+}
+
+/**
  * \brief Deallocates memory block that was previously allocated with GC
  * \param ptr Pointer to the memory block that has to be deallocated
  */
 void gc_free(void * ptr) {
-	list_atom_t* atom = (list_atom_t*)(char *)ptr - sizeof(list_atom_t);
-	assert(!atom);
-	//todo check if atom is in list
-
-	if (atom->prev != NULL)
-		atom->prev->next = atom->next;
-	if (atom->next != NULL)
-		atom->next->prev = atom->prev;
-	free(atom);
+	list_atom_t* atom = (list_atom_t*)((char *)ptr - sizeof(list_atom_t));
+	gc_free_internal(atom);
 }
