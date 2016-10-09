@@ -72,19 +72,47 @@ typedef enum {
 };*/
 
 typedef enum {
-	S_INIT,
-	S_ID,
-	S_NUM,
+	FSM_INIT,
+	FSM_ID,
+	FSM_NUM,
+	FSM_MUL,
+	FSM_DIV,
+	FSM_ADD,
+	FSM_SUB,
+	FSM_SEMICOLON,
+	FSM_EQUAL,
+	FSM_BRACKET_LROUND,
+	FSM_BRACKET_RROUND,
+	FSM_BRACKET_LSQUARE,
+	FSM_BRACKET_RSQUARE,
+	FSM_BRACKET_LCURLY,
+	FSM_BRACKET_RCURLY,
+	FSM_COMMA
+	FSM_LOWER,			// "<"
+	FSM_GREATER,			// ">"
+	FSM_LOWER_EQUAL,		// "<="
+	FSM_GREATER_EQUAL,	// ">="
+	FSM_BOOL_EQUAL,		// "=="
+	FSM_NOT,			// "!"
+	FSM_NOT_EQUAL,		// "!="
+	FSM_ASSIGN,			// "="
+	FSM_QUOTE,
+	FSM_INT, 			// integer
+	FSM_DOUBLE,			// double
+	FSM_STRING,			// string
+	FSM_COMMENT_LINE,			// comment
+	FSM_COMMENT_BLOCK,
+	FSM_EOF,
+
 }states;
 
 typedef struct {
 	token_type type;
-	int tok_len;
+	int token_len;
 	union {
 		int i;
 		double d;
 		char c;
-		//bool b;
 		//struct string *str;
 	} data;
 }token;
