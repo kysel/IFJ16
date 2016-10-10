@@ -19,7 +19,6 @@
     <ApplicationTypeRevision>1.0</ApplicationTypeRevision>
     <TargetLinuxPlatform>Generic</TargetLinuxPlatform>
     <LinuxProjectType>{D51BCBC9-82E9-4017-911E-C93873C4EA2B}</LinuxProjectType>
-    <ConfigurationType>Application</ConfigurationType>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
@@ -42,10 +41,12 @@
   </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="..\gc.c" />
+    <ClCompile Include="..\ial.c" />
     <ClCompile Include="..\main.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\gc.h" />
+    <ClInclude Include="..\ial.h" />
     <ClInclude Include="..\return_codes.h" />
     <ClInclude Include="..\scanner.h" />
   </ItemGroup>
