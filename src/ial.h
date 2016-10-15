@@ -40,4 +40,13 @@ typedef struct symbol_tree_leaf {
 	struct symbol_tree_leaf* right;
 }symbol_tree_leaf_t;
 
+typedef struct symbol_tree {
+	symbol_tree_leaf_t* root;
+	int nextId;
+}symbol_tree_t;
+
+symbol_tree_t symbol_tree_new();
+symbol_tree_leaf_t* add_symbol(symbol_tree_t* root, const char* key);
+symbol_tree_leaf_t* get_symbol_by_key(symbol_tree_t* root, const char* key);
+
 #endif //IAL_H_

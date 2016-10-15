@@ -12,8 +12,10 @@
 int main()
 {
 	gc_init();
+	void * q = NULL;
 	for (int i=0; i!=50; i++) {
-		gc_alloc(50);
+		q = gc_alloc(50);
+		gc_free(q);
 	}
 	return 0;	
 }

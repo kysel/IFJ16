@@ -148,6 +148,7 @@
     <ClInclude Include="..\scanner.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\binaryTree-test.c" />
     <ClCompile Include="..\gc.c" />
     <ClCompile Include="..\ial.c" />
     <ClCompile Include="..\main.c" />

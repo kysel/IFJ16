@@ -40,6 +40,7 @@
     <RemoteCCompileToolExe>gcc</RemoteCCompileToolExe>
   </PropertyGroup>
   <ItemGroup>
+    <ClCompile Include="..\binaryTree-test.c" />
     <ClCompile Include="..\gc.c" />
     <ClCompile Include="..\ial.c" />
     <ClCompile Include="..\main.c" />
