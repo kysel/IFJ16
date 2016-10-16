@@ -66,15 +66,10 @@ typedef enum {
 }token_type;
 
 
-/*struct string {
-	char* Value;
-	int Allocated;
-};*/
-
 typedef enum {
 	FSM_INIT,
 	FSM_ID,
-	FSM_NUM,
+	FSM_INT,
 	FSM_MUL,
 	FSM_DIV,
 	FSM_ADD,
@@ -92,30 +87,37 @@ typedef enum {
 	FSM_GREATER,			// ">"
 	FSM_LOWER_EQUAL,		// "<="
 	FSM_GREATER_EQUAL,	// ">="
-	FSM_BOOL_EQUAL,		// "=="
+	//FSM_BOOL_EQUAL,		// "=="
 	FSM_NOT,			// "!"
 	FSM_NOT_EQUAL,		// "!="
-	FSM_ASSIGN,			// "="
+	//FSM_ASSIGN,			// "="
 	FSM_QUOTE,
+	FSM_ESCAPE,
+	FSM_ESCAPE_OCTAL_1,
+	FSM_ESCAPE_OCTAL_2,
 	FSM_INT, 			// integer
 	FSM_DOUBLE,			// double
+	FSM_EXPONENT,
+	FSM_EXPONENT_SIGN,
+	FSM_EXPONENT_2,
 	FSM_STRING,			// string
 	FSM_COMMENT_LINE,			// comment
 	FSM_COMMENT_BLOCK,
+	FSM_COMMENT_BLOCK_FIN,
 	FSM_EOF,
 
 }states;
 
 typedef struct {
 	token_type type;
-	int token_len;
+	unsigned int tlen;
+	long double line;
 	union {
-		int i;
+		long int li;
 		double d;
-		char c;
-		//struct string *str;
-	} data;
-}token;
+		char *c;
+	};
+}Ttoken;
 
 
 
