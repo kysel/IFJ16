@@ -12,6 +12,8 @@
 
 #include <stdbool.h>
 
+int find(char* s, char* search);
+
 typedef enum {
 	int_literal,
 	double_literal,

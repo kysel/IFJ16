@@ -17,15 +17,29 @@ int find(char* s, char* search) {
 // https://en.wikipedia.org/wiki/Knuth%E2%80%93Morris%E2%80%93Pratt_algorithm
 // http://www.ms.mff.cuni.cz/~kopecky/vyuka/dis/02/dis02_v3.html
 
-	int possition = -1; //defaultne vracena hodnota vyskytu
-
+	int position = -1; //defaultne vracena hodnota vyskytu
+	
 	if (search == NULL) 
-		return possition; //hledame-li prazdny string, vracim default hodnotu
-	if (search == "")	//not sure about this
-		return 0;
+		return position; //hledame-li prazdny string, vracim default hodnotu
 		
+	
 	int lenSearch = strlen(search); //zjistujeme delku hledaneho retezce
-
+	int lenString = strlen(s); //zjistujeme delku textoveho retezce
+	int *p = malloc((sizeof(int *) * lenSearch+1));	 //alokace pole
+	
+	int i = 1;
+	int j = 1;
+	 
+	 while ((i <= lenString) && (j <= lenSearch)) {
+	 	while ((j > 0) && (search[j] != s[i])) {
+      		j = p[j];
+      	}
+      	i++; j++;
+	 }
+	if (j > lenSearch) position = i-j+1;
+    else position = 0;
+    free (p);
+    return position;
 }
 
 
