@@ -1,4 +1,4 @@
-﻿/** Interpretr jazyka IFJ16
+/** Interpretr jazyka IFJ16
 * @file ial.c
 * @author Kyzlink Jiří <xkyzli02@stud.fit.vutbr.cz>
 * @author Kubiš Juraj <xkubis15@stud.fit.vutbr.cz>
@@ -13,10 +13,21 @@
 #include <string.h>
 #include <stdlib.h>
 
-//int find(char* s, char* search) {
+int find(char* s, char* search) {
 // https://en.wikipedia.org/wiki/Knuth%E2%80%93Morris%E2%80%93Pratt_algorithm
 // http://www.ms.mff.cuni.cz/~kopecky/vyuka/dis/02/dis02_v3.html
-//}
+
+	int possition = -1; //defaultne vracena hodnota vyskytu
+
+	if (search == NULL) 
+		return possition; //hledame-li prazdny string, vracim default hodnotu
+	if (search == "")	//not sure about this
+		return 0;
+		
+	int lenSearch = strlen(search); //zjistujeme delku hledaneho retezce
+
+}
+
 
 symbol_tree_t symbol_tree_new() {
 	return (symbol_tree_t) { .root = NULL, .nextId = 0 };
