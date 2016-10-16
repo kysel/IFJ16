@@ -40,16 +40,21 @@
     <RemoteCCompileToolExe>gcc</RemoteCCompileToolExe>
   </PropertyGroup>
   <ItemGroup>
+    <ClCompile Include="..\ast.c" />
     <ClCompile Include="..\binaryTree-test.c" />
     <ClCompile Include="..\gc.c" />
     <ClCompile Include="..\ial.c" />
     <ClCompile Include="..\main.c" />
+    <ClCompile Include="..\scanner.c" />
+    <ClCompile Include="..\syntaxAnalysis.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\ast.h" />
     <ClInclude Include="..\gc.h" />
     <ClInclude Include="..\ial.h" />
     <ClInclude Include="..\return_codes.h" />
     <ClInclude Include="..\scanner.h" />
+    <ClInclude Include="..\syntaxAnalysis.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Makefile">

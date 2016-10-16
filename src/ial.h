@@ -12,41 +12,41 @@
 
 #include <stdbool.h>
 
-typedef enum {
+/*typedef enum {
 	int_literal,
 	double_literal,
 	bool_literal,
 	string_literal
-}symbol_type_t;
+}Symbol_type;
 
-typedef struct value_type {
-	symbol_type_t type;
+typedef struct Value_type_s {
+	Symbol_type type;
 	union {
 		int int_val;
 		double double_val;
 		bool bool_val;
 		char* string_val;
 	};
-}value_type_t;
+}Value_type;*/
 
-typedef struct symbol_tree_leaf {
+typedef struct Symbol_tree_leaf_s {
 	const char* key;
 	int id;
 	/**
-	 * @note value_type'll used in interpret
+	 * @note Value_type_s'll used in interpret
 	 */
-	//value_type_t value;
-	struct symbol_tree_leaf* left;
-	struct symbol_tree_leaf* right;
-}symbol_tree_leaf_t;
+	//Value_type value;
+	struct Symbol_tree_leaf_s* left;
+	struct Symbol_tree_leaf_s* right;
+}Symbol_tree_leaf;
 
-typedef struct symbol_tree {
-	symbol_tree_leaf_t* root;
+typedef struct {
+	Symbol_tree_leaf* root;
 	int nextId;
-}symbol_tree_t;
+}Symbol_tree;
 
-symbol_tree_t symbol_tree_new();
-symbol_tree_leaf_t* add_symbol(symbol_tree_t* root, const char* key);
-symbol_tree_leaf_t* get_symbol_by_key(symbol_tree_t* root, const char* key);
+Symbol_tree symbol_tree_new();
+Symbol_tree_leaf* add_symbol(Symbol_tree* root, const char* key);
+Symbol_tree_leaf* get_symbol_by_key(Symbol_tree* root, const char* key);
 
 #endif //IAL_H_

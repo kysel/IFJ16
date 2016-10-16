@@ -18,12 +18,12 @@
 // http://www.ms.mff.cuni.cz/~kopecky/vyuka/dis/02/dis02_v3.html
 //}
 
-symbol_tree_t symbol_tree_new() {
-	return (symbol_tree_t) { .root = NULL, .nextId = 0 };
+Symbol_tree symbol_tree_new() {
+	return (Symbol_tree) { .root = NULL, .nextId = 0 };
 }
 
-symbol_tree_leaf_t* add_symbol_impl(symbol_tree_t* tree, symbol_tree_leaf_t* leaf, const char* key, int depth) {
-	symbol_tree_leaf_t** newLeaf = NULL;
+Symbol_tree_leaf* add_symbol_impl(Symbol_tree* tree, Symbol_tree_leaf* leaf, const char* key, int depth) {
+	Symbol_tree_leaf** newLeaf = NULL;
 	//add root
 	if (leaf == NULL)
 		newLeaf = &leaf;
@@ -44,7 +44,7 @@ symbol_tree_leaf_t* add_symbol_impl(symbol_tree_t* tree, symbol_tree_leaf_t* lea
 	}
 
 	if (!*newLeaf) {
-		*newLeaf = gc_alloc(sizeof(symbol_tree_leaf_t));
+		*newLeaf = gc_alloc(sizeof(Symbol_tree_leaf));
 		(*newLeaf)->left = NULL;
 		(*newLeaf)->right = NULL;
 		(*newLeaf)->key = key;
@@ -65,13 +65,13 @@ symbol_tree_leaf_t* add_symbol_impl(symbol_tree_t* tree, symbol_tree_leaf_t* lea
  * \param key Leaf key
  * \return Pointer to inserted leaf
  */
-symbol_tree_leaf_t* add_symbol(symbol_tree_t* tree, const char* key) {
+Symbol_tree_leaf* add_symbol(Symbol_tree* tree, const char* key) {
 	assert(tree);
 	return add_symbol_impl(tree, tree->root, key, 0);
 }
 
 
-symbol_tree_leaf_t* get_symbol_by_key_impl(symbol_tree_leaf_t* node, const char* key) {
+Symbol_tree_leaf* get_symbol_by_key_impl(Symbol_tree_leaf* node, const char* key) {
 	assert(node);
 
 	int balance = strcmp(node->key, key);
@@ -92,7 +92,7 @@ symbol_tree_leaf_t* get_symbol_by_key_impl(symbol_tree_leaf_t* node, const char*
  * \param key Leaf key
  * \return If the leaf with the provided key exist, then it's returned, otherwise NULL
  */
-symbol_tree_leaf_t* get_symbol_by_key(symbol_tree_t* tree, const char* key) {
+Symbol_tree_leaf* get_symbol_by_key(Symbol_tree* tree, const char* key) {
 	assert(tree);
 	return get_symbol_by_key_impl(tree->root, key);
 }
@@ -100,7 +100,7 @@ symbol_tree_leaf_t* get_symbol_by_key(symbol_tree_t* tree, const char* key) {
 
 /*
  *Currently not available, in future it should be faster than searching by key
- *symbol_tree_leaf_t* get_symbol_by_id(const symbol_tree_leaf_t* root, const int id) {
+ *Symbol_tree_leaf* get_symbol_by_id(const Symbol_tree_leaf* root, const int id) {
 	assert(root);
 	assert(root->id != 0);
 	assert(id != 0);
