@@ -3,45 +3,47 @@
 #include <string.h>
 #include <ctype.h>
 #include "scanner.h"
+#include "gc.h"
 
 char *keywords[17] = {"boolean", "break", "class", "continue","do",
                     "double", "else", "false", "for", "if", "int",
                     "return", "String", "static", "true", "void", "while"};
 
-void char_append(char *tmp_string, int *tmp_string_len, unsigned char c){
+void char_append(char *tmp_string, unsigned int *tmp_string_len, unsigned char c){
     (*tmp_string_len)++;
-    tmp_string = (char *) gcrealloc(sizeof(char)*(*tmp_string_len));
-    if (tmp = NULL) {
+    tmp_string = (char *) gc_realloc(sizeof(char)*(*tmp_string_len));
+    /*if (tmp = NULL) {
         fprintf(stderr,"Memory allocation failed");
         //je treba hodit return alebo exit??
-    }
+    }*/
     tmp_string[(*tmp_string_len-2)] = c;
-    tmp_string[(*tmp_string_len)-1] = \0;
+    tmp_string[(*tmp_string_len)-1] = '\0';
 }
 
 
 Ttoken *get_token(FILE *fp){
     char *endptr;
-    bool read_file = true;
+    char c;
+    int read_file = 1;
     unsigned int tmp_string_len = 1;
-    long double line_no = 0;
+    long double line_no = 1;
 
     states state = FSM_INIT;
     
-    char *tmp_string = (char *) gcmalloc(sizeof(char)); //gcalloc??
+    char *tmp_string = (char *) gc_malloc(sizeof(char)); //gcalloc??
 
     //Ttoken *tok = gcmalloc(sizeof(Ttoken));
 
-    if (tmp_string = NULL) {
+    /*if (tmp_string = NULL) {
         fprintf(stderr, "Memory allocation failed");
         //je treba hodit return alebo exit??
     }
+    */
+    Ttoken *token = (Ttoken *) gc_malloc(sizeof(Ttoken)); //galloc??
 
-    Ttoken *token = (Ttoken *) malloc(sizeof(Ttoken)); //galloc??
-
-    if (token = NULL) {
+    /*if (token = NULL) {
         fprintf(stderr, "Memory allocation failed");
-    }
+    }*/
 
     while(read_file)    {
         c = fgetc(fp);
@@ -57,13 +59,13 @@ Ttoken *get_token(FILE *fp){
                         state = FSM_INIT;
                         continue;
                     }
-                    else if (isalpha(c) || c = '_') state = FSM_ID;
+                    else if ((isalpha(c)) || (c = '_') || (c = '$')) state = FSM_ID;
                     else if (isdigit(c))  state = FSM_INT;
                     else if (c == '*') state = FSM_MUL;
                     else if (c == '/') state = FSM_DIV;
                     else if (c == '+') state = FSM_ADD;
                     else if (c == '-') state = FSM_SUB;
-                    else if (c == ",") state = FSM_COMMA;
+                    else if (c == ',') state = FSM_COMMA;
                     else if (c == ';') state = FSM_SEMICOLON;                    
                     else if (c == '(') state = FSM_BRACKET_LROUND;
                     else if (c == ')') state = FSM_BRACKET_RROUND;
@@ -76,8 +78,12 @@ Ttoken *get_token(FILE *fp){
                     else if (c == '<') state = FSM_LOWER;
                     else if (c == '>') state = FSM_GREATER;                    
                     else if (c == '"') state = FSM_QUOTE;
-                    else if (c == 'EOF') state = FSM_EOF {
-                        //dopln
+                    else if (c == EOF) {
+                        read_file = 0;
+                        token->type = T_EOF;
+                        token->tlen = 0;
+                        token->line = line_no;
+                        continue;
                     }
                     else {
                         exit(1);
@@ -86,9 +92,19 @@ Ttoken *get_token(FILE *fp){
                     }
 
                 char_append(tmp_string, &tmp_string_len, c);
-                break;
+               
+               break;
 
-            case FSM_ID: //todo
+            case FSM_ID:
+                if ((isalpha(c)) || (isdigit(c)) || (c == '_') || (c == '$')) {
+                    char_append(tmp_string, &tmp_string_len, c);
+                    state = FSM_ID;
+                }
+                else if (c == '.') {
+
+                }
+
+
                 break;
             
             case FSM_INT: //todo
@@ -127,7 +143,7 @@ Ttoken *get_token(FILE *fp){
                     token->type = T_DOUBLE;
                     token->tlen = tmp_string_len-1;
                     token->line = line_no;
-                    token->d = strtof(tmp_string, &endptr, 10);
+                    token->d = strtof(tmp_string, &endptr);
                 }
 
                 break;
@@ -169,7 +185,7 @@ Ttoken *get_token(FILE *fp){
                     token->type = T_DOUBLE;
                     token->tlen = tmp_string_len-1;
                     token->line = line_no;
-                    token->d = strtof(tmp_string, &endptr, 10);
+                    token->d = strtof(tmp_string, &endptr);
                 }
 
                 break;
@@ -178,7 +194,7 @@ Ttoken *get_token(FILE *fp){
                 token->type = T_MUL;
                 token->tlen = tmp_string_len-1;
                 token->line = line_no;
-                toke->c = tmp_string;
+                token->c = tmp_string;
                 return token;
 
                 break;
@@ -325,6 +341,7 @@ Ttoken *get_token(FILE *fp){
 
             case FSM_LOWER:
                 if (c == '=') {
+                    char_append(tmp_string, &tmp_string_len, c);
                     token->type = T_LOWER_EQUAL;
                     token->tlen = tmp_string_len-1;
                     token->line = line_no;
@@ -343,6 +360,7 @@ Ttoken *get_token(FILE *fp){
 
             case FSM_GREATER:
                 if (c == '=') {
+                    char_append(tmp_string, &tmp_string_len, c);
                     token->type = T_GREATER_EQUAL;
                     token->tlen = tmp_string_len-1;
                     token->line = line_no;
