@@ -82,7 +82,7 @@ typedef enum {
 	FSM_BRACKET_RSQUARE,
 	FSM_BRACKET_LCURLY,
 	FSM_BRACKET_RCURLY,
-	FSM_COMMA
+	FSM_COMMA,
 	FSM_LOWER,			// "<"
 	FSM_GREATER,			// ">"
 	FSM_LOWER_EQUAL,		// "<="
@@ -95,7 +95,6 @@ typedef enum {
 	FSM_ESCAPE,
 	FSM_ESCAPE_OCTAL_1,
 	FSM_ESCAPE_OCTAL_2,
-	FSM_INT, 			// integer
 	FSM_DOUBLE,			// double
 	FSM_EXPONENT,
 	FSM_EXPONENT_SIGN,
@@ -126,13 +125,13 @@ typedef struct {
  * \return next available token
  * \todo nejspíš, tady bude argument něco jako *scanner context
  */
-token peek_token();
-
+//token peek_token();
+void char_append(char *tmp_string, unsigned int *tmp_string_len, unsigned char c);
 /**
  * \brief Consume next token from input file
  * \return next available token
  * \todo nejspíš, tady bude argument něco jako *scanner context
  */
-token get_token();
+Ttoken *get_token(FILE *fp);
 
 #endif
