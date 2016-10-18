@@ -27,29 +27,30 @@ typedef struct {
    t_Element *arr;
    int stack_size;
    int top_element;
-   int top_terminal; 
+   int top_token; 
 } t_Stack;
 
-//Precedenčná tabuľka
-const unsigned char precedense_tab[14][14] = {
-// M - more    L - less
-// E - equal   O - error
 
-//  +  -  *  /  <  >  <= >= == != (  )  id $  
-   {M, M, L, L, M, M, M, M, M, M, L, M, L, M,}, // +
-   {M, M, L, L, M, M, M, M, M, M, L, M, L, M,}, // -
-   {M, M, M, M, M, M, M, M, M, M, L, M, L, M,}, // *
-   {M, M, M, M, M, M, M, M, M, M, L, M, L, M,}, // /
-   {L, L, L, L, M, M, M, M, M, M, L, M, L, M,}, // <
-   {L, L, L, L, M, M, M, M, M, M, L, M, L, M,}, // >
-   {L, L, L, L, M, M, M, M, M, M, L, M, L, M,}, // <=
-   {L, L, L, L, M, M, M, M, M, M, L, M, L, M,}, // >=
-   {L, L, L, L, M, M, M, M, M, M, L, M, L, M,}, // ==
-   {L, L, L, L, M, M, M, M, M, M, L, M, L, M,}, // !=
-   {L, L, L, L, L, L, L, L, L, L, L, E, L, O,}, // (
-   {M, M, M, M, M, M, M, M, M, M, O, M, O, M,}, // )
-   {M, M, M, M, M, M, M, M, M, M, O, M, O, M,}, // id
-   {L, L, L, L, L, L, L, L, L, L, L, O, L, O,}, // $
+//Precedenčná tabuľka
+static const unsigned char precedence_tab[14][14] = {
+// 'M' - more    'L' - less
+// 'E' - equal   'O' - error
+
+//   +    -    *    /    <    >    <=   >=   ==   !=   (    )    id   $  
+   {'M', 'M', 'L', 'L', 'M', 'M', 'M', 'M', 'M', 'M', 'L', 'M', 'L', 'M'}, // +
+   {'M', 'M', 'L', 'L', 'M', 'M', 'M', 'M', 'M', 'M', 'L', 'M', 'L', 'M'}, // -
+   {'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'L', 'M', 'L', 'M'}, // *
+   {'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'L', 'M', 'L', 'M'}, // /
+   {'L', 'L', 'L', 'L', 'M', 'M', 'M', 'M', 'M', 'M', 'L', 'M', 'L', 'M'}, // <
+   {'L', 'L', 'L', 'L', 'M', 'M', 'M', 'M', 'M', 'M', 'L', 'M', 'L', 'M'}, // >
+   {'L', 'L', 'L', 'L', 'M', 'M', 'M', 'M', 'M', 'M', 'L', 'M', 'L', 'M'}, // <=
+   {'L', 'L', 'L', 'L', 'M', 'M', 'M', 'M', 'M', 'M', 'L', 'M', 'L', 'M'}, // >=
+   {'L', 'L', 'L', 'L', 'M', 'M', 'M', 'M', 'M', 'M', 'L', 'M', 'L', 'M'}, // ==
+   {'L', 'L', 'L', 'L', 'M', 'M', 'M', 'M', 'M', 'M', 'L', 'M', 'L', 'M'}, // !=
+   {'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'E', 'L', 'O'}, // (
+   {'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'O', 'M', 'O', 'M'}, // )
+   {'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'O', 'M', 'O', 'M'}, // id
+   {'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'O', 'L', 'O'}  // $
 };
 
 void stackInit (t_Stack* s);
