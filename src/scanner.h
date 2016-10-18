@@ -5,7 +5,7 @@
 * @author Korček Juraj <xkorce01@stud.fit.vutbr.cz>
 * @author Kovařík Viktor <xkovar77@stud.fit.vutbr.cz>
 */
-
+#include <stdio.h>
 #ifndef SCANNER_H_
 #define SCANNER_H_
 
@@ -14,28 +14,33 @@ typedef enum {
 	 * @todo přidat různé typy tokenů (identifikátor, typ, ...)
 	 */
 	 
-	 // tokens
-	 T_MUL,				// "*"
-	 T_DIV,				// "/""
+	 // START OF TOKENS WHICH CANNOT BE REORDERED 
 	 T_ADD,				// "+"
 	 T_SUB,				// "-"
+	 T_MUL,				// "*"
+	 T_DIV,				// "/""
 	 T_LOWER,			// "<"
 	 T_GREATER,			// ">"
 	 T_LOWER_EQUAL,		// "<="
 	 T_GREATER_EQUAL,	// ">="
 	 T_BOOL_EQUAL,		// "=="
 	 T_NOT_EQUAL,		// "!="
+	 T_BRACKET_LROUND,	// "("
+	 T_BRACKET_RROUND,	// ")"
+	 T_ID, 				// identifier
+	 T_DOT,				// "."
+	 // END OF TOKENS WHICH CANNOT BE REORDERED 
+
 	 T_ASSIGN,			// "="
 	 T_COMMA,			// ","
 	 // T_COLON			// ":"
 	 T_SEMICOLON,		// ";"
-	 T_BRACKET_LROUND,	// "("
-	 T_BRACKET_RROUND,	// ")"
+
 	 T_BRACKET_LSQUARE,	// "["
 	 T_BRACKET_RSQUARE,	// "]"
 	 T_BRACKET_LCURLY,	// "{"
 	 T_BRACKET_RCURLY,	// "}"
-	 T_ID, 				// identifier
+	 
 	 T_EOF,				// end of file
 	 T_INT, 			// integer
 	 T_DOUBLE,			// double
@@ -69,6 +74,8 @@ typedef enum {
 typedef enum {
 	FSM_INIT,
 	FSM_ID,
+	FSM_K_ID_1,
+	FSM_K_ID,
 	FSM_INT,
 	FSM_MUL,
 	FSM_DIV,
@@ -112,7 +119,7 @@ typedef struct {
 	unsigned int tlen;
 	long double line;
 	union {
-		long int li;
+		long int li;	// stacilo by aj int?
 		double d;
 		char *c;
 	};
