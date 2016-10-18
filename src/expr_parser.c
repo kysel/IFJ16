@@ -9,7 +9,6 @@
 
 #include "expr_parser.h"
 #include "gc.h"
-#include "return_codes.h"
 
 //Inicializácia (prázdneho) zásobníka
 void stackInit (t_Stack* s) {
@@ -40,30 +39,36 @@ void stackExpand (t_Stack* s) {
 
 //Vráti index terminálu, ktorý je najbližšie vrcholu zásobníku
 int findTopTerminal (t_Stack* s) {
-   for (int i = s->top_element; i <= 0; i--)
-      if (/*TODO*/s->arr[i].type == EOS || TOKEN )
+   for (int i = s->top_element; i >= 0; i--)
+      if (s->arr[i].type == EOS || s->arr[i].type == TOKEN )
          return i;
    return -1;
+}
+
+void stackSetStopBit (t_Stack* s) {
+   s->arr[s->top_terminal].stop_bit = 1;
 }
 
 void stackPop (t_Stack* s) {
    if (!stackEmpty(s)){
       s->top_element -= 1;
-      s->top_terminal = findTopTerminal(s);
+      s->top_terminal = findTopTerminal(s);  
    }
 }
 
 //Pridanie prvku na vrchol zásobníka
-void stackPush (t_Stack* s, t_Element element) {
+void stackPush (t_Stack* s, t_Element_Type type, void * address) {
    //Ak je zasobnik prázdny, je rozšírený
    if (stackFull(s)) 
       stackExpand(s);
-   else {
-      s->top_element += 1;
-      s->arr[s->top_element] = element;
-      if (/*TODO*/element.type == EOS || TOKEN )
-         s->top_terminal = s->top_element;
-   }  
+
+   s->top_element += 1;
+   s->arr[s->top_element].type = type;
+   s->arr[s->top_element].address = address;
+   s->arr[s->top_element].stop_bit = 0;
+   if (type == EOS || type == TOKEN )
+      s->top_terminal = s->top_element;
+     
 }
 
 /***

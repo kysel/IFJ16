@@ -9,34 +9,45 @@
 #include <stdlib.h>
 #include "scanner.h"
 #include "gc.h"
+#include "expr_parser.h"
 
 
-int main(int argc, char *argv[])
+int main()
 {
     gc_init();
-    for (int i=0; i!=50; i++) {
-        gc_alloc(50);
-    }
+
+    t_Stack* zasobnik = gc_alloc(sizeof(t_Stack));
+    stackInit(zasobnik);
+
+    stackPush(zasobnik, EOS, 2133132);
+    stackPush(zasobnik, TOKEN, 12);
+    stackPush(zasobnik, TOKEN, 12);
+    stackPush(zasobnik, TOKEN, 12);
+    stackPush(zasobnik, TOKEN, 12);
+
+    for (int i = 0; i <= zasobnik->top_element; i++)
+        printf("Type: %d, Address: %09d, StopBit: %d\n",zasobnik->arr[i].type,zasobnik->arr[i].address, zasobnik->arr[i].stop_bit);
+    printf("\n");
+    stackSetStopBit(zasobnik);
     
-    //return 0;
+    for (int i = 0; i <= zasobnik->top_element; i++)
+        printf("Type: %d, Address: %09d, StopBit: %d\n",zasobnik->arr[i].type,zasobnik->arr[i].address, zasobnik->arr[i].stop_bit);
+    printf("\n");
+    stackPush(zasobnik, TOKEN, 12);
+    stackPush(zasobnik, TOKEN, 12);
+    stackPush(zasobnik, TOKEN, 12);
 
-    if(argc == 1)
-        return -1;
-    FILE *fp;
+    for (int i = 0; i <= zasobnik->top_element; i++)
+        printf("Type: %d, Address: %09d, StopBit: %d\n",zasobnik->arr[i].type,zasobnik->arr[i].address, zasobnik->arr[i].stop_bit);
+    printf("\n");
+    while(zasobnik->arr[zasobnik->top_element].stop_bit != 1)
+        stackPop(zasobnik);
 
-    fp = fopen (argv[1],"r");
+    zasobnik->arr[zasobnik->top_terminal].stop_bit = 0;
 
-    if (fp == NULL)
-    {
-    fprintf(stderr, "Error opening file!\n");
-    return 99;
-    }
-    get_token(fp);
-       get_token(fp);
-    //Ttoken *t = (get_token(fp));
-    //printf("Zavolal som token");
-    //printf("TOKEN 1: %ld", t->li);
 
-    fclose(fp);
+    for (int i = 0; i <= zasobnik->top_element; i++)
+        printf("Type: %d, Address: %09d, StopBit: %d\n",zasobnik->arr[i].type,zasobnik->arr[i].address, zasobnik->arr[i].stop_bit);  
+    
     return 0;
 }

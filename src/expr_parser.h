@@ -12,20 +12,14 @@
 
 // Datový typ prvku na zásobníku
 typedef enum {
-      EOS, TOKEN, NODE, STOP
+      EOS, TOKEN, NODE
    } t_Element_Type;
-
-// Hodnota prvku na zásobníku
-typedef union {
-   //TODO 
-   void *token_ptr;
-   void *node_ptr;
-} t_Element_Value;
 
 //Prvok zásobníka
 typedef struct {
    t_Element_Type type;
-   t_Element_Value value;
+   void *address;
+   int stop_bit;
 } t_Element;
 
 //Zásobník
@@ -37,10 +31,31 @@ typedef struct {
 } t_Stack;
 
 //Precedenčná tabuľka
+const unsigned char precedense_tab[14][14] = {
+// M - more    L - less
+// E - equal   O - error
 
+//  +  -  *  /  <  >  <= >= == != (  )  id $  
+   {M, M, L, L, M, M, M, M, M, M, L, M, L, M,}, // +
+   {M, M, L, L, M, M, M, M, M, M, L, M, L, M,}, // -
+   {M, M, M, M, M, M, M, M, M, M, L, M, L, M,}, // *
+   {M, M, M, M, M, M, M, M, M, M, L, M, L, M,}, // /
+   {L, L, L, L, M, M, M, M, M, M, L, M, L, M,}, // <
+   {L, L, L, L, M, M, M, M, M, M, L, M, L, M,}, // >
+   {L, L, L, L, M, M, M, M, M, M, L, M, L, M,}, // <=
+   {L, L, L, L, M, M, M, M, M, M, L, M, L, M,}, // >=
+   {L, L, L, L, M, M, M, M, M, M, L, M, L, M,}, // ==
+   {L, L, L, L, M, M, M, M, M, M, L, M, L, M,}, // !=
+   {L, L, L, L, L, L, L, L, L, L, L, E, L, O,}, // (
+   {M, M, M, M, M, M, M, M, M, M, O, M, O, M,}, // )
+   {M, M, M, M, M, M, M, M, M, M, O, M, O, M,}, // id
+   {L, L, L, L, L, L, L, L, L, L, L, O, L, O,}, // $
+};
 
-void stackInit ( t_Stack* s );
-int stackEmpty ( const t_Stack* s );
-void stackTop ( const t_Stack* s, char* c );
-void stackPop ( t_Stack* s );
-void stackPush ( t_Stack* s, t_Element element );
+void stackInit (t_Stack* s);
+int stackEmpty (const t_Stack* s);
+int stackFull (const t_Stack* s);
+void stackExpand (t_Stack* s);
+int findTopTerminal (t_Stack* s);
+void stackPop (t_Stack* s);
+void stackPush (t_Stack* s, t_Element_Type type, void *address);
