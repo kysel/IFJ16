@@ -11,7 +11,7 @@ char *keywords[17] = {"boolean", "break", "class", "continue","do",
 
 void char_append(char *tmp_string, unsigned int *tmp_string_len, unsigned char c){
     (*tmp_string_len)++;
-    tmp_string = (char *) gc_realloc(sizeof(char)*(*tmp_string_len));
+    tmp_string = (char *) gc_realloc(tmp_string,sizeof(char)*(*tmp_string_len));
     /*if (tmp = NULL) {
         fprintf(stderr,"Memory allocation failed");
         //je treba hodit return alebo exit??
@@ -30,7 +30,7 @@ Ttoken *get_token(FILE *fp){
 
     states state = FSM_INIT;
     
-    char *tmp_string = (char *) gc_malloc(sizeof(char)); //gcalloc??
+    char *tmp_string = (char *) gc_alloc(sizeof(char)); //gcalloc??
 
     //Ttoken *tok = gcmalloc(sizeof(Ttoken));
 
@@ -39,27 +39,27 @@ Ttoken *get_token(FILE *fp){
         //je treba hodit return alebo exit??
     }
     */
-    Ttoken *token = (Ttoken *) gc_malloc(sizeof(Ttoken)); //galloc??
+    Ttoken *token = (Ttoken *) gc_alloc(sizeof(Ttoken)); //galloc??
 
     /*if (token = NULL) {
         fprintf(stderr, "Memory allocation failed");
     }*/
 
-    while(read_file)    {
+    do    {
         c = fgetc(fp);
-
         if (c != EOF) { // este porozmyslaj
-            if(c == '\n')
+            if(c == '\n') {
                 line_no ++;
-        }
+            }
 
+        }
         switch (state){
             case FSM_INIT:
                     if (isspace(c)){
                         state = FSM_INIT;
                         continue;
                     }
-                    else if ((isalpha(c)) || (c = '_') || (c = '$')) state = FSM_ID;
+                    else if ((isalpha(c)) || (c == '_') || (c == '$')) state = FSM_ID;
                     else if (isdigit(c))  state = FSM_INT;
                     else if (c == '*') state = FSM_MUL;
                     else if (c == '/') state = FSM_DIV;
@@ -80,19 +80,15 @@ Ttoken *get_token(FILE *fp){
                     else if (c == '"') state = FSM_QUOTE;
                     else if (c == EOF) {
                         read_file = 0;
-                        token->type = T_EOF;
-                        token->tlen = 0;
-                        token->line = line_no;
+                        
                         continue;
                     }
                     else {
-                        exit(1);
-                        // mam dat aj spravu na sdterr?
-                        // alebo return 99?
+                        exit(99);
+                        fprintf(stderr,"Unidentified lexem!");
                     }
 
                 char_append(tmp_string, &tmp_string_len, c);
-               
                break;
 
             case FSM_ID:
@@ -125,6 +121,8 @@ Ttoken *get_token(FILE *fp){
                     token->tlen = tmp_string_len-1;
                     token->line = line_no;
                     token->li = strtol(tmp_string, &endptr, 10); // bolo by dobre skontrolovat ci nepretieklo
+                    printf("CHARAPPEND: %s\n",tmp_string);
+                    return token;
                 }
 
                 break;
@@ -144,6 +142,7 @@ Ttoken *get_token(FILE *fp){
                     token->tlen = tmp_string_len-1;
                     token->line = line_no;
                     token->d = strtof(tmp_string, &endptr);
+                    return token;
                 }
 
                 break;
@@ -158,7 +157,7 @@ Ttoken *get_token(FILE *fp){
                 }
                 else {
                     fprintf(stderr, "SCANNER ERROR: Exponent error!\n");
-                    return 1;
+                    exit(1);
                 }
 
                 break;
@@ -170,7 +169,7 @@ Ttoken *get_token(FILE *fp){
                 }
                 else {
                     fprintf(stderr, "SCANNER ERROR: Exponent sign error!\n");
-                    return 1;
+                    exit(1);
                 }
 
                 break;
@@ -186,6 +185,7 @@ Ttoken *get_token(FILE *fp){
                     token->tlen = tmp_string_len-1;
                     token->line = line_no;
                     token->d = strtof(tmp_string, &endptr);
+                    return token;
                 }
 
                 break;
@@ -333,10 +333,11 @@ Ttoken *get_token(FILE *fp){
                     token->tlen = tmp_string_len-1;
                     token->line = line_no;
                     token->c = tmp_string;
+                    return token;
                 }
                 else {
                     fprintf(stderr, "SCANNER ERROR: Unidentified lexem!\n");
-                    return 1;
+                    exit(1);
                 }
 
             case FSM_LOWER:
@@ -346,6 +347,7 @@ Ttoken *get_token(FILE *fp){
                     token->tlen = tmp_string_len-1;
                     token->line = line_no;
                     token->c = tmp_string;
+                    return token;
                 }
                 else {
                     ungetc(c,fp);
@@ -354,6 +356,7 @@ Ttoken *get_token(FILE *fp){
                     token->tlen = tmp_string_len-1;
                     token->line = line_no;
                     token->c = tmp_string;
+                    return token;
                 }
 
                 break;
@@ -365,6 +368,7 @@ Ttoken *get_token(FILE *fp){
                     token->tlen = tmp_string_len-1;
                     token->line = line_no;
                     token->c = tmp_string;
+                    return token;
                 }
                 else {
                     ungetc(c,fp);
@@ -373,6 +377,7 @@ Ttoken *get_token(FILE *fp){
                     token->tlen = tmp_string_len-1;
                     token->line = line_no;
                     token->c = tmp_string;
+                    return token;
                 }
 
                 break;
@@ -404,7 +409,7 @@ Ttoken *get_token(FILE *fp){
                 }
                 else {
                     fprintf(stderr, "SCANNER ERROR: String escape sequence error!\n");
-                    return 1;
+                    exit(1);
                 }
 
                 break;
@@ -415,6 +420,7 @@ Ttoken *get_token(FILE *fp){
                 token->tlen = tmp_string_len-1;
                 token->line = line_no;
                 token->c = tmp_string;
+                return token;
 
                 break;
 
@@ -427,7 +433,7 @@ Ttoken *get_token(FILE *fp){
                 }
                 else {
                     fprintf(stderr, "SCANNER ERROR: String escape sequence error!\n");
-                    return 1;
+                    exit(1);
                 }
 
                 break;
@@ -439,7 +445,7 @@ Ttoken *get_token(FILE *fp){
                 }
                 else {
                     fprintf(stderr, "SCANNER ERROR: String escape sequence error!\n");
-                    return 1;
+                    exit(1);
                 }
 
                 break;
@@ -487,13 +493,25 @@ Ttoken *get_token(FILE *fp){
                 break;
             // end of auxiliary states for comments                 
         }
+ 
+    } while(read_file);
 
-    }
-
+token->type = T_EOF;
+token->tlen = 0;
+token->line = line_no;
+return token;
+ 
+//tuna chce navratovu hodnotu
 }
-
+/*
 int main(int argc, char *argv[])
 {
+    gc_init();
+    for (int i=0; i!=50; i++) {
+        gc_alloc(50);
+    }
+    return 0;
+
     if(argc == 1)
         return -1;
 
@@ -507,8 +525,9 @@ int main(int argc, char *argv[])
     return 99;
     }
 
-    get_token(fp);
+    //get_token(fp);
 
     fclose(fp);
     return 0;
 }
+*/

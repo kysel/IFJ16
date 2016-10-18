@@ -85,11 +85,11 @@ typedef enum {
 	FSM_COMMA,
 	FSM_LOWER,			// "<"
 	FSM_GREATER,			// ">"
-	FSM_LOWER_EQUAL,		// "<="
-	FSM_GREATER_EQUAL,	// ">="
+	//FSM_LOWER_EQUAL,		// "<="
+	//FSM_GREATER_EQUAL,	// ">="
 	//FSM_BOOL_EQUAL,		// "=="
 	FSM_NOT,			// "!"
-	FSM_NOT_EQUAL,		// "!="
+	//FSM_NOT_EQUAL,		// "!="
 	//FSM_ASSIGN,			// "="
 	FSM_QUOTE,
 	FSM_ESCAPE,
@@ -103,7 +103,7 @@ typedef enum {
 	FSM_COMMENT_LINE,			// comment
 	FSM_COMMENT_BLOCK,
 	FSM_COMMENT_BLOCK_FIN,
-	FSM_EOF,
+	//FSM_EOF,
 
 }states;
 
