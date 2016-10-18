@@ -28,7 +28,7 @@ typedef enum {
 	 T_BRACKET_LROUND,	// "("
 	 T_BRACKET_RROUND,	// ")"
 	 T_ID, 				// identifier
-	 T_DOT				// "."
+	 T_DOT,				// "."
 	 // END OF TOKENS WHICH CANNOT BE REORDERED 
 
 	 T_ASSIGN,			// "="
