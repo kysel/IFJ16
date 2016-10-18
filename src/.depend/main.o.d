@@ -1,3 +1,5 @@
-main.o: main.c gc.h
+main.o: main.c scanner.h gc.h
+
+scanner.h:
 
 gc.h:
