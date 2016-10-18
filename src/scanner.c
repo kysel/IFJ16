@@ -84,8 +84,8 @@ Ttoken *get_token(FILE *fp){
                         continue;
                     }
                     else {
-                        exit(99);
                         fprintf(stderr,"Unidentified lexem!");
+                        exit(99);                        
                     }
 
                 char_append(tmp_string, &tmp_string_len, c);
