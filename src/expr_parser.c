@@ -84,8 +84,21 @@ void stackApplyRule(t_Stack* s) {
          stackPop(s);
       } 
    }
-   //TODO if (element_array[0].type == EOS && element_array[1].type == EOS)
+/*
+   printf("zlucovanie\n");
 
+   if (element_array[0].type == EOS && element_array[1].type == EOS && element_array[2].type == TOKEN) {
+      printf("Uzol obsahuje cislo, alebo premennu.\n");
+   }
+   else if (element_array[0].type == NODE && element_array[1].type == TOKEN && element_array[2].type == NODE) {
+      Ttoken *operator = element_array[1].address;
+      switch(operator->type) {
+         case T_MUL: printf("Uzol obsahuje nasobenie.\n"); break;
+         case T_ADD: printf("Uzol obsahuje scitovanie\n"); break;
+         default: printf("Uzol obsahuje inu opraciu\n"); break;
+      }
+   }
+*/
    //TODO 
    stackPush(s, NODE, NULL);
 }
@@ -127,6 +140,30 @@ int terminal2TabIndex(void * terminal) {
  * 
  */
 
+void printStack(t_Stack *s) {
+   Ttoken *token;
+   for (int i = 0; i <= s->top_element; i++) {
+      switch(s->arr[i].type) {
+         case EOS: printf("$"); break;
+         case NODE: printf("A"); break;
+         case TOKEN: 
+            token = s->arr[i].address; 
+            if (token->type == T_ADD)
+               printf("+");
+            else if (token->type == T_MUL)
+               printf("*");
+            else if (token->type == T_INT)
+               printf("1");
+            else
+               printf("x");
+            break;
+      };
+      if (s->arr[i].stop_bit)
+         printf("<");
+   }
+   printf("\n");
+}
+
 void parseExppression(FILE *file) {
    t_Stack* stack = gc_alloc(sizeof(t_Stack));
    stackInit(stack);
@@ -136,10 +173,9 @@ void parseExppression(FILE *file) {
    Ttoken *b = get_token(file);
    
    do {   
-      printf("TOKEN A:%d\n",terminal2TabIndex(a));
-      printf("TOKEN B:%d\n",terminal2TabIndex(b));   
-      printf("TAB[%d,%d] symbol: %c\n",terminal2TabIndex(a), terminal2TabIndex(b), precedence_tab[terminal2TabIndex(a)][terminal2TabIndex(b)]);
-
+      
+      printf("Stary token B:%d\n",terminal2TabIndex(b));
+      printf("symbol: %c\n", precedence_tab[terminal2TabIndex(a)][terminal2TabIndex(b)]);
       switch(precedence_tab[terminal2TabIndex(a)][terminal2TabIndex(b)]){
          case 'E':
             stackPush(stack, TOKEN, b);
@@ -161,15 +197,9 @@ void parseExppression(FILE *file) {
             exit(1);
             break;   
          }
-      
-      for (int i = 0; i <= stack->top_element; i++) {
-         char character[2] = {'\0','\0'};
-         if (stack->arr[i].stop_bit)
-            character[0] = '<';
-         printf("%d%s", stack->arr[i].type, &character);
-      }
+      printf("Novy token B:%d\n",terminal2TabIndex(b));
+      printStack(stack);
       printf("\n");
-
       //Aktualizuje hodnotu top_token
       a = stack->arr[stack->top_token].address;
    } while (a != NULL || b->type != T_EOF);
