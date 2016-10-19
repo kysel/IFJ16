@@ -74,8 +74,8 @@ typedef enum {
 typedef enum {
 	FSM_INIT,
 	FSM_ID,
-	FSM_K_ID_1,
-	FSM_K_ID,
+	//FSM_K_ID_1,
+	//FSM_K_ID,
 	FSM_INT,
 	FSM_MUL,
 	FSM_DIV,
@@ -110,6 +110,7 @@ typedef enum {
 	FSM_COMMENT_LINE,			// comment
 	FSM_COMMENT_BLOCK,
 	FSM_COMMENT_BLOCK_FIN,
+	FSM_DOT, // '.'
 	//FSM_EOF,
 
 }states;
