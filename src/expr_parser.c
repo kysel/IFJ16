@@ -7,6 +7,7 @@
 * @author Kovařík Viktor <xkovar77@stud.fit.vutbr.cz>
 */
 
+#include <stdlib.h>
 #include "expr_parser.h"
 #include "gc.h"
 
@@ -68,14 +69,36 @@ void stackPush (t_Stack* s, t_Element_Type type, void * address) {
    s->arr[s->top_element].stop_bit = 0;
    if (type == EOS || type == TOKEN )
       s->top_token = s->top_element;
-     
+}
+
+void stackApplyRule(t_Stack* s) {
+   t_Element element_array[3] = {{EOS, NULL, 0},{EOS, NULL, 0},{EOS, NULL, 0}};
+
+   for (int i = 2; i >= 0; i--) {
+      if (s->arr[s->top_element].stop_bit == 1) {
+         s->arr[s->top_element].stop_bit = 0;
+         break;
+      }
+      else {
+         element_array[i] = s->arr[s->top_element];
+         stackPop(s);
+      } 
+   }
+   //TODO if (element_array[0].type == EOS && element_array[1].type == EOS)
+
+   //TODO 
+   stackPush(s, NODE, NULL);
 }
 
 //
-int token2TabIndex(Ttoken * token) {
-   //Jediný "token", ktorý má adresu nula je EOS - End of Stack - Dno zásobníka
-   if (token == NULL)
+int terminal2TabIndex(void * terminal) {
+   //Jediný terminál, ktorý má adresu nula je EOS - End of Stack - Dno zásobníka
+   if (terminal == NULL)
       return 13;
+
+   //Ak má terminál adresu rôznu od NULL, ide o token
+   //Konverzia pointeru na terminál na pointer na token 
+   Ttoken *token = terminal;
    switch(token->type) {
       case T_ADD: return 0;
       case T_SUB: return 1;
@@ -89,7 +112,7 @@ int token2TabIndex(Ttoken * token) {
       case T_NOT_EQUAL: return 9;
       case T_BRACKET_LROUND: return 10;
       case T_BRACKET_RROUND: return 11;
-      case T_ID: return 12;
+      case T_ID: case T_INT: return 12;
       case T_EOF: case T_COMMA: return 13;
       default: return -1;//TODO error;
    }
@@ -109,11 +132,15 @@ void parseExppression(FILE *file) {
    stackInit(stack);
    stackPush(stack, EOS, NULL);
 
-   Ttoken *a = stack->arr[stack->top_token].address;
+   void *a = stack->arr[stack->top_token].address;
    Ttoken *b = get_token(file);
    
-   do {
-      switch(precedence_tab[token2TabIndex(a)][token2TabIndex(b)]){
+   do {   
+      printf("TOKEN A:%d\n",terminal2TabIndex(a));
+      printf("TOKEN B:%d\n",terminal2TabIndex(b));   
+      printf("TAB[%d,%d] symbol: %c\n",terminal2TabIndex(a), terminal2TabIndex(b), precedence_tab[terminal2TabIndex(a)][terminal2TabIndex(b)]);
+
+      switch(precedence_tab[terminal2TabIndex(a)][terminal2TabIndex(b)]){
          case 'E':
             stackPush(stack, TOKEN, b);
             b = get_token(file);
@@ -126,17 +153,24 @@ void parseExppression(FILE *file) {
             break;
          
          case 'M':
-            /* TODO 
-            stackApplyRule(s); 
-            */
+            stackApplyRule(stack); 
             break;
          
          default:
-            //TODO ERROR
+            //TODO Treba uvoľniť pamäť, vypísať chybové hlásenie a až potom exit. Skontroluj všade!
+            exit(1);
             break;   
          }
       
+      for (int i = 0; i <= stack->top_element; i++) {
+         char character[2] = {'\0','\0'};
+         if (stack->arr[i].stop_bit)
+            character[0] = '<';
+         printf("%d%s", stack->arr[i].type, &character);
+      }
+      printf("\n");
+
       //Aktualizuje hodnotu top_token
       a = stack->arr[stack->top_token].address;
-   } while (a != NULL || /*TODO*/b->type != EOF);
+   } while (a != NULL || b->type != T_EOF);
 }
