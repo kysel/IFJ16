@@ -74,7 +74,9 @@ void stackPush (t_Stack* s, t_Element_Type type, void * address) {
 void stackApplyRule(t_Stack* s) {
    t_Element element_array[3] = {{EOS, NULL, 0},{EOS, NULL, 0},{EOS, NULL, 0}};
 
-   for (int i = 2; i >= 0; i--) {
+   while(1) {
+      int i = 2;
+
       if (s->arr[s->top_element].stop_bit == 1) {
          s->arr[s->top_element].stop_bit = 0;
          break;
@@ -82,7 +84,8 @@ void stackApplyRule(t_Stack* s) {
       else {
          element_array[i] = s->arr[s->top_element];
          stackPop(s);
-      } 
+      }
+      i--; 
    }
 /*
    printf("zlucovanie\n");
@@ -167,23 +170,12 @@ void printStack(t_Stack *s) {
 void parseExppression(FILE *file) {
    t_Stack* stack = gc_alloc(sizeof(t_Stack));
    stackInit(stack);
-   //stackPush(stack, EOS, NULL);
+   stackPush(stack, EOS, NULL);
 
    void *a = stack->arr[stack->top_token].address;
-   //Ttoken *b = get_token(file);
+   Ttoken *b = get_token(file);
    
-   stackPush(stack, TOKEN, get_token(file));
-   stackPush(stack, TOKEN, get_token(file));
-   stackPush(stack, TOKEN, get_token(file));
-   stackPush(stack, TOKEN, get_token(file));
-   stackPush(stack, TOKEN, get_token(file));
-   stackPush(stack, TOKEN, get_token(file));
-   
-   printStack(stack);
-   /*do {   
-      
-      printf("Stary token B:%d\n",terminal2TabIndex(b));
-      printf("symbol: %c\n", precedence_tab[terminal2TabIndex(a)][terminal2TabIndex(b)]);
+   do {   
       switch(precedence_tab[terminal2TabIndex(a)][terminal2TabIndex(b)]){
          case 'E':
             stackPush(stack, TOKEN, b);
@@ -205,11 +197,8 @@ void parseExppression(FILE *file) {
             exit(1);
             break;   
          }
-      printf("Novy token B:%d\n",terminal2TabIndex(b));
+
       printStack(stack);
-      printf("\n");
-      //Aktualizuje hodnotu top_token
       a = stack->arr[stack->top_token].address;
    } while (a != NULL || b->type != T_EOF);
-*/
 }
