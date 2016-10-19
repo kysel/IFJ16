@@ -8,20 +8,43 @@
 char *keywords[17] = {"boolean", "break", "class", "continue","do",
                     "double", "else", "false", "for", "if", "int",
                     "return", "String", "static", "true", "void", "while"};
+/*
+void char_append(char *tmp_string, unsigned char c){
+    size_t tmp_string_len;
+    tmp_string_len = strlen(tmp_string);
+    tmp_string = (char *) gc_realloc(tmp_string,sizeof(char)*(tmp_string_len + 2));
+
+    tmp_string[tmp_string_len] = c;
+    tmp_string[(tmp_string_len)+1] = '\0';
+}
+*/
+
 
 void char_append(char *tmp_string, unsigned int *tmp_string_len, unsigned char c){
     (*tmp_string_len)++;
     tmp_string = (char *) gc_realloc(tmp_string,sizeof(char)*(*tmp_string_len));
-    /*if (tmp = NULL) {
-        fprintf(stderr,"Memory allocation failed");
-        //je treba hodit return alebo exit??
-    }*/
+
     tmp_string[(*tmp_string_len-2)] = c;
     tmp_string[(*tmp_string_len)-1] = '\0';
 }
 
+char *is_keyword(char *tmp_string) {
+    char *found_kw;
+    for (int i = 0; i <= 16; i++) {
+        if (!(strcmp(tmp_string,keywords[i]))) {
+            found_kw = keywords[i];
+        }
+        else {
+            found_kw = NULL;
+        }
+        
+ }       
+    return found_kw;
+}
+
 
 Ttoken *get_token(FILE *fp){
+    char *kw_ptr;
     char *endptr;
     char c;
     int read_file = 1;
@@ -31,6 +54,8 @@ Ttoken *get_token(FILE *fp){
     states state = FSM_INIT;
     
     char *tmp_string = (char *) gc_alloc(sizeof(char)); //gcalloc??
+
+    //char *tmp_string = (char *) gc_alloc(sizeof(char)*2); //gcalloc??
 
     //Ttoken *tok = gcmalloc(sizeof(Ttoken));
 
@@ -78,15 +103,21 @@ Ttoken *get_token(FILE *fp){
                     else if (c == '<') state = FSM_LOWER;
                     else if (c == '>') state = FSM_GREATER;                    
                     else if (c == '"') state = FSM_QUOTE;
+                    else if (c == '.') state = FSM_DOT;
                     else if (c == EOF) {
                         read_file = 0;
-                        
+                        // domysli este, bude continue vhodne
                         continue;
                     }
                     else {
                         fprintf(stderr,"Unidentified lexem!");
                         exit(1);                        
                     }
+
+                /*
+                tmp_string[0]= c;
+                tmp_string[1]= '\0'; 
+                */
 
                 char_append(tmp_string, &tmp_string_len, c);
                break;
@@ -96,14 +127,179 @@ Ttoken *get_token(FILE *fp){
                     char_append(tmp_string, &tmp_string_len, c);
                     state = FSM_ID;
                 }
-                else if (c == '.') {
-
+                else {
+                    ungetc(c,fp);
+                    kw_ptr = (is_keyword(tmp_string));
+                    if(kw_ptr == NULL) {
+                        token->type = T_ID;
+                        token->tlen = tmp_string_len-1;
+                        token->line = line_no;
+                        token->c = tmp_string;
+                        return token;
+                    }
+                    else {
+                        if (strcmp(kw_ptr, "boolean") == 0) {
+                            token->type = K_BOOL;
+                            token->tlen = 7;
+                            token->line = line_no;
+                            token->c = kw_ptr;
+                            return token;
+                        }
+                        else if (strcmp(kw_ptr, "break") == 0) {
+                            token->type = K_BREAK;
+                            token->tlen = 5;
+                            token->line = line_no;
+                            token->c = kw_ptr;
+                            return token;
+                        }
+                        else if (strcmp(kw_ptr, "class") == 0) {
+                            token->type = K_CLASS;
+                            token->tlen = 5;
+                            token->line = line_no;
+                            token->c = kw_ptr;
+                            return token;
+                        }
+                        else if (strcmp(kw_ptr, "continue") == 0) {
+                            token->type = K_CONTINUE;
+                            token->tlen = 8;
+                            token->line = line_no;
+                            token->c = kw_ptr;
+                            return token;
+                        }
+                        else if (strcmp(kw_ptr, "do") == 0) {
+                            token->type = K_DO;
+                            token->tlen = 2;
+                            token->line = line_no;
+                            token->c = kw_ptr;
+                            return token;
+                        }
+                        else if (strcmp(kw_ptr, "double") == 0) {
+                            token->type = K_DOUBLE;
+                            token->tlen = 5;
+                            token->line = line_no;
+                            token->c = kw_ptr;
+                            return token;
+                        }
+                        else if (strcmp(kw_ptr, "else") == 0) {
+                            token->type = K_ELSE;
+                            token->tlen = 4;
+                            token->line = line_no;
+                            token->c = kw_ptr;
+                            return token;
+                        }
+                        else if (strcmp(kw_ptr, "false") == 0) {
+                            token->type = K_FALSE;
+                            token->tlen = 5;
+                            token->line = line_no;
+                            token->c = kw_ptr;
+                            return token;
+                        }
+                        else if (strcmp(kw_ptr, "for") == 0) {
+                            token->type = K_FOR;
+                            token->tlen = 3;
+                            token->line = line_no;
+                            token->c = kw_ptr;
+                            return token;
+                        }
+                        else if (strcmp(kw_ptr, "if") == 0) {
+                            token->type = K_IF;
+                            token->tlen = 2;
+                            token->line = line_no;
+                            token->c = kw_ptr;
+                            return token;
+                        }
+                        else if (strcmp(kw_ptr, "int") == 0) {
+                            token->type = K_INT;
+                            token->tlen = 3;
+                            token->line = line_no;
+                            token->c = kw_ptr;
+                            return token;
+                        }
+                        else if (strcmp(kw_ptr, "return") == 0) {
+                            token->type = K_RETURN;
+                            token->tlen = 6;
+                            token->line = line_no;
+                            token->c = kw_ptr;
+                            return token;
+                        }
+                        else if (strcmp(kw_ptr, "string") == 0) {
+                            token->type = K_STRING;
+                            token->tlen = 6;
+                            token->line = line_no;
+                            token->c = kw_ptr;
+                            return token;
+                        }
+                        else if (strcmp(kw_ptr, "static") == 0) {
+                            token->type = K_STATIC;
+                            token->tlen = 6;
+                            token->line = line_no;
+                            token->c = kw_ptr;
+                            return token;
+                        }
+                        else if (strcmp(kw_ptr, "true") == 0) {
+                            token->type = K_TRUE;
+                            token->tlen = 4;
+                            token->line = line_no;
+                            token->c = kw_ptr;
+                            return token;
+                        }
+                        else if (strcmp(kw_ptr, "void") == 0) {
+                            token->type = K_VOID;
+                            token->tlen = 4;
+                            token->line = line_no;
+                            token->c = kw_ptr;
+                            return token;
+                        }
+                        else if (strcmp(kw_ptr, "while") == 0) {
+                            token->type = K_WHILE;
+                            token->tlen = 5;
+                            token->line = line_no;
+                            token->c = kw_ptr;
+                            return token;
+                        }
+                    }
                 }
 
 
                 break;
+
+            case FSM_DOT:
+                ungetc(c,fp);
+                token->type = T_DOT;
+                token->tlen = tmp_string_len-1;
+                token->line = line_no;
+                token->c = tmp_string;
+                return token;
+
+                break;
+            /*
+            case FSM_K_ID:
+                if ((isalpha(c)) || (isdigit(c)) || (c == '_') || (c == '$')) {
+                    char_append(tmp_string, &tmp_string_len, c);
+                    state = FSM_K_ID;
+                }
+                else {
+                    ungetc(c,fp);
+                    //porovnanie s keywords
+                }
+
+                break;
             
-            case FSM_INT: //todo
+            // START OF AUXILIARY STATES FOR IDs
+            case FSM_K_ID_1:
+                if ((isalpha(c)) || (c == '_') || (c == '$')) {
+                    char_append(tmp_string, &tmp_string_len, c);
+                    state = FSM_K_ID;
+                }
+                else {
+                    fprintf(stderr,"Unidentified lexem!");
+                    exit(1); 
+                }
+
+                break;
+            // END OF AUXILIARY STATES FOR IDs
+            */
+            case FSM_INT:
                 if (isdigit(c)) {
                     state = FSM_INT;
                     char_append(tmp_string, &tmp_string_len, c);
@@ -121,7 +317,6 @@ Ttoken *get_token(FILE *fp){
                     token->tlen = tmp_string_len-1;
                     token->line = line_no;
                     token->li = strtol(tmp_string, &endptr, 10); // bolo by dobre skontrolovat ci nepretieklo
-                    printf("CHARAPPEND: %s\n",tmp_string);
                     return token;
                 }
 
@@ -191,6 +386,7 @@ Ttoken *get_token(FILE *fp){
                 break;
 
             case FSM_MUL:
+                ungetc(c,fp);
                 token->type = T_MUL;
                 token->tlen = tmp_string_len-1;
                 token->line = line_no;
@@ -218,6 +414,7 @@ Ttoken *get_token(FILE *fp){
                 break;
 
             case FSM_ADD:
+                ungetc(c,fp);
                 token->type = T_ADD;
                 token->tlen = tmp_string_len-1;
                 token->line = line_no;
@@ -227,6 +424,7 @@ Ttoken *get_token(FILE *fp){
                 break;
 
             case FSM_SUB:
+                ungetc(c,fp);
                 token->type = T_SUB;
                 token->tlen = tmp_string_len-1;
                 token->line = line_no;
@@ -236,6 +434,7 @@ Ttoken *get_token(FILE *fp){
                 break;
 
             case FSM_COMMA:
+                ungetc(c,fp);
                 token->type = T_COMMA;
                 token->tlen = tmp_string_len-1;
                 token->line = line_no;
@@ -245,6 +444,7 @@ Ttoken *get_token(FILE *fp){
                 break;
 
             case FSM_SEMICOLON:
+                ungetc(c,fp);
                 token->type = T_SEMICOLON;
                 token->tlen = tmp_string_len-1;
                 token->line = line_no;
@@ -254,6 +454,7 @@ Ttoken *get_token(FILE *fp){
                 break;
 
             case FSM_BRACKET_LROUND:
+                ungetc(c,fp);
                 token->type = T_BRACKET_LROUND;
                 token->tlen = tmp_string_len-1;
                 token->line = line_no;
@@ -263,6 +464,7 @@ Ttoken *get_token(FILE *fp){
                 break;
 
             case FSM_BRACKET_RROUND:
+                ungetc(c,fp);
                 token->type = T_BRACKET_RROUND;
                 token->tlen = tmp_string_len-1;
                 token->line = line_no;
@@ -272,6 +474,7 @@ Ttoken *get_token(FILE *fp){
                 break;
 
             case FSM_BRACKET_LSQUARE:
+                ungetc(c,fp);
                 token->type = T_BRACKET_LSQUARE;
                 token->tlen = tmp_string_len-1;
                 token->line = line_no;
@@ -281,6 +484,7 @@ Ttoken *get_token(FILE *fp){
                 break;
             
             case FSM_BRACKET_RSQUARE:
+                ungetc(c,fp);
                 token->type = T_BRACKET_RSQUARE;
                 token->tlen = tmp_string_len-1;
                 token->line = line_no;
@@ -290,6 +494,7 @@ Ttoken *get_token(FILE *fp){
                 break;
 
             case FSM_BRACKET_LCURLY:
+                ungetc(c,fp);
                 token->type = T_BRACKET_LCURLY;
                 token->tlen = tmp_string_len-1;
                 token->line = line_no;
@@ -299,6 +504,7 @@ Ttoken *get_token(FILE *fp){
                 break;
 
             case FSM_BRACKET_RCURLY:
+                ungetc(c,fp);
                 token->type = T_BRACKET_RCURLY;
                 token->tlen = tmp_string_len-1;
                 token->line = line_no;
