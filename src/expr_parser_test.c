@@ -15,7 +15,5 @@ int main(int argc, char* argv[])
    gc_init();
    FILE *file = fopen(argv[1], "r");
    parseExppression(file);
-   /**/
-   printf("ahoj\n");
    return 1;   
 }

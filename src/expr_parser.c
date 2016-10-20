@@ -1,4 +1,4 @@
-/** Interpretr jazyka IFJ16
+   /** Interpretr jazyka IFJ16
 * @file expr_parser.c
 * @author Kyzlink Jiří <xkyzli02@stud.fit.vutbr.cz>
 * @author Kubiš Juraj <xkubis15@stud.fit.vutbr.cz>
@@ -29,13 +29,10 @@ int stackFull (const t_Stack* s) {
 
 //Rozšírenie zásobníka o 5 prvkov
 void stackExpand (t_Stack* s) {
-   void *p = gc_realloc(s->arr, (s->stack_size + 5) * sizeof(t_Element)); 
+   t_Element *p = gc_realloc(s->arr, (s->stack_size + 5) * sizeof(t_Element)); 
 
-   if (p){
-      s->arr = p; 
-      s->stack_size += 5;
-   } 
-   /*else TODO MALLOC ERROR*/      
+   s->arr = p; 
+   s->stack_size += 5;
 }
 
 //Vráti index terminálu, ktorý je najbližšie vrcholu zásobníku
@@ -60,9 +57,10 @@ void stackPop (t_Stack* s) {
 //Pridanie prvku na vrchol zásobníka
 void stackPush (t_Stack* s, t_Element_Type type, void * address) {
    //Ak je zasobnik prázdny, je rozšírený
-   if (stackFull(s)) 
+   if (stackFull(s)){
       stackExpand(s);
-
+   }
+   
    s->top_element += 1;
    s->arr[s->top_element].type = type;
    s->arr[s->top_element].address = address;
@@ -87,21 +85,7 @@ void stackApplyRule(t_Stack* s) {
       }
       i--; 
    }
-/*
-   printf("zlucovanie\n");
 
-   if (element_array[0].type == EOS && element_array[1].type == EOS && element_array[2].type == TOKEN) {
-      printf("Uzol obsahuje cislo, alebo premennu.\n");
-   }
-   else if (element_array[0].type == NODE && element_array[1].type == TOKEN && element_array[2].type == NODE) {
-      Ttoken *operator = element_array[1].address;
-      switch(operator->type) {
-         case T_MUL: printf("Uzol obsahuje nasobenie.\n"); break;
-         case T_ADD: printf("Uzol obsahuje scitovanie\n"); break;
-         default: printf("Uzol obsahuje inu opraciu\n"); break;
-      }
-   }
-*/
    //TODO 
    stackPush(s, NODE, NULL);
 }
@@ -170,11 +154,37 @@ void printStack(t_Stack *s) {
 void parseExppression(FILE *file) {
    t_Stack* stack = gc_alloc(sizeof(t_Stack));
    stackInit(stack);
-   stackPush(stack, EOS, NULL);
 
+   for (int i = 0; i < 15; i++) {
+      get_token(file);
+      stackPush(stack, EOS, NULL);
+   }
+   
+   printStack(stack);
+/*
+   stackPush(stack, TOKEN, get_token(file));
+   stackPush(stack, TOKEN, get_token(file));
+   stackPush(stack, TOKEN, get_token(file));
+   stackPush(stack, TOKEN, get_token(file));
+   stackPush(stack, TOKEN, get_token(file));
+   stackPush(stack, TOKEN, get_token(file));
+   stackPush(stack, TOKEN, get_token(file));
+   stackPush(stack, TOKEN, get_token(file));
+   stackPush(stack, TOKEN, get_token(file));
+   stackPush(stack, TOKEN, get_token(file));
+   stackPush(stack, TOKEN, get_token(file));
+   stackPush(stack, TOKEN, get_token(file));
+   stackPush(stack, TOKEN, get_token(file));
+   stackPush(stack, TOKEN, get_token(file));
+   
+
+   
+   
+   printStack(stack);
+   
    void *a = stack->arr[stack->top_token].address;
    Ttoken *b = get_token(file);
-   
+
    do {   
       switch(precedence_tab[terminal2TabIndex(a)][terminal2TabIndex(b)]){
          case 'E':
@@ -185,7 +195,9 @@ void parseExppression(FILE *file) {
          case 'L': 
             stackSetStopBit(stack);
             stackPush(stack, TOKEN, b);
+            printf("daj token\n");
             b = get_token(file);
+            printf("dostal som token\n");
             break;
          
          case 'M':
@@ -201,4 +213,5 @@ void parseExppression(FILE *file) {
       printStack(stack);
       a = stack->arr[stack->top_token].address;
    } while (a != NULL || b->type != T_EOF);
+*/
 }
