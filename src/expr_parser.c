@@ -29,7 +29,7 @@ int stackFull (const t_Stack* s) {
 
 //Rozšírenie zásobníka o 5 prvkov
 void stackExpand (t_Stack* s) {
-   t_Element *p = gc_realloc(s->arr, (s->stack_size + 5) * sizeof(t_Element)); 
+   t_Element *p = realloc(s->arr, (s->stack_size + 5) * sizeof(t_Element)); 
 
    s->arr = p; 
    s->stack_size += 5;
@@ -137,10 +137,20 @@ void printStack(t_Stack *s) {
             token = s->arr[i].address; 
             if (token->type == T_ADD)
                printf("+");
+            else if (token->type == T_SUB)
+               printf("-");
             else if (token->type == T_MUL)
                printf("*");
+            else if (token->type == T_DIV)
+               printf("/");
             else if (token->type == T_INT)
                printf("1");
+            else if (token->type == T_BRACKET_LROUND)
+               printf("(");
+            else if (token->type == T_BRACKET_RROUND)
+               printf(")");
+            else if (token->type == T_BOOL_EQUAL)
+               printf("==");
             else
                printf("x");
             break;
@@ -154,33 +164,7 @@ void printStack(t_Stack *s) {
 void parseExppression(FILE *file) {
    t_Stack* stack = gc_alloc(sizeof(t_Stack));
    stackInit(stack);
-
-   for (int i = 0; i < 15; i++) {
-      get_token(file);
-      stackPush(stack, EOS, NULL);
-   }
-   
-   printStack(stack);
-/*
-   stackPush(stack, TOKEN, get_token(file));
-   stackPush(stack, TOKEN, get_token(file));
-   stackPush(stack, TOKEN, get_token(file));
-   stackPush(stack, TOKEN, get_token(file));
-   stackPush(stack, TOKEN, get_token(file));
-   stackPush(stack, TOKEN, get_token(file));
-   stackPush(stack, TOKEN, get_token(file));
-   stackPush(stack, TOKEN, get_token(file));
-   stackPush(stack, TOKEN, get_token(file));
-   stackPush(stack, TOKEN, get_token(file));
-   stackPush(stack, TOKEN, get_token(file));
-   stackPush(stack, TOKEN, get_token(file));
-   stackPush(stack, TOKEN, get_token(file));
-   stackPush(stack, TOKEN, get_token(file));
-   
-
-   
-   
-   printStack(stack);
+   stackPush(stack, EOS, NULL);
    
    void *a = stack->arr[stack->top_token].address;
    Ttoken *b = get_token(file);
@@ -195,9 +179,7 @@ void parseExppression(FILE *file) {
          case 'L': 
             stackSetStopBit(stack);
             stackPush(stack, TOKEN, b);
-            printf("daj token\n");
             b = get_token(file);
-            printf("dostal som token\n");
             break;
          
          case 'M':
@@ -213,5 +195,4 @@ void parseExppression(FILE *file) {
       printStack(stack);
       a = stack->arr[stack->top_token].address;
    } while (a != NULL || b->type != T_EOF);
-*/
 }
