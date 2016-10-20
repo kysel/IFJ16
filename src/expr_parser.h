@@ -61,4 +61,5 @@ int findTopTerminal (t_Stack* s);
 void stackPop (t_Stack* s);
 void stackPush (t_Stack* s, t_Element_Type type, void *address);
 int token2TabIndex(Ttoken * token);
+void printStack(t_Stack *s);
 void parseExppression(FILE *file);
