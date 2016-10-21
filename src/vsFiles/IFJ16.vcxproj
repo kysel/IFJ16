@@ -41,10 +41,13 @@
     <RemoteCCompileToolExe>gcc</RemoteCCompileToolExe>
   </PropertyGroup>
   <ItemGroup>
+    <ClCompile Include="..\expr_parser.c" />
+    <ClCompile Include="..\expr_parser_test.c" />
     <ClCompile Include="..\gc.c" />
-    <ClCompile Include="..\main.c" />
+    <ClCompile Include="..\scanner.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\expr_parser.h" />
     <ClInclude Include="..\gc.h" />
     <ClInclude Include="..\return_codes.h" />
     <ClInclude Include="..\scanner.h" />
