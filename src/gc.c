@@ -82,11 +82,12 @@ void gc_init() {
 */
 void *gc_realloc(void* ptr, size_t size) {
 	list_atom_t* atom = ptr == NULL ? NULL : (list_atom_t*)((char *)ptr - sizeof(list_atom_t));
-	// ReSharper disable once CppNonReclaimedResourceAcquisition
-	void *ret = realloc(atom, sizeof(list_atom_t) + size);
 
 	if (atom)
 		remove_from_alloc_list(atom);
+
+	// ReSharper disable once CppNonReclaimedResourceAcquisition
+	void *ret = realloc(atom, sizeof(list_atom_t) + size);
 
 	last_atom->next = ret;
 	((list_atom_t *)ret)->prev = last_atom;
