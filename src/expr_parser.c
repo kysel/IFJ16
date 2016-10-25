@@ -29,7 +29,7 @@
 
    //Rozšírenie zásobníka o 5 prvkov
    void stackExpand (t_Stack* s) {
-      t_Element *p = realloc(s->arr, (s->stack_size + 5) * sizeof(t_Element)); 
+      t_Element *p = gc_realloc(s->arr, (s->stack_size + 5) * sizeof(t_Element)); 
 
       s->arr = p; 
       s->stack_size += 5;
