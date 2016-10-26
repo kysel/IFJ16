@@ -20,7 +20,7 @@ void char_append(char *tmp_string, unsigned char c){
 */
 
 
-void char_append(char *tmp_string, unsigned int *tmp_string_len, unsigned char c){
+void char_append(char *tmp_string, unsigned int *tmp_string_len, unsigned char c) {
     (*tmp_string_len)++;
     tmp_string = (char *) gc_realloc(tmp_string,sizeof(char)*(*tmp_string_len));
 
@@ -33,17 +33,29 @@ char *is_keyword(char *tmp_string) {
     for (int i = 0; i <= 16; i++) {
         if (!(strcmp(tmp_string,keywords[i]))) {
             found_kw = keywords[i];
+                return found_kw;
         }
         else {
+
             found_kw = NULL;
         }
         
- }       
+ }     
+
     return found_kw;
 }
 
+Ttoken *peek_token(FILE *fp) {
+    Ttoken *p_token = get_token(fp);
 
-Ttoken *get_token(FILE *fp){
+    long position = (long)(p_token->tlen);
+    fseek(fp, -position,SEEK_CUR); //nebude to pomale? 
+
+    return p_token; 
+}
+
+
+Ttoken *get_token(FILE *fp) {
     char *kw_ptr;
     char *endptr;
     char c;
@@ -69,6 +81,8 @@ Ttoken *get_token(FILE *fp){
     /*if (token = NULL) {
         fprintf(stderr, "Memory allocation failed");
     }*/
+
+    token->whence = ftell(fp);
 
     do    {
         c = fgetc(fp);

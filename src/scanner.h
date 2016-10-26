@@ -119,6 +119,7 @@ typedef struct {
 	token_type type;
 	unsigned int tlen;
 	long double line;
+	long whence;
 	union {
 		long int li;	// stacilo by aj int?
 		double d;
@@ -140,6 +141,10 @@ void char_append(char *tmp_string, unsigned int *tmp_string_len, unsigned char c
  * \return next available token
  * \todo nejspíš, tady bude argument něco jako *scanner context
  */
+char *is_keyword(char *tmp_string);
+
+Ttoken *peek_token(FILE *fp);
+
 Ttoken *get_token(FILE *fp);
 
 #endif
