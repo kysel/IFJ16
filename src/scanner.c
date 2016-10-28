@@ -1,4 +1,4 @@
-#include <stdio.h>
+//#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -18,6 +18,15 @@ void char_append(char *tmp_string, unsigned char c){
     tmp_string[(tmp_string_len)+1] = '\0';
 }
 */
+
+Tinit *init_scanner(FILE *fp) { 
+    long long n = 1;
+    Tinit *scanner_struct = gc_alloc(sizeof(Tinit));
+    scanner_struct->f = fp;
+    scanner_struct->line = n;
+    return scanner_struct;
+
+}
 
 
 void char_append(char *tmp_string, unsigned int *tmp_string_len, unsigned char c) {
@@ -45,23 +54,23 @@ char *is_keyword(char *tmp_string) {
     return found_kw;
 }
 
-Ttoken *peek_token(FILE *fp) {
-    Ttoken *p_token = get_token(fp);
+Ttoken *peek_token(Tinit *scanner_struct) {
+    Ttoken *p_token = get_token(scanner_struct);
 
     long position = (long)(p_token->tlen);
-    fseek(fp, -position,SEEK_CUR); //nebude to pomale? 
+    fseek(scanner_struct->f, -position,SEEK_CUR); //nebude to pomale? 
 
     return p_token; 
 }
 
 
-Ttoken *get_token(FILE *fp) {
+Ttoken *get_token(Tinit *scanner_struct) {
     char *kw_ptr;
     char *endptr;
     char c;
     int read_file = 1;
     unsigned int tmp_string_len = 1;
-    long double line_no = 1;
+    //long double line_no = 1;
 
     states state = FSM_INIT;
     
@@ -82,20 +91,20 @@ Ttoken *get_token(FILE *fp) {
         fprintf(stderr, "Memory allocation failed");
     }*/
 
-    token->whence = ftell(fp);
+    token->whence = ftell(scanner_struct->f);
 
     do    {
-        c = fgetc(fp);
-        if (c != EOF) { // este porozmyslaj
-            if(c == '\n') {
-                line_no ++;
-            }
+        c = fgetc(scanner_struct->f);
 
-        }
         switch (state){
             case FSM_INIT:
                     if (isspace(c)){
                         state = FSM_INIT;
+                        if (c != EOF) { // este porozmyslaj
+                            if(c == '\n') {
+                            (scanner_struct->line)++;
+                            }
+                        }
                         continue;
                     }
                     else if ((isalpha(c)) || (c == '_') || (c == '$')) state = FSM_ID;
@@ -142,12 +151,12 @@ Ttoken *get_token(FILE *fp) {
                     state = FSM_ID;
                 }
                 else {
-                    ungetc(c,fp);
+                    ungetc(c,scanner_struct->f);
                     kw_ptr = (is_keyword(tmp_string));
                     if(kw_ptr == NULL) {
                         token->type = T_ID;
                         token->tlen = tmp_string_len-1;
-                        token->line = line_no;
+                        token->line = scanner_struct->line;
                         token->c = tmp_string;
                         return token;
                     }
@@ -155,119 +164,119 @@ Ttoken *get_token(FILE *fp) {
                         if (strcmp(kw_ptr, "boolean") == 0) {
                             token->type = K_BOOL;
                             token->tlen = 7;
-                            token->line = line_no;
+                            token->line = scanner_struct->line;
                             token->c = kw_ptr;
                             return token;
                         }
                         else if (strcmp(kw_ptr, "break") == 0) {
                             token->type = K_BREAK;
                             token->tlen = 5;
-                            token->line = line_no;
+                            token->line = scanner_struct->line;
                             token->c = kw_ptr;
                             return token;
                         }
                         else if (strcmp(kw_ptr, "class") == 0) {
                             token->type = K_CLASS;
                             token->tlen = 5;
-                            token->line = line_no;
+                            token->line = scanner_struct->line;
                             token->c = kw_ptr;
                             return token;
                         }
                         else if (strcmp(kw_ptr, "continue") == 0) {
                             token->type = K_CONTINUE;
                             token->tlen = 8;
-                            token->line = line_no;
+                            token->line = scanner_struct->line;
                             token->c = kw_ptr;
                             return token;
                         }
                         else if (strcmp(kw_ptr, "do") == 0) {
                             token->type = K_DO;
                             token->tlen = 2;
-                            token->line = line_no;
+                            token->line = scanner_struct->line;
                             token->c = kw_ptr;
                             return token;
                         }
                         else if (strcmp(kw_ptr, "double") == 0) {
                             token->type = K_DOUBLE;
                             token->tlen = 5;
-                            token->line = line_no;
+                            token->line = scanner_struct->line;
                             token->c = kw_ptr;
                             return token;
                         }
                         else if (strcmp(kw_ptr, "else") == 0) {
                             token->type = K_ELSE;
                             token->tlen = 4;
-                            token->line = line_no;
+                            token->line = scanner_struct->line;
                             token->c = kw_ptr;
                             return token;
                         }
                         else if (strcmp(kw_ptr, "false") == 0) {
                             token->type = K_FALSE;
                             token->tlen = 5;
-                            token->line = line_no;
+                            token->line = scanner_struct->line;
                             token->c = kw_ptr;
                             return token;
                         }
                         else if (strcmp(kw_ptr, "for") == 0) {
                             token->type = K_FOR;
                             token->tlen = 3;
-                            token->line = line_no;
+                            token->line = scanner_struct->line;
                             token->c = kw_ptr;
                             return token;
                         }
                         else if (strcmp(kw_ptr, "if") == 0) {
                             token->type = K_IF;
                             token->tlen = 2;
-                            token->line = line_no;
+                            token->line = scanner_struct->line;
                             token->c = kw_ptr;
                             return token;
                         }
                         else if (strcmp(kw_ptr, "int") == 0) {
                             token->type = K_INT;
                             token->tlen = 3;
-                            token->line = line_no;
+                            token->line = scanner_struct->line;
                             token->c = kw_ptr;
                             return token;
                         }
                         else if (strcmp(kw_ptr, "return") == 0) {
                             token->type = K_RETURN;
                             token->tlen = 6;
-                            token->line = line_no;
+                            token->line = scanner_struct->line;
                             token->c = kw_ptr;
                             return token;
                         }
                         else if (strcmp(kw_ptr, "string") == 0) {
                             token->type = K_STRING;
                             token->tlen = 6;
-                            token->line = line_no;
+                            token->line = scanner_struct->line;
                             token->c = kw_ptr;
                             return token;
                         }
                         else if (strcmp(kw_ptr, "static") == 0) {
                             token->type = K_STATIC;
                             token->tlen = 6;
-                            token->line = line_no;
+                            token->line = scanner_struct->line;
                             token->c = kw_ptr;
                             return token;
                         }
                         else if (strcmp(kw_ptr, "true") == 0) {
                             token->type = K_TRUE;
                             token->tlen = 4;
-                            token->line = line_no;
+                            token->line = scanner_struct->line;
                             token->c = kw_ptr;
                             return token;
                         }
                         else if (strcmp(kw_ptr, "void") == 0) {
                             token->type = K_VOID;
                             token->tlen = 4;
-                            token->line = line_no;
+                            token->line = scanner_struct->line;
                             token->c = kw_ptr;
                             return token;
                         }
                         else if (strcmp(kw_ptr, "while") == 0) {
                             token->type = K_WHILE;
                             token->tlen = 5;
-                            token->line = line_no;
+                            token->line = scanner_struct->line;
                             token->c = kw_ptr;
                             return token;
                         }
@@ -278,10 +287,10 @@ Ttoken *get_token(FILE *fp) {
                 break;
 
             case FSM_DOT:
-                ungetc(c,fp);
+                ungetc(c,scanner_struct->f);
                 token->type = T_DOT;
                 token->tlen = tmp_string_len-1;
-                token->line = line_no;
+                token->line = scanner_struct->line;
                 token->c = tmp_string;
                 return token;
 
@@ -293,7 +302,7 @@ Ttoken *get_token(FILE *fp) {
                     state = FSM_K_ID;
                 }
                 else {
-                    ungetc(c,fp);
+                    ungetc(c,scanner_struct->f);
                     //porovnanie s keywords
                 }
 
@@ -326,10 +335,10 @@ Ttoken *get_token(FILE *fp) {
                     char_append(tmp_string, &tmp_string_len, c);
                 }
                 else {
-                    ungetc(c,fp);
+                    ungetc(c,scanner_struct->f);
                     token->type = T_INT;
                     token->tlen = tmp_string_len-1;
-                    token->line = line_no;
+                    token->line = scanner_struct->line;
                     token->li = strtol(tmp_string, &endptr, 10); // bolo by dobre skontrolovat ci nepretieklo
                     return token;
                 }
@@ -346,10 +355,10 @@ Ttoken *get_token(FILE *fp) {
                     char_append(tmp_string, &tmp_string_len, c);
                 }
                 else {
-                    ungetc(c,fp);
+                    ungetc(c,scanner_struct->f);
                     token->type = T_DOUBLE;
                     token->tlen = tmp_string_len-1;
-                    token->line = line_no;
+                    token->line = scanner_struct->line;
                     token->d = strtof(tmp_string, &endptr);
                     return token;
                 }
@@ -389,10 +398,10 @@ Ttoken *get_token(FILE *fp) {
                     char_append(tmp_string, &tmp_string_len, c);  
                 }
                 else {
-                    ungetc(c,fp);
+                    ungetc(c,scanner_struct->f);
                     token->type = T_DOUBLE;
                     token->tlen = tmp_string_len-1;
-                    token->line = line_no;
+                    token->line = scanner_struct->line;
                     token->d = strtof(tmp_string, &endptr);
                     return token;
                 }
@@ -400,10 +409,10 @@ Ttoken *get_token(FILE *fp) {
                 break;
 
             case FSM_MUL:
-                ungetc(c,fp);
+                ungetc(c,scanner_struct->f);
                 token->type = T_MUL;
                 token->tlen = tmp_string_len-1;
-                token->line = line_no;
+                token->line = scanner_struct->line;
                 token->c = tmp_string;
                 return token;
 
@@ -416,11 +425,11 @@ Ttoken *get_token(FILE *fp) {
                 else if (c == '*')
                     state = FSM_COMMENT_BLOCK;
                 else {
-                    ungetc(c,fp);
+                    ungetc(c,scanner_struct->f);
                     //tmp_string[1] = '\0';
                     token->type = T_DIV;
                     token->tlen = tmp_string_len-1;
-                    token->line = line_no;
+                    token->line = scanner_struct->line;
                     token->c = tmp_string;
                     return token;
                 }
@@ -428,100 +437,100 @@ Ttoken *get_token(FILE *fp) {
                 break;
 
             case FSM_ADD:
-                ungetc(c,fp);
+                ungetc(c,scanner_struct->f);
                 token->type = T_ADD;
                 token->tlen = tmp_string_len-1;
-                token->line = line_no;
+                token->line = scanner_struct->line;
                 token->c = tmp_string;
                 return token;
 
                 break;
 
             case FSM_SUB:
-                ungetc(c,fp);
+                ungetc(c,scanner_struct->f);
                 token->type = T_SUB;
                 token->tlen = tmp_string_len-1;
-                token->line = line_no;
+                token->line = scanner_struct->line;
                 token->c = tmp_string;
                 return token;
 
                 break;
 
             case FSM_COMMA:
-                ungetc(c,fp);
+                ungetc(c,scanner_struct->f);
                 token->type = T_COMMA;
                 token->tlen = tmp_string_len-1;
-                token->line = line_no;
+                token->line = scanner_struct->line;
                 token->c = tmp_string;
                 return token;
 
                 break;
 
             case FSM_SEMICOLON:
-                ungetc(c,fp);
+                ungetc(c,scanner_struct->f);
                 token->type = T_SEMICOLON;
                 token->tlen = tmp_string_len-1;
-                token->line = line_no;
+                token->line = scanner_struct->line;
                 token->c = tmp_string;
                 return token;
 
                 break;
 
             case FSM_BRACKET_LROUND:
-                ungetc(c,fp);
+                ungetc(c,scanner_struct->f);
                 token->type = T_BRACKET_LROUND;
                 token->tlen = tmp_string_len-1;
-                token->line = line_no;
+                token->line = scanner_struct->line;
                 token->c = tmp_string;
                 return token;
 
                 break;
 
             case FSM_BRACKET_RROUND:
-                ungetc(c,fp);
+                ungetc(c,scanner_struct->f);
                 token->type = T_BRACKET_RROUND;
                 token->tlen = tmp_string_len-1;
-                token->line = line_no;
+                token->line = scanner_struct->line;
                 token->c = tmp_string;
                 return token;
 
                 break;
 
             case FSM_BRACKET_LSQUARE:
-                ungetc(c,fp);
+                ungetc(c,scanner_struct->f);
                 token->type = T_BRACKET_LSQUARE;
                 token->tlen = tmp_string_len-1;
-                token->line = line_no;
+                token->line = scanner_struct->line;
                 token->c = tmp_string;
                 return token;
 
                 break;
             
             case FSM_BRACKET_RSQUARE:
-                ungetc(c,fp);
+                ungetc(c,scanner_struct->f);
                 token->type = T_BRACKET_RSQUARE;
                 token->tlen = tmp_string_len-1;
-                token->line = line_no;
+                token->line = scanner_struct->line;
                 token->c = tmp_string;
                 return token;
 
                 break;
 
             case FSM_BRACKET_LCURLY:
-                ungetc(c,fp);
+                ungetc(c,scanner_struct->f);
                 token->type = T_BRACKET_LCURLY;
                 token->tlen = tmp_string_len-1;
-                token->line = line_no;
+                token->line = scanner_struct->line;
                 token->c = tmp_string;
                 return token;
 
                 break;
 
             case FSM_BRACKET_RCURLY:
-                ungetc(c,fp);
+                ungetc(c,scanner_struct->f);
                 token->type = T_BRACKET_RCURLY;
                 token->tlen = tmp_string_len-1;
-                token->line = line_no;
+                token->line = scanner_struct->line;
                 token->c = tmp_string;
                 return token;
 
@@ -531,16 +540,16 @@ Ttoken *get_token(FILE *fp) {
                 if (c == '=') {
                     token->type = T_BOOL_EQUAL;
                     token->tlen = tmp_string_len-1;
-                    token->line = line_no;
+                    token->line = scanner_struct->line;
                     token->c = tmp_string;
                     return token;
                 }
                 else {
-                    ungetc(c,fp);
+                    ungetc(c,scanner_struct->f);
                     //tmp_string[1] = '\0';
                     token->type = T_ASSIGN;
                     token->tlen = tmp_string_len-1;
-                    token->line = line_no;
+                    token->line = scanner_struct->line;
                     token->c = tmp_string;
                     return token;
                 }
@@ -551,7 +560,7 @@ Ttoken *get_token(FILE *fp) {
                 if (c == '=') {
                     token->type = T_NOT_EQUAL;
                     token->tlen = tmp_string_len-1;
-                    token->line = line_no;
+                    token->line = scanner_struct->line;
                     token->c = tmp_string;
                     return token;
                 }
@@ -565,16 +574,16 @@ Ttoken *get_token(FILE *fp) {
                     char_append(tmp_string, &tmp_string_len, c);
                     token->type = T_LOWER_EQUAL;
                     token->tlen = tmp_string_len-1;
-                    token->line = line_no;
+                    token->line = scanner_struct->line;
                     token->c = tmp_string;
                     return token;
                 }
                 else {
-                    ungetc(c,fp);
+                    ungetc(c,scanner_struct->f);
                     //tmp_string[1] = '\0';
                     token->type = T_LOWER;
                     token->tlen = tmp_string_len-1;
-                    token->line = line_no;
+                    token->line = scanner_struct->line;
                     token->c = tmp_string;
                     return token;
                 }
@@ -586,16 +595,16 @@ Ttoken *get_token(FILE *fp) {
                     char_append(tmp_string, &tmp_string_len, c);
                     token->type = T_GREATER_EQUAL;
                     token->tlen = tmp_string_len-1;
-                    token->line = line_no;
+                    token->line = scanner_struct->line;
                     token->c = tmp_string;
                     return token;
                 }
                 else {
-                    ungetc(c,fp);
+                    ungetc(c,scanner_struct->f);
                     tmp_string[1] = '\0';
                     token->type = T_GREATER;
                     token->tlen = tmp_string_len-1;
-                    token->line = line_no;
+                    token->line = scanner_struct->line;
                     token->c = tmp_string;
                     return token;
                 }
@@ -635,10 +644,10 @@ Ttoken *get_token(FILE *fp) {
                 break;
 
             case FSM_STRING:
-                ungetc(c,fp);
+                ungetc(c,scanner_struct->f);
                 token->type = T_STRING;
                 token->tlen = tmp_string_len-1;
-                token->line = line_no;
+                token->line = scanner_struct->line;
                 token->c = tmp_string;
                 return token;
 
@@ -718,7 +727,7 @@ Ttoken *get_token(FILE *fp) {
 
 token->type = T_EOF;
 token->tlen = 0;
-token->line = line_no;
+token->line = scanner_struct->line;
 return token;
  
 //tuna chce navratovu hodnotu

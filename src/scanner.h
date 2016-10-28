@@ -118,7 +118,7 @@ typedef enum {
 typedef struct {
 	token_type type;
 	unsigned int tlen;
-	long double line;
+	long long line;
 	long whence;
 	union {
 		long int li;	// stacilo by aj int?
@@ -127,7 +127,10 @@ typedef struct {
 	};
 }Ttoken;
 
-
+typedef struct {
+	FILE *f;
+	long long line;
+}Tinit;
 
 /**
  * \brief Return next token from input file. <B>It does NOT consume the token</B>
@@ -143,8 +146,10 @@ void char_append(char *tmp_string, unsigned int *tmp_string_len, unsigned char c
  */
 char *is_keyword(char *tmp_string);
 
-Ttoken *peek_token(FILE *fp);
+Tinit *init_scanner(FILE *fp);
 
-Ttoken *get_token(FILE *fp);
+Ttoken *peek_token(Tinit *scanner_struct);
+
+Ttoken *get_token(Tinit *scanner_struct) ;
 
 #endif
