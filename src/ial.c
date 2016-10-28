@@ -25,18 +25,36 @@ int find(char* s, char* search) {
 	
 	int lenSearch = strlen(search); //zjistujeme delku hledaneho retezce
 	int lenString = strlen(s); //zjistujeme delku textoveho retezce
-	int *p = malloc((sizeof(int *) * lenSearch+1));	 //alokace pole
 	
-	int i = 1;
-	int j = 1;
+	int *p = malloc(sizeof(int *) * (lenSearch+1));	 //alokace pole
+	//int *p = gc_realloc(*p,(sizeof(int *) * (lenSearch+1)));
+	//int *p = gc_alloc(sizeof(int *) * (lenSearch+1));
+	p[0] = -1;
+	
+	int k = 1;
+	int l; int m;
+	
+	while (k < lenString) {
+		l=k-1;
+		m=l;
+		do {
+   			m=p[m];
+		} while ( (m==0 || s[m]==s[l]) );
+		p[k]=m+1;
+		k++;
+	}
+        
+	int i = 0;	//indexy jsou od nuly
+	int j = 0;
 	 
-	 while ((i <= lenString) && (j <= lenSearch)) {
-	 	while ((j > 0) && (search[j] != s[i])) {
+	 while ((i < lenString) && (j < lenSearch)) {
+	 	while ((j >= 0) && (search[j] != s[i])) {
       		j = p[j];
       	}
       	i++; j++;
 	 }
-	if (j > lenSearch) position = i-j+1;
+	//printf("hledany delka = %d  i = %d, j = %d \n", lenSearch, i, j); //debug info
+	if (j <= lenSearch) position = i-j+1;
     else position = 0;
     free (p);
     return position;

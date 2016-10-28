@@ -13,7 +13,7 @@
 int main()
 {
 	char* search = "abc";
-    char* string = "abcdefghijklmnabcd";
+    char* string = "1123456789abcdefghijklmnabcd";
 	printf("pozice: %d \n", find(string, search));
 	return 0;
 }
