@@ -13,7 +13,27 @@
 int main()
 {
 	char* search = "abc";
-    char* string = "1123456789abcdefghijklmnabcd";
+    char* string = "123456789abcdefghijklmnabcd";
+    
+    printf("hledam \"%s\" v retezci %s\n", search, string);
+    
 	printf("pozice: %d \n", find(string, search));
+	
+//	------	//
+	char* search2 = "";
+    
+    printf("hledam \"%s\" v retezci %s\n", search2, string);
+    
+	printf("pozice: %d \n", find(string, search2));
+		
+//	------	//
+
+	char* search3 = NULL;
+    
+    printf("hledam \"%s\" v retezci %s\n", search3, string);
+    
+	printf("pozice: %d \n", find(string, search3));
+		
+//	------	//
 	return 0;
 }

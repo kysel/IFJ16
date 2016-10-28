@@ -20,7 +20,9 @@ int find(char* s, char* search) {
 	int position = -1; //defaultne vracena hodnota vyskytu
 	
 	if (search == NULL) 
-		return position; //hledame-li prazdny string, vracim default hodnotu
+		return position; 
+	if (search == "") 		//hledame-li prazdny string, vracim default hodnotu
+		return 0;
 		
 	
 	int lenSearch = strlen(search); //zjistujeme delku hledaneho retezce
@@ -57,6 +59,8 @@ int find(char* s, char* search) {
 	if (j <= lenSearch) position = i-j+1;
     else position = 0;
     free (p);
+    
+    
     return position;
 }
 
