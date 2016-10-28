@@ -12,6 +12,8 @@
 
 int main()
 {
+	gc_init();
+	
 	char* search = "abc";
     char* string = "123456789abcdefghijklmnabcd";
     
@@ -20,6 +22,7 @@ int main()
 	printf("pozice: %d \n", find(string, search));
 	
 //	------	//
+
 	char* search2 = "";
     
     printf("hledam \"%s\" v retezci %s\n", search2, string);
@@ -35,5 +38,22 @@ int main()
 	printf("pozice: %d \n", find(string, search3));
 		
 //	------	//
+
+	char* search4 = "\n";
+    
+    printf("hledam \"%s\" v retezci %s\n", search4, string);
+    
+	printf("pozice: %d \n", find(string, search4));
+		
+//	------	//
+
+	char* search5 = "\0";
+    
+    printf("hledam \\0 v retezci %s\n", string);
+    
+	printf("pozice: %d \n", find(string, search5));
+		
+//	------	//
+
 	return 0;
 }

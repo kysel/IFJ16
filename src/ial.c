@@ -19,16 +19,15 @@ int find(char* s, char* search) {
 
 	int position = -1; //defaultne vracena hodnota vyskytu
 	
-	if (search == NULL) 
-		return position; 
-	if (search == "") 		//hledame-li prazdny string, vracim default hodnotu
+	if (!search) 	//hledame-li prazdny string, vracim defaultní hodnotu
+		return position; 		
+	if (strcmp(search,"") == 0)	//hledame-li prazdny string, vracim 0
 		return 0;
-		
 	
 	int lenSearch = strlen(search); //zjistujeme delku hledaneho retezce
 	int lenString = strlen(s); //zjistujeme delku textoveho retezce
 	
-	int *p = malloc(sizeof(int *) * (lenSearch+1));	 //alokace pole
+	int *p = malloc(sizeof(int) * lenString);	 //alokace pole
 	//int *p = gc_realloc(*p,(sizeof(int *) * (lenSearch+1)));
 	//int *p = gc_alloc(sizeof(int *) * (lenSearch+1));
 	p[0] = -1;
