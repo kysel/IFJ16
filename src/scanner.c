@@ -29,12 +29,13 @@ Tinit *init_scanner(FILE *fp) {
 }
 
 
-void char_append(char *tmp_string, unsigned int *tmp_string_len, unsigned char c) {
+char* char_append(char *tmp_string, unsigned int *tmp_string_len, unsigned char c) {
     (*tmp_string_len)++;
     tmp_string = (char *) gc_realloc(tmp_string,sizeof(char)*(*tmp_string_len));
 
     tmp_string[(*tmp_string_len-2)] = c;
     tmp_string[(*tmp_string_len)-1] = '\0';
+	return tmp_string;
 }
 
 char *is_keyword(char *tmp_string) {
@@ -75,6 +76,7 @@ Ttoken *get_token(Tinit *scanner_struct) {
     states state = FSM_INIT;
     
     char *tmp_string = (char *) gc_alloc(sizeof(char)); //gcalloc??
+	tmp_string[0] = 0;
 
     //char *tmp_string = (char *) gc_alloc(sizeof(char)*2); //gcalloc??
 
@@ -141,12 +143,12 @@ Ttoken *get_token(Tinit *scanner_struct) {
                 tmp_string[0]= c;
                 tmp_string[1]= '\0'; 
                 */
-                char_append(tmp_string, &tmp_string_len, c);
+                tmp_string = char_append(tmp_string, &tmp_string_len, c);
                break;
 
             case FSM_ID:
                 if ((isalpha(c)) || (isdigit(c)) || (c == '_') || (c == '$')) {
-                    char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
                     state = FSM_ID;
                 }
                 else {
@@ -297,7 +299,7 @@ Ttoken *get_token(Tinit *scanner_struct) {
             /*
             case FSM_K_ID:
                 if ((isalpha(c)) || (isdigit(c)) || (c == '_') || (c == '$')) {
-                    char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
                     state = FSM_K_ID;
                 }
                 else {
@@ -310,7 +312,7 @@ Ttoken *get_token(Tinit *scanner_struct) {
             // START OF AUXILIARY STATES FOR IDs
             case FSM_K_ID_1:
                 if ((isalpha(c)) || (c == '_') || (c == '$')) {
-                    char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
                     state = FSM_K_ID;
                 }
                 else {
@@ -324,15 +326,15 @@ Ttoken *get_token(Tinit *scanner_struct) {
             case FSM_INT:
                 if (isdigit(c)) {
                     state = FSM_INT;
-                    char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
                 }
                 else if (c == '.') {
-                    char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
                     state = FSM_DOUBLE;
                 }
                 else if ((c == 'E') || (c == 'e')) {
                     state = FSM_EXPONENT;
-                    char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
                 }
                 else {
                     ungetc(c,scanner_struct->f);
@@ -348,11 +350,11 @@ Ttoken *get_token(Tinit *scanner_struct) {
             case FSM_DOUBLE:
                 if (isdigit(c)) {
                     state = FSM_DOUBLE;
-                    char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
                 }
                 else if ((c == 'E') || (c == 'e')) {
                     state = FSM_EXPONENT;
-                    char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
                 }
                 else {
                     ungetc(c,scanner_struct->f);
@@ -368,11 +370,11 @@ Ttoken *get_token(Tinit *scanner_struct) {
             case FSM_EXPONENT:
                 if ((c == '+') || (c == '-')) {
                     state = FSM_EXPONENT_SIGN;
-                    char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
                 }
                 else if (isdigit(c)) {
                     state = FSM_EXPONENT_2;
-                    char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
                 }
                 else {
                     fprintf(stderr, "SCANNER ERROR: Exponent error!\n");
@@ -384,7 +386,7 @@ Ttoken *get_token(Tinit *scanner_struct) {
             case FSM_EXPONENT_SIGN:
                 if (isdigit(c)) {
                     state = FSM_EXPONENT_2;
-                    char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
                 }
                 else {
                     fprintf(stderr, "SCANNER ERROR: Exponent sign error!\n");
@@ -396,7 +398,7 @@ Ttoken *get_token(Tinit *scanner_struct) {
             case FSM_EXPONENT_2:
                 if (isdigit(c)) {
                     state = FSM_EXPONENT_2;
-                    char_append(tmp_string, &tmp_string_len, c);  
+                    tmp_string = char_append(tmp_string, &tmp_string_len, c);  
                 }
                 else {
                     ungetc(c,scanner_struct->f);
@@ -572,7 +574,7 @@ Ttoken *get_token(Tinit *scanner_struct) {
 
             case FSM_LOWER:
                 if (c == '=') {
-                    char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
                     token->type = T_LOWER_EQUAL;
                     token->tlen = tmp_string_len-1;
                     token->line = scanner_struct->line;
@@ -593,7 +595,7 @@ Ttoken *get_token(Tinit *scanner_struct) {
 
             case FSM_GREATER:
                 if (c == '=') {
-                    char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
                     token->type = T_GREATER_EQUAL;
                     token->tlen = tmp_string_len-1;
                     token->line = scanner_struct->line;
@@ -615,15 +617,15 @@ Ttoken *get_token(Tinit *scanner_struct) {
             case FSM_QUOTE:
                 if (c == '\\') {
                     state = FSM_ESCAPE;
-                    char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
                 }
                 else if (c == '"') {
                     state = FSM_STRING;
-                    char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
                 }
                 else {
                     state = FSM_QUOTE;
-                    char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
                 }
 
                 break;
@@ -631,11 +633,11 @@ Ttoken *get_token(Tinit *scanner_struct) {
             case FSM_ESCAPE:
                 if ((c == '"') || (c == 't') || (c == 'n') || (c == '\\')) {
                     state = FSM_QUOTE;
-                    char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
                 }
                 else if ((c >= '0') && (c <= '3')) {
                     state = FSM_ESCAPE_OCTAL_1;
-                    char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
                 }
                 else {
                     fprintf(stderr, "SCANNER ERROR: String escape sequence error!\n");
@@ -659,7 +661,7 @@ Ttoken *get_token(Tinit *scanner_struct) {
             case FSM_ESCAPE_OCTAL_1:
                 if ((c >= '0') && (c <= '7')) {
                     state = FSM_ESCAPE_OCTAL_2;
-                    char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
                 }
                 else {
                     fprintf(stderr, "SCANNER ERROR: String escape sequence error!\n");
@@ -671,7 +673,7 @@ Ttoken *get_token(Tinit *scanner_struct) {
             case FSM_ESCAPE_OCTAL_2:
                  if ((c >= '0') && (c <= '7')) {
                     state = FSM_QUOTE;
-                    char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
                 }
                 else {
                     fprintf(stderr, "SCANNER ERROR: String escape sequence error!\n");
