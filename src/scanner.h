@@ -45,7 +45,7 @@ typedef enum {
 	 T_INT, 			// integer
 	 T_DOUBLE,			// double
 	 T_STRING,			// string
-	 T_COMMENT,			// comment
+	 //T_COMMENT,			// comment
 
 	 // keywords
 	 K_BOOL,			// "boolean"

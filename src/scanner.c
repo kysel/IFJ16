@@ -100,11 +100,11 @@ Ttoken *get_token(Tinit *scanner_struct) {
             case FSM_INIT:
                     if (isspace(c)){
                         state = FSM_INIT;
-                        if (c != EOF) { // este porozmyslaj
+                        //if (c != EOF) { // este porozmyslaj
                             if(c == '\n') {
                             (scanner_struct->line)++;
                             }
-                        }
+                        //}
                         continue;
                     }
                     else if ((isalpha(c)) || (c == '_') || (c == '$')) state = FSM_ID;
@@ -141,7 +141,6 @@ Ttoken *get_token(Tinit *scanner_struct) {
                 tmp_string[0]= c;
                 tmp_string[1]= '\0'; 
                 */
-
                 char_append(tmp_string, &tmp_string_len, c);
                break;
 
@@ -328,6 +327,7 @@ Ttoken *get_token(Tinit *scanner_struct) {
                     char_append(tmp_string, &tmp_string_len, c);
                 }
                 else if (c == '.') {
+                    char_append(tmp_string, &tmp_string_len, c);
                     state = FSM_DOUBLE;
                 }
                 else if ((c == 'E') || (c == 'e')) {
@@ -359,7 +359,7 @@ Ttoken *get_token(Tinit *scanner_struct) {
                     token->type = T_DOUBLE;
                     token->tlen = tmp_string_len-1;
                     token->line = scanner_struct->line;
-                    token->d = strtof(tmp_string, &endptr);
+                    token->d = strtod(tmp_string, &endptr);
                     return token;
                 }
 
@@ -372,6 +372,7 @@ Ttoken *get_token(Tinit *scanner_struct) {
                 }
                 else if (isdigit(c)) {
                     state = FSM_EXPONENT_2;
+                    char_append(tmp_string, &tmp_string_len, c);
                 }
                 else {
                     fprintf(stderr, "SCANNER ERROR: Exponent error!\n");
@@ -402,7 +403,7 @@ Ttoken *get_token(Tinit *scanner_struct) {
                     token->type = T_DOUBLE;
                     token->tlen = tmp_string_len-1;
                     token->line = scanner_struct->line;
-                    token->d = strtof(tmp_string, &endptr);
+                    token->d = strtod(tmp_string, &endptr);
                     return token;
                 }
 
@@ -687,10 +688,22 @@ Ttoken *get_token(Tinit *scanner_struct) {
             case FSM_COMMENT_LINE:
                 if (c != '\n') {
                     state = FSM_COMMENT_LINE;
-                }                
+                    if (c == EOF) {
+                        ungetc(c,scanner_struct->f);
+                        // domysli este, bude continue vhodne
+                        state = FSM_INIT;
+                    } 
+                }                          
                 else {
                     memset(tmp_string,0,(tmp_string_len)*sizeof(char));
                     tmp_string_len = 1;
+                    /*if (c != EOF) { // este porozmyslaj
+                            if(c == '\n') {
+                            (scanner_struct->line)++;
+                            printf("SOM V COMENTE: %lli\n", scanner_struct->line);
+                            }
+                    } ak dam prec ungetc musim dat toto!*/ 
+                    ungetc(c,scanner_struct->f);        
                     state = FSM_INIT;                    
                 }
 
@@ -700,7 +713,15 @@ Ttoken *get_token(Tinit *scanner_struct) {
                 if (c == '*') {
                     state = FSM_COMMENT_BLOCK_FIN;
                 }
-                else {
+                else if (c == EOF) {
+                    fprintf(stderr, "Unterminated comment\n");
+                    exit(1);
+                }
+                else {                   
+                    if(c == '\n') {
+                        (scanner_struct->line)++;
+                    }
+
                     state = FSM_COMMENT_BLOCK;   
                 }
 
@@ -715,7 +736,14 @@ Ttoken *get_token(Tinit *scanner_struct) {
                 else if (c == '*') {
                     state = FSM_COMMENT_BLOCK_FIN;
                 }
+                else if (c == EOF) {
+                    fprintf(stderr, "Unterminated comment\n");
+                    exit(1);
+                }
                 else {
+                    if(c == '\n') {
+                        (scanner_struct->line)++;
+                    }
                     state = FSM_COMMENT_BLOCK;
                 }
 
