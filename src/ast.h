@@ -9,9 +9,7 @@
 
 #ifndef AST_H_
 #define AST_H_
-
 typedef int VariableId;
-
 typedef struct Statement_s Statement;
 typedef struct Statement_collection_s Statement_collection;
 typedef Statement_collection Statement_block;
@@ -21,57 +19,89 @@ typedef Expression Return_statement;
 typedef struct If_statement_s If_statement;
 typedef struct Assign_statement_s Assign_statement;
 typedef struct While_statement_s While_statement;
+typedef struct Func_parameter_s Func_parameter;
 
-typedef struct {
+/*typedef struct Class_s {
 	char* Name;
-}Class;
+}Class;*/
 
 
 /**
  * Functions...
  */
-typedef struct {
-	char* name;
-	Expression value;
-}Func_parameter;
 
 typedef struct {
 	Func_parameter* parameters;
 	int count;
 }Parameter_list;
 
-typedef struct {
+typedef struct Function_s {
 	enum {
 		user,
 		build_in
 	}type;
 	Parameter_list parameters;
-	//todo return type
+	Data_type return_type;
 }Function;
+
+typedef struct {
+	Function* items;
+	int count;
+}Function_list;
+
 
 
 /**
  * Expressions...
  */
-typedef struct Expression_s{
+typedef  struct Expression_s{
 	enum {
-		function_call
+		function_call,
+		variable
 	}type;
 	union {
 		Function function;
+		VariableId variable;
 	};
 }Expression;
 
 typedef struct {
 	Expression* expressions;
 	int count;
-}Expression_collection;
+}Expression_list;
+
+typedef struct Func_parameter_s {
+	char* name;
+	Expression value;
+}Func_parameter;
+
 
 
 /**
  * Statements...
  */
-struct Statement_s {
+struct Statement_collection_s {
+	Statement* statements;
+	int count;
+};
+
+typedef struct If_statement_s{
+	Expression condition;
+	Statement_block caseTrue;
+	Statement_block caseFalse;
+}If_statement;
+
+typedef struct Assign_statement_s {
+	VariableId target;
+	Expression source;
+}Assign_statement;
+
+typedef struct While_statement_s {
+	Expression condition;
+	Statement_block statements;
+}While_statement;
+
+typedef struct Statement_s {
 	enum {
 		expression,
 		condition,
@@ -88,27 +118,5 @@ struct Statement_s {
 		//for? aka cycles extension
 		Return_statement ret;
 	};
-};
-
-struct Statement_collection_s {
-	Statement* statements;
-	int count;
-};
-
-struct If_statement_s{
-	Expression condition;
-	Statement_block caseTrue;
-	Statement_block caseFalse;
-};
-
-struct Assign_statement_s {
-	VariableId target;
-	Expression source;
-};
-
-struct While_statement_s {
-	Expression condition;
-	Statement_block statements;
-};
-
+}Statement;
 #endif
