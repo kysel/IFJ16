@@ -139,7 +139,6 @@ typedef struct {
  * \todo nejspíš, tady bude argument něco jako *scanner context
  */
 //token peek_token();
-void char_append(char *tmp_string, unsigned int *tmp_string_len, unsigned char c);
 /**
  * \brief Consume next token from input file
  * \return next available token
