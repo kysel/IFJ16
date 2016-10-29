@@ -10,17 +10,17 @@
 #ifndef IAL_H_
 #define IAL_H_
 
-#include <stdbool.h>
+typedef enum {
+	void_t,
+	int_t,
+	double_t,
+	bool_t,
+	string_t
+}Data_type;
 
-/*typedef enum {
-	int_literal,
-	double_literal,
-	bool_literal,
-	string_literal
-}Symbol_type;
 
-typedef struct Value_type_s {
-	Symbol_type type;
+/*typedef struct Value_type_s {
+	Data_type type;
 	union {
 		int int_val;
 		double double_val;
@@ -32,6 +32,7 @@ typedef struct Value_type_s {
 typedef struct Symbol_tree_leaf_s {
 	const char* key;
 	int id;
+	Data_type value;
 	/**
 	 * @note Value_type_s'll used in interpret
 	 */
