@@ -9,67 +9,54 @@
 
 #ifndef SCANNER_H_
 #define SCANNER_H_
+
 #include <stdio.h>
+#include <stdbool.h>
+#include <assert.h>
+#include "hacks.h"
 #include "ast.h"
 
-typedef enum {	 
-	 // START OF TOKENS WHICH CANNOT BE REORDERED 
-	 T_ADD,				// "+"
-	 T_SUB,				// "-"
-	 T_MUL,				// "*"
-	 T_DIV,				// "/""
-	 T_LOWER,			// "<"
-	 T_GREATER,			// ">"
-	 T_LOWER_EQUAL,		// "<="
-	 T_GREATER_EQUAL,	// ">="
-	 T_BOOL_EQUAL,		// "=="
-	 T_NOT_EQUAL,		// "!="
-	 T_BRACKET_LROUND,	// "("
-	 T_BRACKET_RROUND,	// ")"
-	 T_ID, 				// identifier
-	 T_DOT,				// "."
-	 // END OF TOKENS WHICH CANNOT BE REORDERED 
-	 T_KEYWORD,
-	 T_ASSIGN,			// "="
-	 T_COMMA,			// ","
-	 T_SEMICOLON,		// ";"
 
-	 T_BRACKET_LSQUARE,	// "["
-	 T_BRACKET_RSQUARE,	// "]"
-	 T_BRACKET_LCURLY,	// "{"
-	 T_BRACKET_RCURLY,	// "}"
-	 
-	 T_EOF,				// end of file
+#define FOREACH_TOKEN(Token)                              \
+    Token(T_ADD,              "'+'")                      \
+    Token(T_SUB,              "'-'")                      \
+    Token(T_MUL,              "'*'")                      \
+    Token(T_DIV,              "'/'")                      \
+    Token(T_LOWER,            "'<'")                      \
+    Token(T_GREATER,          "'>'")                      \
+    Token(T_LOWER_EQUAL,      "'<='")                     \
+    Token(T_GREATER_EQUAL,    "'>='")                     \
+    Token(T_BOOL_EQUAL,       "'=='")                     \
+    Token(T_NOT_EQUAL,        "'!='")                     \
+    Token(T_BRACKET_LROUND,   "'('",           0x10000)   \
+    Token(T_BRACKET_RROUND,   "')'",            0x8000)   \
+    Token(T_ID,               "identifier",     0x4000)   \
+    Token(T_DOT,              "'.'",            0x2000)   \
+    Token(T_KEYWORD,          "keyword",        0x1000)   \
+    Token(T_ASSIGN,           "assignment",      0x800)   \
+    Token(T_COMMA,            "','",             0x400)   \
+    Token(T_SEMICOLON,        "';'",             0x200)   \
+    Token(T_BRACKET_LSQUARE,  "'['",             0x100)   \
+    Token(T_BRACKET_RSQUARE,  "']'",              0x80)   \
+    Token(T_BRACKET_LCURLY,   "'{'",              0x40)   \
+    Token(T_BRACKET_RCURLY,   "'}'",              0x20)   \
+    Token(T_EOF,              "end of file",      0x10)   \
+    Token(T_INT,              "integer value",     0x8)   \
+    Token(T_DOUBLE,           "double value",      0x4)   \
+    Token(T_STRING,           "string value",      0x2)   \
+    Token(T_TYPE,             "type",              0x1)
 
-	 T_INT, 			// integer
-	 T_DOUBLE,			// double
-	 T_STRING,			// string
-
-	 T_TYPE, //namisto K_VOID, K_BOOL, ...
-
-	 /*
-	 // keywords
-	 K_BOOL,			// "boolean"
-	 K_BREAK,			// "break"
-	 K_CLASS,			// "class"
-	 K_CONTINUE,		// "continue"
-	 K_DO,				// "do"
-	 K_DOUBLE,			// "double"
-	 K_ELSE,			// "else"
-	 K_FALSE,			// "false"
-	 K_FOR,				// "for
-	 K_IF,				// "if"
-	 K_INT,				// "int"
-	 K_RETURN,			// "return"
-	 K_STRING,			// "String"
-	 K_STATIC,			// "static"
-	 K_TRUE,			// "true"
-	 K_VOID,			// "void"
-	 K_WHILE,			// "while"
-	*/
-
-
+typedef enum {
+    FOREACH_TOKEN(GENERATE_ENUM)
 }token_type;
+
+inline const char* token_to_string(token_type tok){
+    switch (tok) {
+        FOREACH_TOKEN(GENERATE_CASE)
+    }
+    assert(false);
+    return "▲";
+}
 
 typedef enum {
 	FSM_INIT,
@@ -106,24 +93,31 @@ typedef enum {
 	FSM_DOT, // '.'
 }states;
 
+#define FOREACH_KEYWORD(Keyword)                \
+    Keyword(K_BREAK,     "break",       0x1)    \
+    Keyword(K_CLASS,     "class",       0x2)    \
+    Keyword(K_CONTINUE,  "continue",    0x4)    \
+    Keyword(K_DO,        "do",          0x8)    \
+    Keyword(K_ELSE,      "else",       0x10)    \
+    Keyword(K_FALSE,     "false",      0x20)    \
+    Keyword(K_FOR,       "for",        0x40)    \
+    Keyword(K_IF,        "if",         0x80)    \
+    Keyword(K_RETURN,    "return",    0x100)    \
+    Keyword(K_STATIC,    "static",    0x200)    \
+    Keyword(K_TRUE,      "true",      0x400)    \
+    Keyword(K_WHILE,     "while",     0x800)    
+
 typedef enum {
-	 K_BREAK,			// "break"
-	 K_CLASS,			// "class"
-	 K_CONTINUE,		// "continue"
-	 K_DO,				// "do"
-	 //K_DOUBLE,			// "double"
-	 K_ELSE,			// "else"
-	 K_FALSE,			// "false"
-	 K_FOR,				// "for
-	 K_IF,				// "if"
-	 //K_INT,				// "int"
-	 K_RETURN,			// "return"
-	 //K_STRING,			// "String"
-	 K_STATIC,			// "static"
-	 K_TRUE,			// "true"
-	 //K_VOID,			// "void"
-	 K_WHILE,			// "while"
-}keyword;
+    FOREACH_KEYWORD(GENERATE_ENUM)
+}Keyword;
+
+inline const char* keyword_to_string(Keyword kw) {
+    switch (kw) {
+        FOREACH_TOKEN(GENERATE_CASE)
+    }
+    assert(false);
+    return "▲";
+}
 
 typedef struct {
 	token_type type;
@@ -133,7 +127,7 @@ typedef struct {
 	union {
         Data_type dtype; //data types
         //operators op; //operators
-        keyword kw; //keywords
+        Keyword kw; //keywords
     };
     union {
         long int li;
