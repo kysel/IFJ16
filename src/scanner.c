@@ -1,4 +1,12 @@
-//#include <stdio.h>
+﻿/** Interpretr jazyka IFJ16
+* @file scanner.c
+* @author Kyzlink Jiří <xkyzli02@stud.fit.vutbr.cz>
+* @author Kubiš Juraj <xkubis15@stud.fit.vutbr.cz>
+* @author Korček Juraj <xkorce01@stud.fit.vutbr.cz>
+* @author Kubica Jan <xkubic39@stud.fit.vutbr.cz>
+* @author Kovařík Viktor <xkovar77@stud.fit.vutbr.cz>
+*/
+
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -8,16 +16,6 @@
 char *keywords[17] = {"boolean", "break", "class", "continue","do",
                     "double", "else", "false", "for", "if", "int",
                     "return", "String", "static", "true", "void", "while"};
-/*
-void char_append(char *tmp_string, unsigned char c){
-    size_t tmp_string_len;
-    tmp_string_len = strlen(tmp_string);
-    tmp_string = (char *) gc_realloc(tmp_string,sizeof(char)*(tmp_string_len + 2));
-
-    tmp_string[tmp_string_len] = c;
-    tmp_string[(tmp_string_len)+1] = '\0';
-}
-*/
 
 Tinit *init_scanner(FILE *fp) { 
     long long n = 1;
@@ -26,58 +24,47 @@ Tinit *init_scanner(FILE *fp) {
     scanner_struct->line = n;
     scanner_struct->token = NULL;
     return scanner_struct;
-
 }
-
 
 char *char_append(char *tmp_string, unsigned int *tmp_string_len, unsigned char c) {
     (*tmp_string_len)++;
     tmp_string = (char *) gc_realloc(tmp_string,sizeof(char)*(*tmp_string_len));
 
     tmp_string[(*tmp_string_len-2)] = c;
-    tmp_string[(*tmp_string_len)-1] = '\0';
+    tmp_string[*tmp_string_len-1] = '\0';
 
     return tmp_string;
 }
 
-
 char *is_keyword(char *tmp_string) {
     for (int i = 0; i <= 16; i++) {
-        if (!(strcmp(tmp_string,keywords[i]))) {
+        if (!strcmp(tmp_string,keywords[i])) {
             return keywords[i];
-        }      
-    }     
+        }
+    }
     return NULL;
 }
 
-/*Ttoken *peek_token(Tinit *scanner_struct) {
-    Ttoken *p_token;
-
-    if (scanner_struct->token == NULL) {
-        p_token = get_token(scanner_struct);
-        scanner_struct->token = p_token;
-        long position = (long)(p_token->tlen);
-        fseek(scanner_struct->f, -position,SEEK_CUR);
-        return p_token;
-    }
-
-    return scanner_struct->token;
-}*/
-
 Ttoken *peek_token(Tinit *scanner_struct) {
-    if (scanner_struct->token == NULL) {
-        scanner_struct->token = get_token(scanner_struct);
-        long position = (long)(scanner_struct->token->tlen);
-        fseek(scanner_struct->f, -position,SEEK_CUR);
-        return scanner_struct->token;
-    }
-
-    return scanner_struct->token;
+	if (scanner_struct->token == NULL)
+		scanner_struct->token = get_token(scanner_struct);
+	return scanner_struct->token;
 }
 
-
+Ttoken *get_token_internal(Tinit *scanner_struct);
 
 Ttoken *get_token(Tinit *scanner_struct) {
+	Ttoken* ret;
+	if (scanner_struct->token != NULL) {
+		ret = scanner_struct->token;
+		scanner_struct->token = NULL;
+	}
+	else
+		ret = get_token_internal(scanner_struct);
+	return ret;
+}
+
+Ttoken *get_token_internal(Tinit *scanner_struct) {
     char *kw_ptr;
     char *endptr;
     char c;
@@ -103,7 +90,7 @@ Ttoken *get_token(Tinit *scanner_struct) {
                         state = FSM_INIT;
                         //if (c != EOF) { // este porozmyslaj
                             if(c == '\n') {
-                            (scanner_struct->line)++;
+                            scanner_struct->line++;
                             }
                         //}
                         continue;
@@ -115,7 +102,7 @@ Ttoken *get_token(Tinit *scanner_struct) {
                     else if (c == '+') state = FSM_ADD;
                     else if (c == '-') state = FSM_SUB;
                     else if (c == ',') state = FSM_COMMA;
-                    else if (c == ';') state = FSM_SEMICOLON;                    
+                    else if (c == ';') state = FSM_SEMICOLON;
                     else if (c == '(') state = FSM_BRACKET_LROUND;
                     else if (c == ')') state = FSM_BRACKET_RROUND;
                     else if (c == '[') state = FSM_BRACKET_LSQUARE;   
@@ -123,9 +110,9 @@ Ttoken *get_token(Tinit *scanner_struct) {
                     else if (c == '{') state = FSM_BRACKET_LCURLY;
                     else if (c == '}') state = FSM_BRACKET_RCURLY;
                     else if (c == '=') state = FSM_EQUAL;
-                    else if (c == '!') state = FSM_NOT;                    
+                    else if (c == '!') state = FSM_NOT;
                     else if (c == '<') state = FSM_LOWER;
-                    else if (c == '>') state = FSM_GREATER;                    
+                    else if (c == '>') state = FSM_GREATER;
                     else if (c == '"') state = FSM_QUOTE;
                     else if (c == '.') state = FSM_DOT;
                     else if (c == EOF) {
@@ -141,7 +128,7 @@ Ttoken *get_token(Tinit *scanner_struct) {
                break;
 
             case FSM_ID:
-                if ((isalpha(c)) || (isdigit(c)) || (c == '_') || (c == '$')) {
+                if (isalpha(c) || isdigit(c) || c == '_' || c == '$') {
                     tmp_string = (char_append(tmp_string, &tmp_string_len, c));
                     state = FSM_ID;
                 }
@@ -153,21 +140,15 @@ Ttoken *get_token(Tinit *scanner_struct) {
                         token->tlen = strlen (tmp_string);
                         token->line = scanner_struct->line;
                         token->c = tmp_string;
-                        if (scanner_struct->token != NULL) {
-                            scanner_struct->token = NULL;
-                        } 
                         return token;
                     }
                     else {
                         if (strcmp(kw_ptr, "boolean") == 0) {
-                            token->type = T_KEYWORD;
+                            token->type = T_TYPE;
                             token->dtype = bool_t;
                             token->tlen = strlen (kw_ptr);
                             token->line = scanner_struct->line;
                             token->c = kw_ptr;
-                            if (scanner_struct->token != NULL) {
-                                scanner_struct->token = NULL;
-                            }
                             return token;
                         }
                         else if (strcmp(kw_ptr, "break") == 0) {
@@ -176,9 +157,6 @@ Ttoken *get_token(Tinit *scanner_struct) {
                             token->tlen = strlen (kw_ptr);
                             token->line = scanner_struct->line;
                             token->c = kw_ptr;
-                            if (scanner_struct->token != NULL) {
-                                scanner_struct->token = NULL;
-                            } 
                             return token;
                         }
                         else if (strcmp(kw_ptr, "class") == 0) {
@@ -187,9 +165,6 @@ Ttoken *get_token(Tinit *scanner_struct) {
                             token->tlen = strlen (kw_ptr);
                             token->line = scanner_struct->line;
                             token->c = kw_ptr;
-                            if (scanner_struct->token != NULL) {
-                                scanner_struct->token = NULL;
-                            } 
                             return token;
                         }
                         else if (strcmp(kw_ptr, "continue") == 0) {
@@ -198,9 +173,6 @@ Ttoken *get_token(Tinit *scanner_struct) {
                             token->tlen = strlen (kw_ptr);
                             token->line = scanner_struct->line;
                             token->c = kw_ptr;
-                            if (scanner_struct->token != NULL) {
-                                scanner_struct->token = NULL;
-                            } 
                             return token;
                         }
                         else if (strcmp(kw_ptr, "do") == 0) {
@@ -209,20 +181,14 @@ Ttoken *get_token(Tinit *scanner_struct) {
                             token->tlen = strlen (kw_ptr);
                             token->line = scanner_struct->line;
                             token->c = kw_ptr;
-                            if (scanner_struct->token != NULL) {
-                                scanner_struct->token = NULL;
-                            } 
                             return token;
                         }
                         else if (strcmp(kw_ptr, "double") == 0) {
-                            token->type = T_KEYWORD;
+                            token->type = T_TYPE;
                             token->dtype = double_t;
                             token->tlen = strlen (kw_ptr);
                             token->line = scanner_struct->line;
                             token->c = kw_ptr;
-                            if (scanner_struct->token != NULL) {
-                                scanner_struct->token = NULL;
-                            } 
                             return token;
                         }
                         else if (strcmp(kw_ptr, "else") == 0) {
@@ -231,9 +197,6 @@ Ttoken *get_token(Tinit *scanner_struct) {
                             token->tlen = strlen (kw_ptr);
                             token->line = scanner_struct->line;
                             token->c = kw_ptr;
-                            if (scanner_struct->token != NULL) {
-                                scanner_struct->token = NULL;
-                            } 
                             return token;
                         }
                         else if (strcmp(kw_ptr, "false") == 0) {
@@ -242,9 +205,6 @@ Ttoken *get_token(Tinit *scanner_struct) {
                             token->tlen = strlen (kw_ptr);
                             token->line = scanner_struct->line;
                             token->c = kw_ptr;
-                            if (scanner_struct->token != NULL) {
-                                scanner_struct->token = NULL;
-                            } 
                             return token;
                         }
                         else if (strcmp(kw_ptr, "for") == 0) {
@@ -253,9 +213,6 @@ Ttoken *get_token(Tinit *scanner_struct) {
                             token->tlen = strlen (kw_ptr);
                             token->line = scanner_struct->line;
                             token->c = kw_ptr;
-                            if (scanner_struct->token != NULL) {
-                                scanner_struct->token = NULL;
-                            } 
                             return token;
                         }
                         else if (strcmp(kw_ptr, "if") == 0) {
@@ -264,20 +221,14 @@ Ttoken *get_token(Tinit *scanner_struct) {
                             token->tlen = strlen (kw_ptr);
                             token->line = scanner_struct->line;
                             token->c = kw_ptr;
-                            if (scanner_struct->token != NULL) {
-                                scanner_struct->token = NULL;
-                            } 
                             return token;
                         }
                         else if (strcmp(kw_ptr, "int") == 0) {
-                            token->type = T_KEYWORD;
+                            token->type = T_TYPE;
                             token->dtype = int_t;
                             token->tlen = strlen (kw_ptr);
                             token->line = scanner_struct->line;
                             token->c = kw_ptr;
-                            if (scanner_struct->token != NULL) {
-                                scanner_struct->token = NULL;
-                            } 
                             return token;
                         }
                         else if (strcmp(kw_ptr, "return") == 0) {
@@ -286,20 +237,14 @@ Ttoken *get_token(Tinit *scanner_struct) {
                             token->tlen = strlen (kw_ptr);
                             token->line = scanner_struct->line;
                             token->c = kw_ptr;
-                            if (scanner_struct->token != NULL) {
-                                scanner_struct->token = NULL;
-                            }
                             return token;
                         }
                         else if (strcmp(kw_ptr, "String") == 0) {
-                            token->type = T_KEYWORD;
+                            token->type = T_TYPE;
                             token->dtype = string_t;
                             token->tlen = strlen (kw_ptr);
                             token->line = scanner_struct->line;
                             token->c = kw_ptr;
-                            if (scanner_struct->token != NULL) {
-                                scanner_struct->token = NULL;
-                            }
                             return token;
                         }
                         else if (strcmp(kw_ptr, "static") == 0) {
@@ -308,9 +253,6 @@ Ttoken *get_token(Tinit *scanner_struct) {
                             token->tlen = strlen (kw_ptr);
                             token->line = scanner_struct->line;
                             token->c = kw_ptr;
-                            if (scanner_struct->token != NULL) {
-                                scanner_struct->token = NULL;
-                            } 
                             return token;
                         }
                         else if (strcmp(kw_ptr, "true") == 0) {
@@ -319,20 +261,14 @@ Ttoken *get_token(Tinit *scanner_struct) {
                             token->tlen = strlen (kw_ptr);
                             token->line = scanner_struct->line;
                             token->c = kw_ptr;
-                            if (scanner_struct->token != NULL) {
-                                scanner_struct->token = NULL;
-                            } 
                             return token;
                         }
                         else if (strcmp(kw_ptr, "void") == 0) {
-                            token->type = T_KEYWORD;
+                            token->type = T_TYPE;
                             token->dtype = void_t;
                             token->tlen = strlen (kw_ptr);
                             token->line = scanner_struct->line;
                             token->c = kw_ptr;
-                            if (scanner_struct->token != NULL) {
-                                scanner_struct->token = NULL;
-                            } 
                             return token;
                         }
                         else if (strcmp(kw_ptr, "while") == 0) {
@@ -341,9 +277,6 @@ Ttoken *get_token(Tinit *scanner_struct) {
                             token->tlen = strlen (kw_ptr);
                             token->line = scanner_struct->line;
                             token->c = kw_ptr;
-                            if (scanner_struct->token != NULL) {
-                                scanner_struct->token = NULL;
-                            } 
                             return token;
                         }
                     }
@@ -358,9 +291,6 @@ Ttoken *get_token(Tinit *scanner_struct) {
                 token->tlen = strlen (tmp_string);
                 token->line = scanner_struct->line;
                 token->c = tmp_string;
-                if (scanner_struct->token != NULL) {
-                    scanner_struct->token = NULL;
-                } 
                 return token;
 
                 break;
@@ -384,9 +314,6 @@ Ttoken *get_token(Tinit *scanner_struct) {
                     token->tlen = strlen (tmp_string);
                     token->line = scanner_struct->line;
                     token->li = strtol(tmp_string, &endptr, 10);
-                    if (scanner_struct->token != NULL) {
-                        scanner_struct->token = NULL;
-                    } 
                     return token;
                 }
 
@@ -407,9 +334,6 @@ Ttoken *get_token(Tinit *scanner_struct) {
                     token->tlen = strlen (tmp_string);
                     token->line = scanner_struct->line;
                     token->d = strtod(tmp_string, &endptr);
-                    if (scanner_struct->token != NULL) {
-                        scanner_struct->token = NULL;
-                    } 
                     return token;
                 }
 
@@ -454,9 +378,6 @@ Ttoken *get_token(Tinit *scanner_struct) {
                     token->tlen = strlen (tmp_string);
                     token->line = scanner_struct->line;
                     token->d = strtod(tmp_string, &endptr);
-                    if (scanner_struct->token != NULL) {
-                        scanner_struct->token = NULL;
-                    } 
                     return token;
                 }
 
@@ -468,9 +389,6 @@ Ttoken *get_token(Tinit *scanner_struct) {
                 token->tlen = strlen (tmp_string);
                 token->line = scanner_struct->line;
                 token->c = tmp_string;
-                if (scanner_struct->token != NULL) {
-                    scanner_struct->token = NULL;
-                } 
                 return token;
 
                 break;
@@ -488,9 +406,6 @@ Ttoken *get_token(Tinit *scanner_struct) {
                     token->tlen = strlen (tmp_string);
                     token->line = scanner_struct->line;
                     token->c = tmp_string;
-                    if (scanner_struct->token != NULL) {
-                        scanner_struct->token = NULL;
-                    } 
                     return token;
                 }
 
@@ -502,9 +417,6 @@ Ttoken *get_token(Tinit *scanner_struct) {
                 token->tlen = strlen (tmp_string);
                 token->line = scanner_struct->line;
                 token->c = tmp_string;
-                if (scanner_struct->token != NULL) {
-                    scanner_struct->token = NULL;
-                } 
                 return token;
 
                 break;
@@ -515,9 +427,6 @@ Ttoken *get_token(Tinit *scanner_struct) {
                 token->tlen = strlen (tmp_string);
                 token->line = scanner_struct->line;
                 token->c = tmp_string;
-                if (scanner_struct->token != NULL) {
-                     scanner_struct->token = NULL;
-                } 
                 return token;
 
                 break;
@@ -528,9 +437,6 @@ Ttoken *get_token(Tinit *scanner_struct) {
                 token->tlen = strlen (tmp_string);
                 token->line = scanner_struct->line;
                 token->c = tmp_string;
-                if (scanner_struct->token != NULL) {
-                    scanner_struct->token = NULL;
-                } 
                 return token;
 
                 break;
@@ -541,9 +447,6 @@ Ttoken *get_token(Tinit *scanner_struct) {
                 token->tlen = strlen (tmp_string);
                 token->line = scanner_struct->line;
                 token->c = tmp_string;
-                if (scanner_struct->token != NULL) {
-                    scanner_struct->token = NULL;
-                } 
                 return token;
 
                 break;
@@ -554,9 +457,6 @@ Ttoken *get_token(Tinit *scanner_struct) {
                 token->tlen = strlen (tmp_string);
                 token->line = scanner_struct->line;
                 token->c = tmp_string;
-                if (scanner_struct->token != NULL) {
-                    scanner_struct->token = NULL;
-                } 
                 return token;
 
                 break;
@@ -567,9 +467,6 @@ Ttoken *get_token(Tinit *scanner_struct) {
                 token->tlen = strlen (tmp_string);
                 token->line = scanner_struct->line;
                 token->c = tmp_string;
-                if (scanner_struct->token != NULL) {
-                    scanner_struct->token = NULL;
-                } 
                 return token;
 
                 break;
@@ -580,9 +477,6 @@ Ttoken *get_token(Tinit *scanner_struct) {
                 token->tlen = strlen (tmp_string);
                 token->line = scanner_struct->line;
                 token->c = tmp_string;
-                if (scanner_struct->token != NULL) {
-                    scanner_struct->token = NULL;
-                } 
                 return token;
 
                 break;
@@ -593,9 +487,6 @@ Ttoken *get_token(Tinit *scanner_struct) {
                 token->tlen = strlen (tmp_string);
                 token->line = scanner_struct->line;
                 token->c = tmp_string;
-                if (scanner_struct->token != NULL) {
-                    scanner_struct->token = NULL;
-                } 
                 return token;
 
                 break;
@@ -606,9 +497,6 @@ Ttoken *get_token(Tinit *scanner_struct) {
                 token->tlen = strlen (tmp_string);
                 token->line = scanner_struct->line;
                 token->c = tmp_string;
-                if (scanner_struct->token != NULL) {
-                    scanner_struct->token = NULL;
-                } 
                 return token;
 
                 break;
@@ -619,9 +507,6 @@ Ttoken *get_token(Tinit *scanner_struct) {
                 token->tlen = strlen (tmp_string);
                 token->line = scanner_struct->line;
                 token->c = tmp_string;
-                if (scanner_struct->token != NULL) {
-                    scanner_struct->token = NULL;
-                } 
                 return token;
 
                 break;     
@@ -632,9 +517,6 @@ Ttoken *get_token(Tinit *scanner_struct) {
                     token->tlen = strlen (tmp_string);
                     token->line = scanner_struct->line;
                     token->c = tmp_string;
-                    if (scanner_struct->token != NULL) {
-                        scanner_struct->token = NULL;
-                    } 
                     return token;
                 }
                 else {
@@ -643,9 +525,6 @@ Ttoken *get_token(Tinit *scanner_struct) {
                     token->tlen = strlen (tmp_string);
                     token->line = scanner_struct->line;
                     token->c = tmp_string;
-                    if (scanner_struct->token != NULL) {
-                        scanner_struct->token = NULL;
-                    } 
                     return token;
                 }
 
@@ -657,9 +536,6 @@ Ttoken *get_token(Tinit *scanner_struct) {
                     token->tlen = strlen (tmp_string);
                     token->line = scanner_struct->line;
                     token->c = tmp_string;
-                    if (scanner_struct->token != NULL) {
-                        scanner_struct->token = NULL;
-                    } 
                     return token;
                 }
                 else {
@@ -674,9 +550,6 @@ Ttoken *get_token(Tinit *scanner_struct) {
                     token->tlen = strlen (tmp_string);
                     token->line = scanner_struct->line;
                     token->c = tmp_string;
-                    if (scanner_struct->token != NULL) {
-                        scanner_struct->token = NULL;
-                    } 
                     return token;
                 }
                 else {
@@ -685,9 +558,6 @@ Ttoken *get_token(Tinit *scanner_struct) {
                     token->tlen = strlen (tmp_string);
                     token->line = scanner_struct->line;
                     token->c = tmp_string;
-                    if (scanner_struct->token != NULL) {
-                        scanner_struct->token = NULL;
-                    } 
                     return token;
                 }
 
@@ -700,9 +570,6 @@ Ttoken *get_token(Tinit *scanner_struct) {
                     token->tlen = strlen (tmp_string);
                     token->line = scanner_struct->line;
                     token->c = tmp_string;
-                    if (scanner_struct->token != NULL) {
-                        scanner_struct->token = NULL;
-                    } 
                     return token;
                 }
                 else {
@@ -711,9 +578,6 @@ Ttoken *get_token(Tinit *scanner_struct) {
                     token->tlen = strlen (tmp_string);
                     token->line = scanner_struct->line;
                     token->c = tmp_string;
-                    if (scanner_struct->token != NULL) {
-                        scanner_struct->token = NULL;
-                    } 
                     return token;
                 }
 
@@ -761,9 +625,6 @@ Ttoken *get_token(Tinit *scanner_struct) {
                 token->tlen = strlen (tmp_string);
                 token->line = scanner_struct->line;
                 token->c = tmp_string;
-                if (scanner_struct->token != NULL) {
-                    scanner_struct->token = NULL;
-                } 
                 return token;
 
                 break;
@@ -870,9 +731,5 @@ Ttoken *get_token(Tinit *scanner_struct) {
 token->type = T_EOF;
 token->tlen = strlen (tmp_string);
 token->line = scanner_struct->line;
-if (scanner_struct->token != NULL) {
-    scanner_struct->token = NULL;
-} 
-return token;
- 
+return token; 
 }
