@@ -9,14 +9,8 @@
 
 #ifndef IAL_H_
 #define IAL_H_
+#include "ast.h"
 
-typedef enum {
-	void_t,
-	int_t,
-	double_t,
-	bool_t,
-	string_t
-}Data_type;
 
 
 /*typedef struct Value_type_s {
@@ -32,7 +26,8 @@ typedef enum {
 typedef struct Symbol_tree_leaf_s {
 	const char* key;
 	int id;
-	Data_type value;
+	Data_type type;
+	Expression* init_value;
 	/**
 	 * @note Value_type_s'll used in interpret
 	 */
