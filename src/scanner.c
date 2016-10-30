@@ -7,6 +7,7 @@
 * @author Kovařík Viktor <xkovar77@stud.fit.vutbr.cz>
 */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -19,7 +20,7 @@ char *keywords[17] = { "boolean", "break", "class", "continue","do",
 
 Tinit *init_scanner(FILE *fp) {
 	long long n = 1;
-	Tinit *scanner_struct = gc_alloc(sizeof(Tinit));
+	Tinit* scanner_struct = gc_alloc(sizeof(Tinit));
 	scanner_struct->f = fp;
 	scanner_struct->line = n;
 	scanner_struct->token = NULL;
