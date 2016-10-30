@@ -3,17 +3,16 @@
 * @author Kyzlink Jiří <xkyzli02@stud.fit.vutbr.cz>
 * @author Kubiš Juraj <xkubis15@stud.fit.vutbr.cz>
 * @author Korček Juraj <xkorce01@stud.fit.vutbr.cz>
+* @author Kubica Jan <xkubic39@stud.fit.vutbr.cz>
 * @author Kovařík Viktor <xkovar77@stud.fit.vutbr.cz>
 */
-#include <stdio.h>
+
 #ifndef SCANNER_H_
 #define SCANNER_H_
+#include <stdio.h>
+#include "ast.h"
 
-typedef enum {
-	/** 
-	 * @todo přidat různé typy tokenů (identifikátor, typ, ...)
-	 */
-	 
+typedef enum {	 
 	 // START OF TOKENS WHICH CANNOT BE REORDERED 
 	 T_ADD,				// "+"
 	 T_SUB,				// "-"
@@ -41,10 +40,12 @@ typedef enum {
 	 T_BRACKET_RCURLY,	// "}"
 	 
 	 T_EOF,				// end of file
+
 	 T_INT, 			// integer
 	 T_DOUBLE,			// double
 	 T_STRING,			// string
-	 
+
+	 T_TYPE, //namisto K_VOID, K_BOOL, ...
 
 	 /*
 	 // keywords
@@ -106,29 +107,21 @@ typedef enum {
 }states;
 
 typedef enum {
-	void_t,
-	int_t, //je
-	double_t, //je
-	bool_t, //je
-	string_t //je
-}Data_type;
-
-typedef enum {
 	 K_BREAK,			// "break"
 	 K_CLASS,			// "class"
 	 K_CONTINUE,		// "continue"
 	 K_DO,				// "do"
-	 K_DOUBLE,			// "double"
+	 //K_DOUBLE,			// "double"
 	 K_ELSE,			// "else"
 	 K_FALSE,			// "false"
 	 K_FOR,				// "for
 	 K_IF,				// "if"
-	 K_INT,				// "int"
+	 //K_INT,				// "int"
 	 K_RETURN,			// "return"
-	 K_STRING,			// "String"
+	 //K_STRING,			// "String"
 	 K_STATIC,			// "static"
 	 K_TRUE,			// "true"
-	 K_VOID,			// "void"
+	 //K_VOID,			// "void"
 	 K_WHILE,			// "while"
 }keyword;
 
@@ -143,10 +136,10 @@ typedef struct {
         keyword kw; //keywords
     };
     union {
-            long int li;
-            double d;
-            char *c;
-    };
+        long int li;
+        double d;
+        char *c;
+	};
 }Ttoken;
 
 
@@ -159,23 +152,24 @@ typedef struct {
 }Tinit;
 
 /**
- * \brief Return next token from input file. <B>It does NOT consume the token</B>
- * \return next available token
- * \todo nejspíš, tady bude argument něco jako *scanner context
+ * \brief Initialize scanner structure
+ * \param fp File handle of the source
+ * \return scanner context
  */
-//token peek_token();
-char *char_append(char *tmp_string, unsigned int *tmp_string_len, unsigned char c);
-/**
- * \brief Consume next token from input file
- * \return next available token
- * \todo nejspíš, tady bude argument něco jako *scanner context
- */
-char *is_keyword(char *tmp_string);
-
 Tinit *init_scanner(FILE *fp);
 
+/**
+ * \brief Return next token from input file. <B>It does NOT consume the token</B>
+ * \param scanner_struct scanner context
+ * \return next available token
+ */
 Ttoken *peek_token(Tinit *scanner_struct);
 
-Ttoken *get_token(Tinit *scanner_struct) ;
+/**
+ * \brief Consume next token from input file
+ * \param scanner_struct scanner context
+ * \return next available token
+ */
+Ttoken *get_token(Tinit *scanner_struct);
 
 #endif
