@@ -17,42 +17,45 @@
 #include "ast.h"
 
 
-#define FOREACH_TOKEN(Token)                              \
-    Token(T_ADD,              "'+'")                      \
-    Token(T_SUB,              "'-'")                      \
-    Token(T_MUL,              "'*'")                      \
-    Token(T_DIV,              "'/'")                      \
-    Token(T_LOWER,            "'<'")                      \
-    Token(T_GREATER,          "'>'")                      \
-    Token(T_LOWER_EQUAL,      "'<='")                     \
-    Token(T_GREATER_EQUAL,    "'>='")                     \
-    Token(T_BOOL_EQUAL,       "'=='")                     \
-    Token(T_NOT_EQUAL,        "'!='")                     \
-    Token(T_BRACKET_LROUND,   "'('",           0x10000)   \
-    Token(T_BRACKET_RROUND,   "')'",            0x8000)   \
-    Token(T_ID,               "identifier",     0x4000)   \
-    Token(T_DOT,              "'.'",            0x2000)   \
-    Token(T_KEYWORD,          "keyword",        0x1000)   \
-    Token(T_ASSIGN,           "assignment",      0x800)   \
-    Token(T_COMMA,            "','",             0x400)   \
-    Token(T_SEMICOLON,        "';'",             0x200)   \
-    Token(T_BRACKET_LSQUARE,  "'['",             0x100)   \
-    Token(T_BRACKET_RSQUARE,  "']'",              0x80)   \
-    Token(T_BRACKET_LCURLY,   "'{'",              0x40)   \
-    Token(T_BRACKET_RCURLY,   "'}'",              0x20)   \
-    Token(T_EOF,              "end of file",      0x10)   \
-    Token(T_INT,              "integer value",     0x8)   \
-    Token(T_DOUBLE,           "double value",      0x4)   \
-    Token(T_STRING,           "string value",      0x2)   \
-    Token(T_TYPE,             "type",              0x1)
+#define FOREACH_TOKEN(TOKEN)                              \
+    TOKEN(T_ADD,              "'+'",         0x4000000)   \
+    TOKEN(T_SUB,              "'-'",         0x2000000)   \
+    TOKEN(T_MUL,              "'*'",         0x1000000)   \
+    TOKEN(T_DIV,              "'/'",          0x800000)   \
+    TOKEN(T_LOWER,            "'<'",          0x400000)   \
+    TOKEN(T_GREATER,          "'>'",          0x200000)   \
+    TOKEN(T_LOWER_EQUAL,      "'<='",         0x100000)   \
+    TOKEN(T_GREATER_EQUAL,    "'>='",          0x80000)   \
+    TOKEN(T_BOOL_EQUAL,       "'=='",          0x40000)   \
+    TOKEN(T_NOT_EQUAL,        "'!='",          0x20000)   \
+    TOKEN(T_BRACKET_LROUND,   "'('",           0x10000)   \
+    TOKEN(T_BRACKET_RROUND,   "')'",            0x8000)   \
+    TOKEN(T_ID,               "identifier",     0x4000)   \
+    TOKEN(T_DOT,              "'.'",            0x2000)   \
+    TOKEN(T_KEYWORD,          "keyword",        0x1000)   \
+    TOKEN(T_ASSIGN,           "assignment",      0x800)   \
+    TOKEN(T_COMMA,            "','",             0x400)   \
+    TOKEN(T_SEMICOLON,        "';'",             0x200)   \
+    TOKEN(T_BRACKET_LSQUARE,  "'['",             0x100)   \
+    TOKEN(T_BRACKET_RSQUARE,  "']'",              0x80)   \
+    TOKEN(T_BRACKET_LCURLY,   "'{'",              0x40)   \
+    TOKEN(T_BRACKET_RCURLY,   "'}'",              0x20)   \
+    TOKEN(T_EOF,              "end of file",      0x10)   \
+    TOKEN(T_INT,              "integer value",     0x8)   \
+    TOKEN(T_DOUBLE,           "double value",      0x4)   \
+    TOKEN(T_STRING,           "string value",      0x2)   \
+    TOKEN(T_TYPE,             "type",              0x1)
 
 typedef enum {
     FOREACH_TOKEN(GENERATE_ENUM)
 }token_type;
 
-inline const char* token_to_string(token_type tok){
+static inline const char* token_to_string(token_type tok) {
     switch (tok) {
         FOREACH_TOKEN(GENERATE_CASE)
+    default:
+        assert(false);
+        break;
     }
     assert(false);
     return "▲";
@@ -93,27 +96,30 @@ typedef enum {
 	FSM_DOT, // '.'
 }states;
 
-#define FOREACH_KEYWORD(Keyword)                \
-    Keyword(K_BREAK,     "break",       0x1)    \
-    Keyword(K_CLASS,     "class",       0x2)    \
-    Keyword(K_CONTINUE,  "continue",    0x4)    \
-    Keyword(K_DO,        "do",          0x8)    \
-    Keyword(K_ELSE,      "else",       0x10)    \
-    Keyword(K_FALSE,     "false",      0x20)    \
-    Keyword(K_FOR,       "for",        0x40)    \
-    Keyword(K_IF,        "if",         0x80)    \
-    Keyword(K_RETURN,    "return",    0x100)    \
-    Keyword(K_STATIC,    "static",    0x200)    \
-    Keyword(K_TRUE,      "true",      0x400)    \
-    Keyword(K_WHILE,     "while",     0x800)    
+#define FOREACH_KEYWORD(KEYWORD)                \
+    KEYWORD(K_BREAK,     "break",       0x1)    \
+    KEYWORD(K_CLASS,     "class",       0x2)    \
+    KEYWORD(K_CONTINUE,  "continue",    0x4)    \
+    KEYWORD(K_DO,        "do",          0x8)    \
+    KEYWORD(K_ELSE,      "else",       0x10)    \
+    KEYWORD(K_FALSE,     "false",      0x20)    \
+    KEYWORD(K_FOR,       "for",        0x40)    \
+    KEYWORD(K_IF,        "if",         0x80)    \
+    KEYWORD(K_RETURN,    "return",    0x100)    \
+    KEYWORD(K_STATIC,    "static",    0x200)    \
+    KEYWORD(K_TRUE,      "true",      0x400)    \
+    KEYWORD(K_WHILE,     "while",     0x800)    
 
 typedef enum {
     FOREACH_KEYWORD(GENERATE_ENUM)
 }Keyword;
 
-inline const char* keyword_to_string(Keyword kw) {
+static inline const char* keyword_to_string(Keyword kw) {
     switch (kw) {
-        FOREACH_TOKEN(GENERATE_CASE)
+        FOREACH_KEYWORD(GENERATE_CASE)
+    default:
+        assert(false);
+        break;
     }
     assert(false);
     return "▲";
@@ -166,4 +172,19 @@ Ttoken *peek_token(Tinit *scanner_struct);
  */
 Ttoken *get_token(Tinit *scanner_struct);
 
+/**
+ * \brief Check if next token match type, consume and returns it, otherwise exit with error.
+ * \param scanner_struct scanner context
+ * \param type Desired type of next token
+ * \return next token
+ */
+Ttoken* check_and_get_token(Tinit* scanner_struct, token_type type);
+
+/**
+* \brief Check if next token match type and returns it, otherwise exit with error. Does <b>NOT</b> consume token.
+* \param scanner_struct scanner context
+* \param type Desired type of next token
+* \return next token
+*/
+Ttoken* check_and_peek_token(Tinit* scanner_struct, token_type type);
 #endif
