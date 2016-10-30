@@ -13,6 +13,7 @@
 #include <ctype.h>
 #include "scanner.h"
 #include "gc.h"
+#include "return_codes.h"
 
 char *keywords[17] = { "boolean", "break", "class", "continue","do",
 					"double", "else", "false", "for", "if", "int",
@@ -682,4 +683,39 @@ Ttoken *get_token_internal(Tinit *scanner_struct) {
     token->tlen = strlen(tmp_string);
     token->line = scanner_struct->line;
     return token;
+}
+
+char* tokens_to_string(token_type tokens) {
+    char* ret = gc_alloc(sizeof(char) * 2);
+    ret[0] = 0;
+    for (int i=1; i<=1<<((sizeof(int)*8)-1); i<<=1) {
+        if(i & tokens) {
+            const char* tokString = token_to_string((token_type)i);
+            ret = gc_realloc(ret, sizeof(char)*(strlen(tokString) + strlen(ret) + 3));
+            strcat(ret, tokString);
+            strcat(ret, ", ");
+        }
+    }
+    //remove trailing ', '
+    if (strlen(ret))
+        ret[strlen(ret) - 2] = 0;
+    return ret;
+}
+
+Ttoken* check_and_get_token(Tinit* scanner_struct, token_type type) {
+    Ttoken* tok = get_token(scanner_struct);
+    if (((int)tok->type & type) == 0) {
+        fprintf(stderr, "Expected %s got %s, on line %lld", tokens_to_string(type), tok->c, tok->line);
+        exit(semantic_error_in_code);
+    }
+    return tok;
+}
+
+Ttoken* check_and_peek_token(Tinit* scanner_struct, token_type type) {
+    Ttoken* tok = peek_token(scanner_struct);
+    if (((int)tok->type & type) == 0) {
+        fprintf(stderr, "Expected %s got %s, on line %lld", tokens_to_string(type), tok->c, tok->line);
+        exit(semantic_error_in_code);
+    }
+    return tok;
 }
