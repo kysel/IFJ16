@@ -25,6 +25,13 @@ typedef struct Func_parameter_s Func_parameter;
 	char* Name;
 }Class;*/
 
+typedef enum {
+	void_t,
+	int_t,
+	double_t,
+	bool_t,
+	string_t
+}Data_type;
 
 /**
  * Functions...
