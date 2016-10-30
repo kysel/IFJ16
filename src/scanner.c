@@ -24,45 +24,57 @@ Tinit *init_scanner(FILE *fp) {
     Tinit *scanner_struct = gc_alloc(sizeof(Tinit));
     scanner_struct->f = fp;
     scanner_struct->line = n;
+    scanner_struct->token = NULL;
     return scanner_struct;
 
 }
 
 
-char* char_append(char *tmp_string, unsigned int *tmp_string_len, unsigned char c) {
+char *char_append(char *tmp_string, unsigned int *tmp_string_len, unsigned char c) {
     (*tmp_string_len)++;
     tmp_string = (char *) gc_realloc(tmp_string,sizeof(char)*(*tmp_string_len));
 
     tmp_string[(*tmp_string_len-2)] = c;
     tmp_string[(*tmp_string_len)-1] = '\0';
-	return tmp_string;
+
+    return tmp_string;
 }
+
 
 char *is_keyword(char *tmp_string) {
-    char *found_kw;
     for (int i = 0; i <= 16; i++) {
         if (!(strcmp(tmp_string,keywords[i]))) {
-            found_kw = keywords[i];
-                return found_kw;
-        }
-        else {
-
-            found_kw = NULL;
-        }
-        
- }     
-
-    return found_kw;
+            return keywords[i];
+        }      
+    }     
+    return NULL;
 }
+
+/*Ttoken *peek_token(Tinit *scanner_struct) {
+    Ttoken *p_token;
+
+    if (scanner_struct->token == NULL) {
+        p_token = get_token(scanner_struct);
+        scanner_struct->token = p_token;
+        long position = (long)(p_token->tlen);
+        fseek(scanner_struct->f, -position,SEEK_CUR);
+        return p_token;
+    }
+
+    return scanner_struct->token;
+}*/
 
 Ttoken *peek_token(Tinit *scanner_struct) {
-    Ttoken *p_token = get_token(scanner_struct);
+    if (scanner_struct->token == NULL) {
+        scanner_struct->token = get_token(scanner_struct);
+        long position = (long)(scanner_struct->token->tlen);
+        fseek(scanner_struct->f, -position,SEEK_CUR);
+        return scanner_struct->token;
+    }
 
-    long position = (long)(p_token->tlen);
-    fseek(scanner_struct->f, -position,SEEK_CUR); //nebude to pomale? 
-
-    return p_token; 
+    return scanner_struct->token;
 }
+
 
 
 Ttoken *get_token(Tinit *scanner_struct) {
@@ -71,27 +83,14 @@ Ttoken *get_token(Tinit *scanner_struct) {
     char c;
     int read_file = 1;
     unsigned int tmp_string_len = 1;
-    //long double line_no = 1;
 
     states state = FSM_INIT;
-    
-    char *tmp_string = (char *) gc_alloc(sizeof(char)); //gcalloc??
-	tmp_string[0] = 0;
 
-    //char *tmp_string = (char *) gc_alloc(sizeof(char)*2); //gcalloc??
+  
+    char *tmp_string = (char *) gc_alloc(sizeof(char)); 
+    tmp_string[0] = 0;
 
-    //Ttoken *tok = gcmalloc(sizeof(Ttoken));
-
-    /*if (tmp_string = NULL) {
-        fprintf(stderr, "Memory allocation failed");
-        //je treba hodit return alebo exit??
-    }
-    */
-    Ttoken *token = (Ttoken *) gc_alloc(sizeof(Ttoken)); //galloc??
-
-    /*if (token = NULL) {
-        fprintf(stderr, "Memory allocation failed");
-    }*/
+    Ttoken *token = (Ttoken *) gc_alloc(sizeof(Ttoken));
 
     token->whence = ftell(scanner_struct->f);
 
@@ -131,7 +130,6 @@ Ttoken *get_token(Tinit *scanner_struct) {
                     else if (c == '.') state = FSM_DOT;
                     else if (c == EOF) {
                         read_file = 0;
-                        // domysli este, bude continue vhodne
                         continue;
                     }
                     else {
@@ -139,16 +137,12 @@ Ttoken *get_token(Tinit *scanner_struct) {
                         exit(1);                        
                     }
 
-                /*
-                tmp_string[0]= c;
-                tmp_string[1]= '\0'; 
-                */
-                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+               tmp_string = (char_append(tmp_string, &tmp_string_len, c));
                break;
 
             case FSM_ID:
                 if ((isalpha(c)) || (isdigit(c)) || (c == '_') || (c == '$')) {
-                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = (char_append(tmp_string, &tmp_string_len, c));
                     state = FSM_ID;
                 }
                 else {
@@ -156,129 +150,200 @@ Ttoken *get_token(Tinit *scanner_struct) {
                     kw_ptr = (is_keyword(tmp_string));
                     if(kw_ptr == NULL) {
                         token->type = T_ID;
-                        token->tlen = tmp_string_len-1;
+                        token->tlen = strlen (tmp_string);
                         token->line = scanner_struct->line;
                         token->c = tmp_string;
+                        if (scanner_struct->token != NULL) {
+                            scanner_struct->token = NULL;
+                        } 
                         return token;
                     }
                     else {
                         if (strcmp(kw_ptr, "boolean") == 0) {
-                            token->type = K_BOOL;
-                            token->tlen = 7;
+                            token->type = T_KEYWORD;
+                            token->dtype = bool_t;
+                            token->tlen = strlen (kw_ptr);
                             token->line = scanner_struct->line;
                             token->c = kw_ptr;
+                            if (scanner_struct->token != NULL) {
+                                scanner_struct->token = NULL;
+                            }
                             return token;
                         }
                         else if (strcmp(kw_ptr, "break") == 0) {
-                            token->type = K_BREAK;
-                            token->tlen = 5;
+                            token->type = T_KEYWORD;
+                            token->kw = K_BREAK;
+                            token->tlen = strlen (kw_ptr);
                             token->line = scanner_struct->line;
                             token->c = kw_ptr;
+                            if (scanner_struct->token != NULL) {
+                                scanner_struct->token = NULL;
+                            } 
                             return token;
                         }
                         else if (strcmp(kw_ptr, "class") == 0) {
-                            token->type = K_CLASS;
-                            token->tlen = 5;
+                            token->type = T_KEYWORD;
+                            token->kw = K_CLASS;
+                            token->tlen = strlen (kw_ptr);
                             token->line = scanner_struct->line;
                             token->c = kw_ptr;
+                            if (scanner_struct->token != NULL) {
+                                scanner_struct->token = NULL;
+                            } 
                             return token;
                         }
                         else if (strcmp(kw_ptr, "continue") == 0) {
-                            token->type = K_CONTINUE;
-                            token->tlen = 8;
+                            token->type = T_KEYWORD;
+                            token->kw = K_CONTINUE;
+                            token->tlen = strlen (kw_ptr);
                             token->line = scanner_struct->line;
                             token->c = kw_ptr;
+                            if (scanner_struct->token != NULL) {
+                                scanner_struct->token = NULL;
+                            } 
                             return token;
                         }
                         else if (strcmp(kw_ptr, "do") == 0) {
-                            token->type = K_DO;
-                            token->tlen = 2;
+                            token->type = T_KEYWORD;
+                            token->kw = K_DO;
+                            token->tlen = strlen (kw_ptr);
                             token->line = scanner_struct->line;
                             token->c = kw_ptr;
+                            if (scanner_struct->token != NULL) {
+                                scanner_struct->token = NULL;
+                            } 
                             return token;
                         }
                         else if (strcmp(kw_ptr, "double") == 0) {
-                            token->type = K_DOUBLE;
-                            token->tlen = 5;
+                            token->type = T_KEYWORD;
+                            token->dtype = double_t;
+                            token->tlen = strlen (kw_ptr);
                             token->line = scanner_struct->line;
                             token->c = kw_ptr;
+                            if (scanner_struct->token != NULL) {
+                                scanner_struct->token = NULL;
+                            } 
                             return token;
                         }
                         else if (strcmp(kw_ptr, "else") == 0) {
-                            token->type = K_ELSE;
-                            token->tlen = 4;
+                            token->type = T_KEYWORD;
+                            token->kw = K_ELSE;
+                            token->tlen = strlen (kw_ptr);
                             token->line = scanner_struct->line;
                             token->c = kw_ptr;
+                            if (scanner_struct->token != NULL) {
+                                scanner_struct->token = NULL;
+                            } 
                             return token;
                         }
                         else if (strcmp(kw_ptr, "false") == 0) {
-                            token->type = K_FALSE;
-                            token->tlen = 5;
+                            token->type = T_KEYWORD;
+                            token->kw = K_FALSE;
+                            token->tlen = strlen (kw_ptr);
                             token->line = scanner_struct->line;
                             token->c = kw_ptr;
+                            if (scanner_struct->token != NULL) {
+                                scanner_struct->token = NULL;
+                            } 
                             return token;
                         }
                         else if (strcmp(kw_ptr, "for") == 0) {
-                            token->type = K_FOR;
-                            token->tlen = 3;
+                            token->type = T_KEYWORD;
+                            token->kw = K_FOR;
+                            token->tlen = strlen (kw_ptr);
                             token->line = scanner_struct->line;
                             token->c = kw_ptr;
+                            if (scanner_struct->token != NULL) {
+                                scanner_struct->token = NULL;
+                            } 
                             return token;
                         }
                         else if (strcmp(kw_ptr, "if") == 0) {
-                            token->type = K_IF;
-                            token->tlen = 2;
+                            token->type = T_KEYWORD;
+                            token->kw = K_IF;
+                            token->tlen = strlen (kw_ptr);
                             token->line = scanner_struct->line;
                             token->c = kw_ptr;
+                            if (scanner_struct->token != NULL) {
+                                scanner_struct->token = NULL;
+                            } 
                             return token;
                         }
                         else if (strcmp(kw_ptr, "int") == 0) {
-                            token->type = K_INT;
-                            token->tlen = 3;
+                            token->type = T_KEYWORD;
+                            token->dtype = int_t;
+                            token->tlen = strlen (kw_ptr);
                             token->line = scanner_struct->line;
                             token->c = kw_ptr;
+                            if (scanner_struct->token != NULL) {
+                                scanner_struct->token = NULL;
+                            } 
                             return token;
                         }
                         else if (strcmp(kw_ptr, "return") == 0) {
-                            token->type = K_RETURN;
-                            token->tlen = 6;
+                            token->type = T_KEYWORD;
+                            token->kw = K_RETURN;
+                            token->tlen = strlen (kw_ptr);
                             token->line = scanner_struct->line;
                             token->c = kw_ptr;
+                            if (scanner_struct->token != NULL) {
+                                scanner_struct->token = NULL;
+                            }
                             return token;
                         }
-                        else if (strcmp(kw_ptr, "string") == 0) {
-                            token->type = K_STRING;
-                            token->tlen = 6;
+                        else if (strcmp(kw_ptr, "String") == 0) {
+                            token->type = T_KEYWORD;
+                            token->dtype = string_t;
+                            token->tlen = strlen (kw_ptr);
                             token->line = scanner_struct->line;
                             token->c = kw_ptr;
+                            if (scanner_struct->token != NULL) {
+                                scanner_struct->token = NULL;
+                            }
                             return token;
                         }
                         else if (strcmp(kw_ptr, "static") == 0) {
-                            token->type = K_STATIC;
-                            token->tlen = 6;
+                            token->type = T_KEYWORD;
+                            token->kw = K_STATIC;
+                            token->tlen = strlen (kw_ptr);
                             token->line = scanner_struct->line;
                             token->c = kw_ptr;
+                            if (scanner_struct->token != NULL) {
+                                scanner_struct->token = NULL;
+                            } 
                             return token;
                         }
                         else if (strcmp(kw_ptr, "true") == 0) {
-                            token->type = K_TRUE;
-                            token->tlen = 4;
+                            token->type = T_KEYWORD;
+                            token->kw = K_TRUE;
+                            token->tlen = strlen (kw_ptr);
                             token->line = scanner_struct->line;
                             token->c = kw_ptr;
+                            if (scanner_struct->token != NULL) {
+                                scanner_struct->token = NULL;
+                            } 
                             return token;
                         }
                         else if (strcmp(kw_ptr, "void") == 0) {
-                            token->type = K_VOID;
-                            token->tlen = 4;
+                            token->type = T_KEYWORD;
+                            token->dtype = void_t;
+                            token->tlen = strlen (kw_ptr);
                             token->line = scanner_struct->line;
                             token->c = kw_ptr;
+                            if (scanner_struct->token != NULL) {
+                                scanner_struct->token = NULL;
+                            } 
                             return token;
                         }
                         else if (strcmp(kw_ptr, "while") == 0) {
-                            token->type = K_WHILE;
-                            token->tlen = 5;
+                            token->type = T_KEYWORD;
+                            token->kw = K_WHILE;
+                            token->tlen = strlen (kw_ptr);
                             token->line = scanner_struct->line;
                             token->c = kw_ptr;
+                            if (scanner_struct->token != NULL) {
+                                scanner_struct->token = NULL;
+                            } 
                             return token;
                         }
                     }
@@ -290,58 +355,38 @@ Ttoken *get_token(Tinit *scanner_struct) {
             case FSM_DOT:
                 ungetc(c,scanner_struct->f);
                 token->type = T_DOT;
-                token->tlen = tmp_string_len-1;
+                token->tlen = strlen (tmp_string);
                 token->line = scanner_struct->line;
                 token->c = tmp_string;
+                if (scanner_struct->token != NULL) {
+                    scanner_struct->token = NULL;
+                } 
                 return token;
 
                 break;
-            /*
-            case FSM_K_ID:
-                if ((isalpha(c)) || (isdigit(c)) || (c == '_') || (c == '$')) {
-                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
-                    state = FSM_K_ID;
-                }
-                else {
-                    ungetc(c,scanner_struct->f);
-                    //porovnanie s keywords
-                }
 
-                break;
-            
-            // START OF AUXILIARY STATES FOR IDs
-            case FSM_K_ID_1:
-                if ((isalpha(c)) || (c == '_') || (c == '$')) {
-                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
-                    state = FSM_K_ID;
-                }
-                else {
-                    fprintf(stderr,"Unidentified lexem!");
-                    exit(1); 
-                }
-
-                break;
-            // END OF AUXILIARY STATES FOR IDs
-            */
             case FSM_INT:
                 if (isdigit(c)) {
                     state = FSM_INT;
-                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = (char_append(tmp_string, &tmp_string_len, c));
                 }
                 else if (c == '.') {
-                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = (char_append(tmp_string, &tmp_string_len, c));
                     state = FSM_DOUBLE;
                 }
                 else if ((c == 'E') || (c == 'e')) {
                     state = FSM_EXPONENT;
-                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = (char_append(tmp_string, &tmp_string_len, c));
                 }
                 else {
                     ungetc(c,scanner_struct->f);
                     token->type = T_INT;
-                    token->tlen = tmp_string_len-1;
+                    token->tlen = strlen (tmp_string);
                     token->line = scanner_struct->line;
-                    token->li = strtol(tmp_string, &endptr, 10); // bolo by dobre skontrolovat ci nepretieklo
+                    token->li = strtol(tmp_string, &endptr, 10);
+                    if (scanner_struct->token != NULL) {
+                        scanner_struct->token = NULL;
+                    } 
                     return token;
                 }
 
@@ -350,18 +395,21 @@ Ttoken *get_token(Tinit *scanner_struct) {
             case FSM_DOUBLE:
                 if (isdigit(c)) {
                     state = FSM_DOUBLE;
-                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = (char_append(tmp_string, &tmp_string_len, c));
                 }
                 else if ((c == 'E') || (c == 'e')) {
                     state = FSM_EXPONENT;
-                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = (char_append(tmp_string, &tmp_string_len, c));
                 }
                 else {
                     ungetc(c,scanner_struct->f);
                     token->type = T_DOUBLE;
-                    token->tlen = tmp_string_len-1;
+                    token->tlen = strlen (tmp_string);
                     token->line = scanner_struct->line;
                     token->d = strtod(tmp_string, &endptr);
+                    if (scanner_struct->token != NULL) {
+                        scanner_struct->token = NULL;
+                    } 
                     return token;
                 }
 
@@ -370,11 +418,11 @@ Ttoken *get_token(Tinit *scanner_struct) {
             case FSM_EXPONENT:
                 if ((c == '+') || (c == '-')) {
                     state = FSM_EXPONENT_SIGN;
-                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = (char_append(tmp_string, &tmp_string_len, c));
                 }
                 else if (isdigit(c)) {
                     state = FSM_EXPONENT_2;
-                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = (char_append(tmp_string, &tmp_string_len, c));
                 }
                 else {
                     fprintf(stderr, "SCANNER ERROR: Exponent error!\n");
@@ -386,7 +434,7 @@ Ttoken *get_token(Tinit *scanner_struct) {
             case FSM_EXPONENT_SIGN:
                 if (isdigit(c)) {
                     state = FSM_EXPONENT_2;
-                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = (char_append(tmp_string, &tmp_string_len, c));
                 }
                 else {
                     fprintf(stderr, "SCANNER ERROR: Exponent sign error!\n");
@@ -398,14 +446,17 @@ Ttoken *get_token(Tinit *scanner_struct) {
             case FSM_EXPONENT_2:
                 if (isdigit(c)) {
                     state = FSM_EXPONENT_2;
-                    tmp_string = char_append(tmp_string, &tmp_string_len, c);  
+                    tmp_string = (char_append(tmp_string, &tmp_string_len, c));  
                 }
                 else {
                     ungetc(c,scanner_struct->f);
                     token->type = T_DOUBLE;
-                    token->tlen = tmp_string_len-1;
+                    token->tlen = strlen (tmp_string);
                     token->line = scanner_struct->line;
                     token->d = strtod(tmp_string, &endptr);
+                    if (scanner_struct->token != NULL) {
+                        scanner_struct->token = NULL;
+                    } 
                     return token;
                 }
 
@@ -414,9 +465,12 @@ Ttoken *get_token(Tinit *scanner_struct) {
             case FSM_MUL:
                 ungetc(c,scanner_struct->f);
                 token->type = T_MUL;
-                token->tlen = tmp_string_len-1;
+                token->tlen = strlen (tmp_string);
                 token->line = scanner_struct->line;
                 token->c = tmp_string;
+                if (scanner_struct->token != NULL) {
+                    scanner_struct->token = NULL;
+                } 
                 return token;
 
                 break;
@@ -431,9 +485,12 @@ Ttoken *get_token(Tinit *scanner_struct) {
                     ungetc(c,scanner_struct->f);
                     //tmp_string[1] = '\0';
                     token->type = T_DIV;
-                    token->tlen = tmp_string_len-1;
+                    token->tlen = strlen (tmp_string);
                     token->line = scanner_struct->line;
                     token->c = tmp_string;
+                    if (scanner_struct->token != NULL) {
+                        scanner_struct->token = NULL;
+                    } 
                     return token;
                 }
 
@@ -442,9 +499,12 @@ Ttoken *get_token(Tinit *scanner_struct) {
             case FSM_ADD:
                 ungetc(c,scanner_struct->f);
                 token->type = T_ADD;
-                token->tlen = tmp_string_len-1;
+                token->tlen = strlen (tmp_string);
                 token->line = scanner_struct->line;
                 token->c = tmp_string;
+                if (scanner_struct->token != NULL) {
+                    scanner_struct->token = NULL;
+                } 
                 return token;
 
                 break;
@@ -452,9 +512,12 @@ Ttoken *get_token(Tinit *scanner_struct) {
             case FSM_SUB:
                 ungetc(c,scanner_struct->f);
                 token->type = T_SUB;
-                token->tlen = tmp_string_len-1;
+                token->tlen = strlen (tmp_string);
                 token->line = scanner_struct->line;
                 token->c = tmp_string;
+                if (scanner_struct->token != NULL) {
+                     scanner_struct->token = NULL;
+                } 
                 return token;
 
                 break;
@@ -462,9 +525,12 @@ Ttoken *get_token(Tinit *scanner_struct) {
             case FSM_COMMA:
                 ungetc(c,scanner_struct->f);
                 token->type = T_COMMA;
-                token->tlen = tmp_string_len-1;
+                token->tlen = strlen (tmp_string);
                 token->line = scanner_struct->line;
                 token->c = tmp_string;
+                if (scanner_struct->token != NULL) {
+                    scanner_struct->token = NULL;
+                } 
                 return token;
 
                 break;
@@ -472,9 +538,12 @@ Ttoken *get_token(Tinit *scanner_struct) {
             case FSM_SEMICOLON:
                 ungetc(c,scanner_struct->f);
                 token->type = T_SEMICOLON;
-                token->tlen = tmp_string_len-1;
+                token->tlen = strlen (tmp_string);
                 token->line = scanner_struct->line;
                 token->c = tmp_string;
+                if (scanner_struct->token != NULL) {
+                    scanner_struct->token = NULL;
+                } 
                 return token;
 
                 break;
@@ -482,9 +551,12 @@ Ttoken *get_token(Tinit *scanner_struct) {
             case FSM_BRACKET_LROUND:
                 ungetc(c,scanner_struct->f);
                 token->type = T_BRACKET_LROUND;
-                token->tlen = tmp_string_len-1;
+                token->tlen = strlen (tmp_string);
                 token->line = scanner_struct->line;
                 token->c = tmp_string;
+                if (scanner_struct->token != NULL) {
+                    scanner_struct->token = NULL;
+                } 
                 return token;
 
                 break;
@@ -492,9 +564,12 @@ Ttoken *get_token(Tinit *scanner_struct) {
             case FSM_BRACKET_RROUND:
                 ungetc(c,scanner_struct->f);
                 token->type = T_BRACKET_RROUND;
-                token->tlen = tmp_string_len-1;
+                token->tlen = strlen (tmp_string);
                 token->line = scanner_struct->line;
                 token->c = tmp_string;
+                if (scanner_struct->token != NULL) {
+                    scanner_struct->token = NULL;
+                } 
                 return token;
 
                 break;
@@ -502,9 +577,12 @@ Ttoken *get_token(Tinit *scanner_struct) {
             case FSM_BRACKET_LSQUARE:
                 ungetc(c,scanner_struct->f);
                 token->type = T_BRACKET_LSQUARE;
-                token->tlen = tmp_string_len-1;
+                token->tlen = strlen (tmp_string);
                 token->line = scanner_struct->line;
                 token->c = tmp_string;
+                if (scanner_struct->token != NULL) {
+                    scanner_struct->token = NULL;
+                } 
                 return token;
 
                 break;
@@ -512,9 +590,12 @@ Ttoken *get_token(Tinit *scanner_struct) {
             case FSM_BRACKET_RSQUARE:
                 ungetc(c,scanner_struct->f);
                 token->type = T_BRACKET_RSQUARE;
-                token->tlen = tmp_string_len-1;
+                token->tlen = strlen (tmp_string);
                 token->line = scanner_struct->line;
                 token->c = tmp_string;
+                if (scanner_struct->token != NULL) {
+                    scanner_struct->token = NULL;
+                } 
                 return token;
 
                 break;
@@ -522,9 +603,12 @@ Ttoken *get_token(Tinit *scanner_struct) {
             case FSM_BRACKET_LCURLY:
                 ungetc(c,scanner_struct->f);
                 token->type = T_BRACKET_LCURLY;
-                token->tlen = tmp_string_len-1;
+                token->tlen = strlen (tmp_string);
                 token->line = scanner_struct->line;
                 token->c = tmp_string;
+                if (scanner_struct->token != NULL) {
+                    scanner_struct->token = NULL;
+                } 
                 return token;
 
                 break;
@@ -532,9 +616,12 @@ Ttoken *get_token(Tinit *scanner_struct) {
             case FSM_BRACKET_RCURLY:
                 ungetc(c,scanner_struct->f);
                 token->type = T_BRACKET_RCURLY;
-                token->tlen = tmp_string_len-1;
+                token->tlen = strlen (tmp_string);
                 token->line = scanner_struct->line;
                 token->c = tmp_string;
+                if (scanner_struct->token != NULL) {
+                    scanner_struct->token = NULL;
+                } 
                 return token;
 
                 break;     
@@ -542,18 +629,23 @@ Ttoken *get_token(Tinit *scanner_struct) {
             case FSM_EQUAL:
                 if (c == '=') {
                     token->type = T_BOOL_EQUAL;
-                    token->tlen = tmp_string_len-1;
+                    token->tlen = strlen (tmp_string);
                     token->line = scanner_struct->line;
                     token->c = tmp_string;
+                    if (scanner_struct->token != NULL) {
+                        scanner_struct->token = NULL;
+                    } 
                     return token;
                 }
                 else {
                     ungetc(c,scanner_struct->f);
-                    //tmp_string[1] = '\0';
                     token->type = T_ASSIGN;
-                    token->tlen = tmp_string_len-1;
+                    token->tlen = strlen (tmp_string);
                     token->line = scanner_struct->line;
                     token->c = tmp_string;
+                    if (scanner_struct->token != NULL) {
+                        scanner_struct->token = NULL;
+                    } 
                     return token;
                 }
 
@@ -562,9 +654,12 @@ Ttoken *get_token(Tinit *scanner_struct) {
             case FSM_NOT:
                 if (c == '=') {
                     token->type = T_NOT_EQUAL;
-                    token->tlen = tmp_string_len-1;
+                    token->tlen = strlen (tmp_string);
                     token->line = scanner_struct->line;
                     token->c = tmp_string;
+                    if (scanner_struct->token != NULL) {
+                        scanner_struct->token = NULL;
+                    } 
                     return token;
                 }
                 else {
@@ -574,20 +669,25 @@ Ttoken *get_token(Tinit *scanner_struct) {
 
             case FSM_LOWER:
                 if (c == '=') {
-                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = (char_append(tmp_string, &tmp_string_len, c));
                     token->type = T_LOWER_EQUAL;
-                    token->tlen = tmp_string_len-1;
+                    token->tlen = strlen (tmp_string);
                     token->line = scanner_struct->line;
                     token->c = tmp_string;
+                    if (scanner_struct->token != NULL) {
+                        scanner_struct->token = NULL;
+                    } 
                     return token;
                 }
                 else {
                     ungetc(c,scanner_struct->f);
-                    //tmp_string[1] = '\0';
                     token->type = T_LOWER;
-                    token->tlen = tmp_string_len-1;
+                    token->tlen = strlen (tmp_string);
                     token->line = scanner_struct->line;
                     token->c = tmp_string;
+                    if (scanner_struct->token != NULL) {
+                        scanner_struct->token = NULL;
+                    } 
                     return token;
                 }
 
@@ -595,20 +695,25 @@ Ttoken *get_token(Tinit *scanner_struct) {
 
             case FSM_GREATER:
                 if (c == '=') {
-                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = (char_append(tmp_string, &tmp_string_len, c));
                     token->type = T_GREATER_EQUAL;
-                    token->tlen = tmp_string_len-1;
+                    token->tlen = strlen (tmp_string);
                     token->line = scanner_struct->line;
                     token->c = tmp_string;
+                    if (scanner_struct->token != NULL) {
+                        scanner_struct->token = NULL;
+                    } 
                     return token;
                 }
                 else {
                     ungetc(c,scanner_struct->f);
-                    tmp_string[1] = '\0';
                     token->type = T_GREATER;
-                    token->tlen = tmp_string_len-1;
+                    token->tlen = strlen (tmp_string);
                     token->line = scanner_struct->line;
                     token->c = tmp_string;
+                    if (scanner_struct->token != NULL) {
+                        scanner_struct->token = NULL;
+                    } 
                     return token;
                 }
 
@@ -617,15 +722,19 @@ Ttoken *get_token(Tinit *scanner_struct) {
             case FSM_QUOTE:
                 if (c == '\\') {
                     state = FSM_ESCAPE;
-                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = (char_append(tmp_string, &tmp_string_len, c));
                 }
                 else if (c == '"') {
                     state = FSM_STRING;
-                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = (char_append(tmp_string, &tmp_string_len, c));
+                }
+                else if (!isprint(c)) {
+                    fprintf(stderr, "SCANNER ERROR: Unidentified token!\n");
+                    exit(1);
                 }
                 else {
                     state = FSM_QUOTE;
-                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = (char_append(tmp_string, &tmp_string_len, c));
                 }
 
                 break;
@@ -633,11 +742,11 @@ Ttoken *get_token(Tinit *scanner_struct) {
             case FSM_ESCAPE:
                 if ((c == '"') || (c == 't') || (c == 'n') || (c == '\\')) {
                     state = FSM_QUOTE;
-                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = (char_append(tmp_string, &tmp_string_len, c));
                 }
                 else if ((c >= '0') && (c <= '3')) {
                     state = FSM_ESCAPE_OCTAL_1;
-                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = (char_append(tmp_string, &tmp_string_len, c));
                 }
                 else {
                     fprintf(stderr, "SCANNER ERROR: String escape sequence error!\n");
@@ -649,9 +758,12 @@ Ttoken *get_token(Tinit *scanner_struct) {
             case FSM_STRING:
                 ungetc(c,scanner_struct->f);
                 token->type = T_STRING;
-                token->tlen = tmp_string_len-1;
+                token->tlen = strlen (tmp_string);
                 token->line = scanner_struct->line;
                 token->c = tmp_string;
+                if (scanner_struct->token != NULL) {
+                    scanner_struct->token = NULL;
+                } 
                 return token;
 
                 break;
@@ -661,7 +773,7 @@ Ttoken *get_token(Tinit *scanner_struct) {
             case FSM_ESCAPE_OCTAL_1:
                 if ((c >= '0') && (c <= '7')) {
                     state = FSM_ESCAPE_OCTAL_2;
-                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = (char_append(tmp_string, &tmp_string_len, c));
                 }
                 else {
                     fprintf(stderr, "SCANNER ERROR: String escape sequence error!\n");
@@ -673,7 +785,7 @@ Ttoken *get_token(Tinit *scanner_struct) {
             case FSM_ESCAPE_OCTAL_2:
                  if ((c >= '0') && (c <= '7')) {
                     state = FSM_QUOTE;
-                    tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                    tmp_string = (char_append(tmp_string, &tmp_string_len, c));
                 }
                 else {
                     fprintf(stderr, "SCANNER ERROR: String escape sequence error!\n");
@@ -756,37 +868,11 @@ Ttoken *get_token(Tinit *scanner_struct) {
     } while(read_file);
 
 token->type = T_EOF;
-token->tlen = 0;
+token->tlen = strlen (tmp_string);
 token->line = scanner_struct->line;
+if (scanner_struct->token != NULL) {
+    scanner_struct->token = NULL;
+} 
 return token;
  
-//tuna chce navratovu hodnotu
 }
-/*
-int main(int argc, char *argv[])
-{
-    gc_init();
-    for (int i=0; i!=50; i++) {
-        gc_alloc(50);
-    }
-    return 0;
-
-    if(argc == 1)
-        return -1;
-
-    FILE *fp;
-
-    fp = fopen (argv[1],"r");
-
-    if (fp == NULL)
-    {
-    fprintf(stderr, "Error opening file!\n");
-    return 99;
-    }
-
-    //get_token(fp);
-
-    fclose(fp);
-    return 0;
-}
-*/

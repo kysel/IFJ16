@@ -3,7 +3,6 @@
 * @author Kyzlink Jiří <xkyzli02@stud.fit.vutbr.cz>
 * @author Kubiš Juraj <xkubis15@stud.fit.vutbr.cz>
 * @author Korček Juraj <xkorce01@stud.fit.vutbr.cz>
-* @author Kubica Jan <xkubic39@stud.fit.vutbr.cz>
 * @author Kovařík Viktor <xkovar77@stud.fit.vutbr.cz>
 */
 #include <stdio.h>
@@ -31,10 +30,9 @@ typedef enum {
 	 T_ID, 				// identifier
 	 T_DOT,				// "."
 	 // END OF TOKENS WHICH CANNOT BE REORDERED 
-
+	 T_KEYWORD,
 	 T_ASSIGN,			// "="
 	 T_COMMA,			// ","
-	 // T_COLON			// ":"
 	 T_SEMICOLON,		// ";"
 
 	 T_BRACKET_LSQUARE,	// "["
@@ -46,8 +44,9 @@ typedef enum {
 	 T_INT, 			// integer
 	 T_DOUBLE,			// double
 	 T_STRING,			// string
-	 //T_COMMENT,			// comment
+	 
 
+	 /*
 	 // keywords
 	 K_BOOL,			// "boolean"
 	 K_BREAK,			// "break"
@@ -66,17 +65,14 @@ typedef enum {
 	 K_TRUE,			// "true"
 	 K_VOID,			// "void"
 	 K_WHILE,			// "while"
-
+	*/
 
 
 }token_type;
 
-
 typedef enum {
 	FSM_INIT,
 	FSM_ID,
-	//FSM_K_ID_1,
-	//FSM_K_ID,
 	FSM_INT,
 	FSM_MUL,
 	FSM_DIV,
@@ -93,12 +89,7 @@ typedef enum {
 	FSM_COMMA,
 	FSM_LOWER,			// "<"
 	FSM_GREATER,			// ">"
-	//FSM_LOWER_EQUAL,		// "<="
-	//FSM_GREATER_EQUAL,	// ">="
-	//FSM_BOOL_EQUAL,		// "=="
 	FSM_NOT,			// "!"
-	//FSM_NOT_EQUAL,		// "!="
-	//FSM_ASSIGN,			// "="
 	FSM_QUOTE,
 	FSM_ESCAPE,
 	FSM_ESCAPE_OCTAL_1,
@@ -112,25 +103,59 @@ typedef enum {
 	FSM_COMMENT_BLOCK,
 	FSM_COMMENT_BLOCK_FIN,
 	FSM_DOT, // '.'
-	//FSM_EOF,
-
 }states;
+
+typedef enum {
+	void_t,
+	int_t, //je
+	double_t, //je
+	bool_t, //je
+	string_t //je
+}Data_type;
+
+typedef enum {
+	 K_BREAK,			// "break"
+	 K_CLASS,			// "class"
+	 K_CONTINUE,		// "continue"
+	 K_DO,				// "do"
+	 K_DOUBLE,			// "double"
+	 K_ELSE,			// "else"
+	 K_FALSE,			// "false"
+	 K_FOR,				// "for
+	 K_IF,				// "if"
+	 K_INT,				// "int"
+	 K_RETURN,			// "return"
+	 K_STRING,			// "String"
+	 K_STATIC,			// "static"
+	 K_TRUE,			// "true"
+	 K_VOID,			// "void"
+	 K_WHILE,			// "while"
+}keyword;
 
 typedef struct {
 	token_type type;
-	unsigned int tlen;
+	size_t tlen;
 	long long line;
 	long whence;
 	union {
-		long int li;	// stacilo by aj int?
-		double d;
-		char *c;
-	};
+        Data_type dtype; //data types
+        //operators op; //operators
+        keyword kw; //keywords
+    };
+    union {
+            long int li;
+            double d;
+            char *c;
+    };
 }Ttoken;
+
+
+
 
 typedef struct {
 	FILE *f;
 	long long line;
+	Ttoken *token;
 }Tinit;
 
 /**
@@ -139,6 +164,7 @@ typedef struct {
  * \todo nejspíš, tady bude argument něco jako *scanner context
  */
 //token peek_token();
+char *char_append(char *tmp_string, unsigned int *tmp_string_len, unsigned char c);
 /**
  * \brief Consume next token from input file
  * \return next available token
