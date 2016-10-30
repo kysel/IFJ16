@@ -50,6 +50,7 @@ Symbol_tree_leaf* add_symbol_impl(Symbol_tree* tree, Symbol_tree_leaf* leaf, con
 		(*newLeaf)->right = NULL;
 		(*newLeaf)->key = key;
 		(*newLeaf)->id = tree->nextId++;
+		(*newLeaf)->type = 0;
 		if (tree->root == NULL)
 			tree->root = *(newLeaf);
 		return *newLeaf;
