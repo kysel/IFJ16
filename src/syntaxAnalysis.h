@@ -1,5 +1,5 @@
 ﻿/** Interpretr jazyka IFJ16
-* @file gc.h
+* @file syntaxAnalysis.h
 * @author Kyzlink Jiří <xkyzli02@stud.fit.vutbr.cz>
 * @author Kubiš Juraj <xkubis15@stud.fit.vutbr.cz>
 * @author Korček Juraj <xkorce01@stud.fit.vutbr.cz>
@@ -7,13 +7,15 @@
 * @author Kovařík Viktor <xkovar77@stud.fit.vutbr.cz>
 */
 
-#ifndef GC_H_
-#define GC_H_
+#ifndef SYNTAXANALYSIS_H_
+#define SYNTAXANALYSIS_H_
 
-#include <stddef.h>
+#include "ial.h"
 
-void gc_init();
-void * gc_alloc(size_t size);
-void *gc_realloc(void* ptr, size_t size);
-void gc_free(void * ptr);
+typedef struct {
+	//todo: přidat sem scanner resp. jeho kontext
+
+	Symbol_tree* global_symbols, class_symbols, local_symbols;
+}Syntax_context;
+
 #endif
