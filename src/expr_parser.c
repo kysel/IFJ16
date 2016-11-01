@@ -11,6 +11,7 @@
 #include "expr_parser.h"
 #include "gc.h"
 #include "ast.h"
+#include "return_codes.h"
 
 //Inicializácia (prázdneho) zásobníka
 void stackInit (t_Stack* s) {
@@ -103,15 +104,14 @@ void stackApplyRule(t_Stack* s) {
          case T_NOT_EQUAL: 
             expression->tree.BinOp = OP_NOT_EQUAL; break;
          default:
-            /*TODO ERROR*/ break;
-
+            /*TODO ERROR*/ break; 
+      }  
       expression->tree.left_expr = s->arr[s->top_element - 2].address;
       expression->tree.right_expr = s->arr[s->top_element].address;
 
       stackPop(s);
       stackPop(s);
-      stackPop(s); 
-      }  
+      stackPop(s);
    }
    else {
       //TODO ERROR
@@ -125,7 +125,7 @@ void stackApplyRule(t_Stack* s) {
 int terminal2TabIndex(void * terminal) {
    //Jediný terminál, ktorý má adresu nula je EOS - End of Stack - Dno zásobníka
    if (terminal == NULL)
-      return 13;
+      return 14;
 
    //Ak má terminál adresu rôznu od NULL, ide o token
    //Konverzia pointeru na terminál na pointer na token 
@@ -220,10 +220,10 @@ void parseExpression(Tinit *scanner) {
          
          default:
             //TODO Treba uvoľniť pamäť, vypísať chybové hlásenie a až potom exit. Skontroluj všade!
-            exit(1);
+            fprintf(stderr, "Syntax error\n");
+            exit(syntactic_analysis_error);
             break;   
          }
-
       printStack(stack);
       a = stack->arr[stack->top_token].address;
    } while (a != NULL || b->type != T_EOF);
