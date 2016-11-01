@@ -16,6 +16,10 @@ ifj16: $(OBJECTS)
 binaryTree-test: $(filter-out main.o,$(OBJECTS))
 	$(CC) $(CFLAGS) $^ $@.c -o $@
 	valgrind -q --leak-check=full ./$@
+	
+find-test: $(filter-out main.o,$(OBJECTS))
+	$(CC) $(CFLAGS) $^ $@.c -o $@
+	valgrind -q --leak-check=full ./$@	
 
 %.o: %.c
 	mkdir -p .depend

@@ -1,4 +1,4 @@
-﻿/** Interpretr jazyka IFJ16
+/** Interpretr jazyka IFJ16
 * @file ial.c
 * @author Kyzlink Jiří <xkyzli02@stud.fit.vutbr.cz>
 * @author Kubiš Juraj <xkubis15@stud.fit.vutbr.cz>
@@ -13,10 +13,56 @@
 #include <string.h>
 #include <stdlib.h>
 
-//int find(char* s, char* search) {
+int find(char* s, char* search) {
 // https://en.wikipedia.org/wiki/Knuth%E2%80%93Morris%E2%80%93Pratt_algorithm
 // http://www.ms.mff.cuni.cz/~kopecky/vyuka/dis/02/dis02_v3.html
-//}
+
+	int position = -1; //defaultne vracena hodnota vyskytu
+	
+	if (!search) 	//hledame-li prazdny string, vracim defaultní hodnotu
+		return position; 		
+	if (strcmp(search,"") == 0)	//hledame-li prazdny string, vracim 0
+		return 0;
+	
+	int lenSearch = strlen(search); //zjistujeme delku hledaneho retezce
+	int lenString = strlen(s); //zjistujeme delku textoveho retezce
+	
+	int *p = malloc(sizeof(int) * lenString);	 //alokace pole
+	//int *p = gc_realloc(*p,(sizeof(int *) * (lenSearch+1)));
+	//int *p = gc_alloc(sizeof(int *) * (lenSearch+1));
+	p[0] = -1;
+	
+	int k = 1;
+	int l; int m;
+	
+	while (k < lenString) {
+		l=k-1;
+		m=l;
+		do {
+   			m=p[m];
+		} while ( (m==0 || s[m]==s[l]) );
+		p[k]=m+1;
+		k++;
+	}
+        
+	int i = 0;	//indexy jsou od nuly
+	int j = 0;
+	 
+	 while ((i < lenString) && (j < lenSearch)) {
+	 	while ((j >= 0) && (search[j] != s[i])) {
+      		j = p[j];
+      	}
+      	i++; j++;
+	 }
+	//printf("hledany delka = %d  i = %d, j = %d \n", lenSearch, i, j); //debug info
+	if (j <= lenSearch) position = i-j+1;
+    else position = 0;
+    free (p);
+    
+    
+    return position;
+}
+
 
 symbol_tree_t symbol_tree_new() {
 	return (symbol_tree_t) { .root = NULL, .nextId = 0 };
