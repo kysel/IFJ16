@@ -3,79 +3,67 @@
 * @author Kyzlink Jiří <xkyzli02@stud.fit.vutbr.cz>
 * @author Kubiš Juraj <xkubis15@stud.fit.vutbr.cz>
 * @author Korček Juraj <xkorce01@stud.fit.vutbr.cz>
+* @author Kubica Jan <xkubic39@stud.fit.vutbr.cz>
 * @author Kovařík Viktor <xkovar77@stud.fit.vutbr.cz>
 */
-#include <stdio.h>
+
 #ifndef SCANNER_H_
 #define SCANNER_H_
 
+#include <stdio.h>
+#include <stdbool.h>
+#include <assert.h>
+#include "hacks.h"
+#include "ast.h"
+
+
+#define FOREACH_TOKEN(TOKEN)                              \
+    TOKEN(T_ADD,              "'+'",         0x4000000)   \
+    TOKEN(T_SUB,              "'-'",         0x2000000)   \
+    TOKEN(T_MUL,              "'*'",         0x1000000)   \
+    TOKEN(T_DIV,              "'/'",          0x800000)   \
+    TOKEN(T_LOWER,            "'<'",          0x400000)   \
+    TOKEN(T_GREATER,          "'>'",          0x200000)   \
+    TOKEN(T_LOWER_EQUAL,      "'<='",         0x100000)   \
+    TOKEN(T_GREATER_EQUAL,    "'>='",          0x80000)   \
+    TOKEN(T_BOOL_EQUAL,       "'=='",          0x40000)   \
+    TOKEN(T_NOT_EQUAL,        "'!='",          0x20000)   \
+    TOKEN(T_BRACKET_LROUND,   "'('",           0x10000)   \
+    TOKEN(T_BRACKET_RROUND,   "')'",            0x8000)   \
+    TOKEN(T_ID,               "identifier",     0x4000)   \
+    TOKEN(T_DOT,              "'.'",            0x2000)   \
+    TOKEN(T_KEYWORD,          "keyword",        0x1000)   \
+    TOKEN(T_ASSIGN,           "assignment",      0x800)   \
+    TOKEN(T_COMMA,            "','",             0x400)   \
+    TOKEN(T_SEMICOLON,        "';'",             0x200)   \
+    TOKEN(T_BRACKET_LSQUARE,  "'['",             0x100)   \
+    TOKEN(T_BRACKET_RSQUARE,  "']'",              0x80)   \
+    TOKEN(T_BRACKET_LCURLY,   "'{'",              0x40)   \
+    TOKEN(T_BRACKET_RCURLY,   "'}'",              0x20)   \
+    TOKEN(T_EOF,              "end of file",      0x10)   \
+    TOKEN(T_INT,              "integer value",     0x8)   \
+    TOKEN(T_DOUBLE,           "double value",      0x4)   \
+    TOKEN(T_STRING,           "string value",      0x2)   \
+    TOKEN(T_TYPE,             "type",              0x1)
+
 typedef enum {
-	/** 
-	 * @todo přidat různé typy tokenů (identifikátor, typ, ...)
-	 */
-	 
-	 // START OF TOKENS WHICH CANNOT BE REORDERED 
-	 T_ADD,				// "+"
-	 T_SUB,				// "-"
-	 T_MUL,				// "*"
-	 T_DIV,				// "/""
-	 T_LOWER,			// "<"
-	 T_GREATER,			// ">"
-	 T_LOWER_EQUAL,		// "<="
-	 T_GREATER_EQUAL,	// ">="
-	 T_BOOL_EQUAL,		// "=="
-	 T_NOT_EQUAL,		// "!="
-	 T_BRACKET_LROUND,	// "("
-	 T_BRACKET_RROUND,	// ")"
-	 T_ID, 				// identifier
-	 T_DOT,				// "."
-	 // END OF TOKENS WHICH CANNOT BE REORDERED 
-
-	 T_ASSIGN,			// "="
-	 T_COMMA,			// ","
-	 // T_COLON			// ":"
-	 T_SEMICOLON,		// ";"
-
-	 T_BRACKET_LSQUARE,	// "["
-	 T_BRACKET_RSQUARE,	// "]"
-	 T_BRACKET_LCURLY,	// "{"
-	 T_BRACKET_RCURLY,	// "}"
-	 
-	 T_EOF,				// end of file
-	 T_INT, 			// integer
-	 T_DOUBLE,			// double
-	 T_STRING,			// string
-	 T_COMMENT,			// comment
-
-	 // keywords
-	 K_BOOL,			// "boolean"
-	 K_BREAK,			// "break"
-	 K_CLASS,			// "class"
-	 K_CONTINUE,		// "continue"
-	 K_DO,				// "do"
-	 K_DOUBLE,			// "double"
-	 K_ELSE,			// "else"
-	 K_FALSE,			// "false"
-	 K_FOR,				// "for
-	 K_IF,				// "if"
-	 K_INT,				// "int"
-	 K_RETURN,			// "return"
-	 K_STRING,			// "String"
-	 K_STATIC,			// "static"
-	 K_TRUE,			// "true"
-	 K_VOID,			// "void"
-	 K_WHILE,			// "while"
-
-
-
+    FOREACH_TOKEN(GENERATE_ENUM)
 }token_type;
 
+static inline const char* token_to_string(token_type tok) {
+    switch (tok) {
+        FOREACH_TOKEN(GENERATE_CASE)
+    default:
+        assert(false);
+        break;
+    }
+    assert(false);
+    return "▲";
+}
 
 typedef enum {
 	FSM_INIT,
 	FSM_ID,
-	//FSM_K_ID_1,
-	//FSM_K_ID,
 	FSM_INT,
 	FSM_MUL,
 	FSM_DIV,
@@ -92,12 +80,7 @@ typedef enum {
 	FSM_COMMA,
 	FSM_LOWER,			// "<"
 	FSM_GREATER,			// ">"
-	//FSM_LOWER_EQUAL,		// "<="
-	//FSM_GREATER_EQUAL,	// ">="
-	//FSM_BOOL_EQUAL,		// "=="
 	FSM_NOT,			// "!"
-	//FSM_NOT_EQUAL,		// "!="
-	//FSM_ASSIGN,			// "="
 	FSM_QUOTE,
 	FSM_ESCAPE,
 	FSM_ESCAPE_OCTAL_1,
@@ -111,35 +94,97 @@ typedef enum {
 	FSM_COMMENT_BLOCK,
 	FSM_COMMENT_BLOCK_FIN,
 	FSM_DOT, // '.'
-	//FSM_EOF,
-
 }states;
+
+#define FOREACH_KEYWORD(KEYWORD)                \
+    KEYWORD(K_BREAK,     "break",       0x1)    \
+    KEYWORD(K_CLASS,     "class",       0x2)    \
+    KEYWORD(K_CONTINUE,  "continue",    0x4)    \
+    KEYWORD(K_DO,        "do",          0x8)    \
+    KEYWORD(K_ELSE,      "else",       0x10)    \
+    KEYWORD(K_FALSE,     "false",      0x20)    \
+    KEYWORD(K_FOR,       "for",        0x40)    \
+    KEYWORD(K_IF,        "if",         0x80)    \
+    KEYWORD(K_RETURN,    "return",    0x100)    \
+    KEYWORD(K_STATIC,    "static",    0x200)    \
+    KEYWORD(K_TRUE,      "true",      0x400)    \
+    KEYWORD(K_WHILE,     "while",     0x800)    
+
+typedef enum {
+    FOREACH_KEYWORD(GENERATE_ENUM)
+}Keyword;
+
+static inline const char* keyword_to_string(Keyword kw) {
+    switch (kw) {
+        FOREACH_KEYWORD(GENERATE_CASE)
+    default:
+        assert(false);
+        break;
+    }
+    assert(false);
+    return "▲";
+}
 
 typedef struct {
 	token_type type;
-	unsigned int tlen;
-	long double line;
+	size_t tlen;
+	long long line;
+	long whence;
 	union {
-		long int li;	// stacilo by aj int?
-		double d;
-		char *c;
+        Data_type dtype; //data types
+        //operators op; //operators
+        Keyword kw; //keywords
+    };
+    union {
+        long int li;
+        double d;
+        char *c;
 	};
 }Ttoken;
 
 
 
+
+typedef struct {
+	FILE *f;
+	long long line;
+	Ttoken *token;
+}Tinit;
+
+/**
+ * \brief Initialize scanner structure
+ * \param fp File handle of the source
+ * \return scanner context
+ */
+Tinit *init_scanner(FILE *fp);
+
 /**
  * \brief Return next token from input file. <B>It does NOT consume the token</B>
+ * \param scanner_struct scanner context
  * \return next available token
- * \todo nejspíš, tady bude argument něco jako *scanner context
  */
-//token peek_token();
-void char_append(char *tmp_string, unsigned int *tmp_string_len, unsigned char c);
+Ttoken *peek_token(Tinit *scanner_struct);
+
 /**
  * \brief Consume next token from input file
+ * \param scanner_struct scanner context
  * \return next available token
- * \todo nejspíš, tady bude argument něco jako *scanner context
  */
-Ttoken *get_token(FILE *fp);
+Ttoken *get_token(Tinit *scanner_struct);
 
+/**
+ * \brief Check if next token match type, consume and returns it, otherwise exit with error.
+ * \param scanner_struct scanner context
+ * \param type Desired type of next token
+ * \return next token
+ */
+Ttoken* check_and_get_token(Tinit* scanner_struct, token_type type);
+
+/**
+* \brief Check if next token match type and returns it, otherwise exit with error. Does <b>NOT</b> consume token.
+* \param scanner_struct scanner context
+* \param type Desired type of next token
+* \return next token
+*/
+Ttoken* check_and_peek_token(Tinit* scanner_struct, token_type type);
 #endif
