@@ -298,3 +298,5 @@ paket-files/
 __pycache__/
 *.pyc
 *.DotSettings
+*.vcxproj.filters
+src/.depend/
