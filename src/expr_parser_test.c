@@ -13,7 +13,11 @@
 int main(int argc, char* argv[])
 {
    gc_init();
+   
+   Tinit *scanner = init_scanner(file);
+
    FILE *file = fopen(argv[1], "r");
-   parseExppression(file);
+
+   parseExppression(scanner);
    return 1;   
 }
