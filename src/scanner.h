@@ -193,4 +193,20 @@ Ttoken* check_and_get_token(Tinit* scanner_struct, token_type type);
 * \return next token
 */
 Ttoken* check_and_peek_token(Tinit* scanner_struct, token_type type);
+
+/**
+* \brief Check if next token keyword match type, consume and returns it, otherwise exit with error.
+* \param scanner_struct scanner context
+* \param type Desired type of next keyword
+* \return next token
+*/
+Keyword check_and_get_keyword(Tinit* scanner_struct, Keyword type);
+
+/**
+* \brief Check if next token keyword match type and returns it, otherwise exit with error. Does <b>NOT</b> consume token.
+* \param scanner_struct scanner context
+* \param type Desired type of next keyword
+* \return next token
+*/
+Keyword check_and_peek_keyword(Tinit* scanner_struct, Keyword type);
 #endif
