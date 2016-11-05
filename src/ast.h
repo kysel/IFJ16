@@ -31,6 +31,7 @@ typedef enum {
 struct Statement_collection_s {
 	Statement* statements;
 	int count;
+	int size;
 };
 
 typedef struct {
