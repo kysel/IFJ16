@@ -75,14 +75,35 @@ typedef struct Variable_s {
 	char* Name;
 }Class;*/
 
+//TODO enum BinOP
+//TODO struct BinOP tree (BinOP, left_expression, right_expression)
+typedef struct {
+   enum {
+      OP_ADD, OP_SUB, OP_MUL, OP_DIV, 
+      OP_LOWER, OP_GREATER, 
+      OP_LOWER_EQUAL, OP_GREATER_EQUAL, 
+      OP_BOOL_EQUAL, OP_NOT_EQUAL
+   }BinOp;
+
+   Expression *left_expr;
+   Expression *right_expr;
+}BinOpTree;
+
 typedef struct Expression_s{
 	enum {
 		function_call,
-		variable
+		variable,
+		constant,
+		bin_op_tree
 	}type;
 	union {
-		Function function;
-		VariableId variable;
+      Function function;
+      VariableId variable;
+      BinOpTree tree;
+
+      //TODO universal data type container
+	
+      //TODO BinOP tree
 	};
 }Expression;
 

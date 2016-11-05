@@ -42,6 +42,8 @@
   <ItemGroup>
     <ClCompile Include="..\ast.c" />
     <ClCompile Include="..\binaryTree-test.c" />
+    <ClCompile Include="..\expr_parser.c" />
+    <ClCompile Include="..\expr_parser_test.c" />
     <ClCompile Include="..\gc.c" />
     <ClCompile Include="..\ial.c" />
     <ClCompile Include="..\main.c" />
@@ -49,6 +51,7 @@
     <ClCompile Include="..\syntaxAnalysis.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\expr_parser.h" />
     <ClInclude Include="..\ast.h" />
     <ClInclude Include="..\gc.h" />
     <ClInclude Include="..\ial.h" />
