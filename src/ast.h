@@ -21,54 +21,54 @@ typedef struct Variable_s Variable;
 typedef struct Func_parameter_s Func_parameter;
 
 typedef enum {
-	void_t,
-	int_t,
-	double_t,
-	bool_t,
-	string_t
+    void_t,
+    int_t,
+    double_t,
+    bool_t,
+    string_t
 }Data_type;
 
 struct Statement_collection_s {
-	Statement* statements;
-	int count;
-	int size;
+    Statement* statements;
+    int count;
+    int size;
 };
 
 typedef struct {
-	Func_parameter* parameters;
-	int count;
+    Func_parameter* parameters;
+    int count;
 }Parameter_list;
 
 typedef struct Function_s {
     char* name;
-	enum {
-		user,
-		build_in
-	}type;
-	union {
-		struct {
-			Statement_collection statements;
-			Parameter_list parameters;
-		};
-		//buildIn funkce
-	};
-	Data_type return_type;
+    enum {
+        user,
+        build_in
+    }type;
+    union {
+        struct {
+            Statement_collection statements;
+            Parameter_list parameters;
+        };
+        //buildIn funkce
+    };
+    Data_type return_type;
 }Function;
 
 typedef struct {
-	Function* items;
-	int count;
+    Function* items;
+    int count;
 }Function_list;
 
 typedef struct {
-	Expression* expressions;
-	int count;
+    Expression* expressions;
+    int count;
 }Expression_list;
 
 typedef struct Variable_s {
-	int id;
-	Expression* init_expr;
-	Data_type type;
+    int id;
+    Expression* init_expr;
+    Data_type type;
 }Variable;
 
 /*typedef struct Class_s {
@@ -78,79 +78,79 @@ typedef struct Variable_s {
 //TODO enum BinOP
 //TODO struct BinOP tree (BinOP, left_expression, right_expression)
 typedef struct {
-   enum {
-      OP_ADD, OP_SUB, OP_MUL, OP_DIV, 
-      OP_LOWER, OP_GREATER, 
-      OP_LOWER_EQUAL, OP_GREATER_EQUAL, 
-      OP_BOOL_EQUAL, OP_NOT_EQUAL
-   }BinOp;
+    enum {
+        OP_ADD, OP_SUB, OP_MUL, OP_DIV,
+        OP_LOWER, OP_GREATER,
+        OP_LOWER_EQUAL, OP_GREATER_EQUAL,
+        OP_BOOL_EQUAL, OP_NOT_EQUAL
+    }BinOp;
 
-   Expression *left_expr;
-   Expression *right_expr;
+    Expression *left_expr;
+    Expression *right_expr;
 }BinOpTree;
 
-typedef struct Expression_s{
-	enum {
-		function_call,
-		variable,
-		constant,
-		bin_op_tree
-	}type;
-	union {
-      Function function;
-      VariableId variable;
-      BinOpTree tree;
+typedef struct Expression_s {
+    enum {
+        function_call,
+        variable,
+        constant,
+        bin_op_tree
+    }type;
+    union {
+        Function function;
+        VariableId variable;
+        BinOpTree tree;
 
-      //TODO universal data type container
-	
-      //TODO BinOP tree
-	};
+        //TODO universal data type container
+
+        //TODO BinOP tree
+    };
 }Expression;
 
 typedef struct Func_parameter_s {
-	char* name;
-	Data_type type;
-	//Expression value;
+    char* name;
+    Data_type type;
+    //Expression value;
 }Func_parameter;
 
 typedef struct {
-	Expression condition;
-	Statement_block caseTrue;
-	Statement_block caseFalse;
+    Expression condition;
+    Statement_block caseTrue;
+    Statement_block caseFalse;
 }If_statement;
 
 typedef struct {
-	VariableId target;
-	Expression source;
+    VariableId target;
+    Expression source;
 }Assign_statement;
 
 typedef struct {
-	Expression condition;
-	Statement_block statements;
+    Expression condition;
+    Statement_block statements;
 }While_statement;
 
 typedef struct {
-	Variable variable;
+    Variable variable;
 }Declaration;
 
 typedef struct Statement_s {
-	enum {
-		declaration,
-		expression,
-		condition,
-		assigment,
-		while_loop,
-		Return
-	}type;
+    enum {
+        declaration,
+        expression,
+        condition,
+        assigment,
+        while_loop,
+        Return
+    }type;
 
-	union {
-		Declaration declaration;
-		Expression expression;
-		If_statement condition;
-		Assign_statement assignment;
-		While_statement while_loop;
-		//for? aka cycles extension
-		Return_statement ret;
-	};
+    union {
+        Declaration declaration;
+        Expression expression;
+        If_statement condition;
+        Assign_statement assignment;
+        While_statement while_loop;
+        //for? aka cycles extension
+        Return_statement ret;
+    };
 }Statement;
 #endif
