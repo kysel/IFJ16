@@ -1,0 +1,31 @@
+#!/bin/sh
+
+
+#rm *.class *.log
+# [expectedReturnCode]_[coToTestuje]_[třebaNěcoDalšího].ifj16
+
+#cat ifj16.java testovanyProgram.ifj > tmp.java
+#javac tmp.java
+#java ifj16 # nebo java ifj16 < test.in > test.out
+
+for filename in input/*.ifj16
+do
+	echo $filename
+   logfile=${filename%.*}.log
+   shortname=$(basename "$filename") #java hates folders
+   echo "java compilation of $filename" > "$logfile"
+
+   cat ifj16.java $filename > tmp.java
+   javac tmp.java >> "$logfile"
+   # java ifj16 # nebo java ifj16 < test.in > test.out
+   javaout=$(java ifj16)
+   echo $javaout
+   # cisteni
+   rm ifj16.class Main.class tmp.java
+      
+   echo "IFJ16 compilation of $filename" >> "$logfile"
+   
+   ifj16out=$(../ifj16 "$filename")
+   echo $ifj16out
+   
+done;
