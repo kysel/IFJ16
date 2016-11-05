@@ -72,6 +72,110 @@ void stackPush (t_Stack* s, t_Element_Type type, void * address) {
 }
 
 void stackApplyRule(t_Stack* s) {
+   int rule_lenght;
+   for (rule_lenght = 0; (rule_lenght < s->top_element) && !(s->arr[s->top_element - rule_lenght].stop_bit); rule_lenght++);
+   
+   Expression *expression;
+   
+   switch(rule_lenght) {
+      //Ziadne pravidlo
+      default:
+            fprintf(stderr, "Syntax error on line %d in file %s.\n", __LINE__, __FILE__);
+            exit(syntactic_analysis_error);
+         
+      //Krátke pravidlo
+      case 1:
+         if (s->arr[s->top_element].type == TOKEN) {
+            Ttoken *token = s->arr[s->top_element].address;
+            switch (token->type){
+               case T_ID:
+                  break;
+               case T_INT:
+                  break;
+               case T_DOUBLE:
+                  break;
+               case T_STRING:
+                  break;
+               default:
+                  fprintf(stderr, "Syntax error on line %d in file %s.\n", __LINE__, __FILE__);
+                  exit(syntactic_analysis_error);
+                  break;   
+            }    
+         }
+         else {
+            fprintf(stderr, "Syntax error on line %d in file %s.\n", __LINE__, __FILE__);
+            exit(syntactic_analysis_error);
+         }
+      stackPop(s);
+      break;
+
+      //Dlhé pravidlá
+      case 3:
+         //Pravidlo E -> ( E )
+         if (s->arr[s->top_element - 2].type == TOKEN && s->arr[s->top_element - 1].type == EXPRESSION && s->arr[s->top_element].type == TOKEN) {
+            Ttoken *left_token = s->arr[s->top_element - 2].address;
+            Ttoken *right_token = s->arr[s->top_element].address;
+            if (left_token->type == T_BRACKET_LROUND && right_token->type == T_BRACKET_RROUND) {
+               expression = s->arr[s->top_element - 1].address;
+            }
+            else {
+               fprintf(stderr, "Syntax error on line %d in file %s.\n", __LINE__, __FILE__);
+               exit(syntactic_analysis_error);
+            }
+               
+         }
+
+         //Pravidlá E -> E _ E 
+         else if (s->arr[s->top_element - 2].type == EXPRESSION && s->arr[s->top_element - 1].type == TOKEN && s->arr[s->top_element].type == EXPRESSION) {
+            expression = malloc(sizeof(Expression));
+            Ttoken *token = s->arr[s->top_element - 1].address;
+            switch(token->type) {
+               case T_ADD:
+                  expression->tree.BinOp = OP_ADD; break;
+               case T_SUB:
+                  expression->tree.BinOp = OP_SUB; break;
+               case T_MUL:
+                  expression->tree.BinOp = OP_MUL; break;
+               case T_DIV: 
+                  expression->tree.BinOp = OP_DIV; break;
+               case T_LOWER: 
+                  expression->tree.BinOp = OP_LOWER; break;
+               case T_GREATER: 
+                  expression->tree.BinOp = OP_GREATER; break;
+               case T_LOWER_EQUAL: 
+                  expression->tree.BinOp = OP_LOWER_EQUAL; break;
+               case T_GREATER_EQUAL: 
+                  expression->tree.BinOp = OP_GREATER_EQUAL; break;
+               case T_BOOL_EQUAL: 
+                  expression->tree.BinOp = OP_BOOL_EQUAL; break;
+               case T_NOT_EQUAL: 
+                  expression->tree.BinOp = OP_NOT_EQUAL; break;
+               case T_DOT: 
+                  break;
+               default:
+                  fprintf(stderr, "Syntax error on line %d in file %s.\n", __LINE__, __FILE__);
+                  exit(syntactic_analysis_error); 
+            }
+
+            expression->tree.left_expr = s->arr[s->top_element - 2].address;
+            expression->tree.right_expr = s->arr[s->top_element].address;
+         }  
+
+         else {
+            fprintf(stderr, "Syntax error on line %d in file %s.\n", __LINE__, __FILE__);
+            exit(syntactic_analysis_error);
+         }
+
+         stackPop(s);
+         stackPop(s);
+         stackPop(s);
+         break;
+
+   }
+   
+   /*
+   printf("%d\n", rule_lenght);
+
    Expression *expression = malloc(sizeof(Expression));
       
    //TODO Pravidlo E -> i
@@ -104,7 +208,7 @@ void stackApplyRule(t_Stack* s) {
          case T_NOT_EQUAL: 
             expression->tree.BinOp = OP_NOT_EQUAL; break;
          default:
-            /*TODO ERROR*/ break; 
+            //TODO ERROR break; 
       }  
       expression->tree.left_expr = s->arr[s->top_element - 2].address;
       expression->tree.right_expr = s->arr[s->top_element].address;
@@ -116,7 +220,7 @@ void stackApplyRule(t_Stack* s) {
    else {
       //TODO ERROR
    }
-
+*/
    s->arr[s->top_element].stop_bit = 0;
    stackPush(s, EXPRESSION, expression);
 }
@@ -145,7 +249,7 @@ int terminal2TabIndex(void * terminal) {
       case T_BRACKET_RROUND: return 11;
       case T_DOT: return 12;
       case T_ID: case T_INT: return 13;
-      case T_EOF: case T_COMMA: return 14;
+      case T_SEMICOLON: return 14;
       default: return -1;//TODO error;
    }
 }
@@ -193,7 +297,7 @@ void printStack(t_Stack *s) {
    printf("\n");
 }
 
-void parseExpression(Tinit *scanner) {
+Expression* parseExpression(Tinit *scanner) {
    t_Stack* stack = gc_alloc(sizeof(t_Stack));
    stackInit(stack);
    stackPush(stack, EOS, NULL);
@@ -201,14 +305,14 @@ void parseExpression(Tinit *scanner) {
    void *a = stack->arr[stack->top_token].address;
    Ttoken *b = get_token(scanner);
 
-   do {   
+   while (!(a == NULL && (b->type == T_SEMICOLON || b->type == T_BRACKET_RROUND))) {
       switch(precedence_tab[terminal2TabIndex(a)][terminal2TabIndex(b)]){
          case 'E':
             stackPush(stack, TOKEN, b);
             b = get_token(scanner);
             break;
          
-         case 'L': 
+         case 'L':
             stackSetStopBit(stack);
             stackPush(stack, TOKEN, b);
             b = get_token(scanner);
@@ -219,12 +323,13 @@ void parseExpression(Tinit *scanner) {
             break;
          
          default:
-            //TODO Treba uvoľniť pamäť, vypísať chybové hlásenie a až potom exit. Skontroluj všade!
             fprintf(stderr, "Syntax error\n");
-            exit(syntactic_analysis_error);
-            break;   
-         }
-      printStack(stack);
+            exit(syntactic_analysis_error);   
+      }
+      //printStack(stack);
       a = stack->arr[stack->top_token].address;
-   } while (a != NULL || b->type != T_EOF);
+   }
+
+   return stack->arr[stack->top_element].address;
 }
+   

@@ -19,6 +19,6 @@ int main(int argc, char* argv[])
 
    Tinit *scanner = init_scanner(file);
 
-   parseExpression(scanner);
+   printf("%x\n",parseExpression(scanner));
    return 1;   
 }
