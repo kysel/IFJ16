@@ -54,13 +54,4 @@ static const unsigned char precedence_tab[15][15] = {
    {'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'O', 'L', 'L', 'O'}  // $
 };
 
-void stackInit (t_Stack* s);
-int stackEmpty (const t_Stack* s);
-int stackFull (const t_Stack* s);
-void stackExpand (t_Stack* s);
-int findTopTerminal (t_Stack* s);
-void stackPop (t_Stack* s);
-void stackPush (t_Stack* s, t_Element_Type type, void *address);
-int token2TabIndex(Ttoken * token);
-void printStack(t_Stack *s);
-void parseExpression(Tinit *scanner);
+Expression* parseExpression(Tinit *scanner);
