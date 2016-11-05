@@ -786,7 +786,7 @@ Ttoken *get_token_internal(Tinit *scanner_struct) {
 char* tokens_to_string(token_type tokens) {
     char* ret = gc_alloc(sizeof(char) * 2);
     ret[0] = 0;
-    for (int i=1; i<=1<<(sizeof(int)*8)-3; i<<=1) {
+    for (int i=1; i<=1<<((sizeof(int)*8)-3); i<<=1) {
         if(i & tokens) {
             const char* tokString = token_to_string((token_type)i);
             ret = gc_realloc(ret, sizeof(char)*(strlen(tokString) + strlen(ret) + 3));
