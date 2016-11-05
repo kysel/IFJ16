@@ -11,11 +11,16 @@
 #define SYNTAXANALYSIS_H_
 
 #include "ial.h"
+#include "ast.h"
+#include "scanner.h"
 
 typedef struct {
-	//todo: přidat sem scanner resp. jeho kontext
-
-	Symbol_tree* global_symbols, class_symbols, local_symbols;
+	Symbol_tree global_symbols, local_symbols;
+	Tinit* s_ctx;
+	char* current_class;
+	Function_list functions;
 }Syntax_context;
 
+Syntax_context* init_syntax(FILE* input_file);
+Statement_collection* parse_program(Syntax_context* ctx);
 #endif
