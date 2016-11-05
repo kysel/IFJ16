@@ -688,7 +688,7 @@ Ttoken *get_token_internal(Tinit *scanner_struct) {
 char* tokens_to_string(token_type tokens) {
     char* ret = gc_alloc(sizeof(char) * 2);
     ret[0] = 0;
-    for (int i=1; i<=1<<((sizeof(int)*8)-1); i<<=1) {
+    for (int i=1; i<=1<<(sizeof(int)*8)-3; i<<=1) {
         if(i & tokens) {
             const char* tokString = token_to_string((token_type)i);
             ret = gc_realloc(ret, sizeof(char)*(strlen(tokString) + strlen(ret) + 3));
@@ -705,7 +705,7 @@ char* tokens_to_string(token_type tokens) {
 Ttoken* check_and_get_token(Tinit* scanner_struct, token_type type) {
     Ttoken* tok = get_token(scanner_struct);
     if (((int)tok->type & type) == 0) {
-        fprintf(stderr, "Expected %s got %s, on line %lld", tokens_to_string(type), tok->c, tok->line);
+        fprintf(stderr, "Expected %s got '%s', on line %lld", tokens_to_string(type), tok->c, tok->line);
         exit(semantic_error_in_code);
     }
     return tok;
@@ -714,7 +714,7 @@ Ttoken* check_and_get_token(Tinit* scanner_struct, token_type type) {
 Ttoken* check_and_peek_token(Tinit* scanner_struct, token_type type) {
     Ttoken* tok = peek_token(scanner_struct);
     if (((int)tok->type & type) == 0) {
-        fprintf(stderr, "Expected %s got %s, on line %lld", tokens_to_string(type), tok->c, tok->line);
+        fprintf(stderr, "Expected %s got '%s', on line %lld", tokens_to_string(type), tok->c, tok->line);
         exit(semantic_error_in_code);
     }
     return tok;
