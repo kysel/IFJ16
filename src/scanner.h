@@ -7,6 +7,13 @@
 * @author Kovařík Viktor <xkovar77@stud.fit.vutbr.cz>
 */
 
+/*
+TODO:
+
+print line No. when lex. error occurs
+print filename when lex. error occurs
+*/
+
 #ifndef SCANNER_H_
 #define SCANNER_H_
 
@@ -130,15 +137,14 @@ typedef struct {
 	size_t tlen;
 	long long line;
 	long whence;
+    char *c;
 	union {
         Data_type dtype; //data types
-        //operators op; //operators
         Keyword kw; //keywords
     };
     union {
         long int li;
-        double d;
-        char *c;
+        double d; 
 	};
 }Ttoken;
 
@@ -187,4 +193,20 @@ Ttoken* check_and_get_token(Tinit* scanner_struct, token_type type);
 * \return next token
 */
 Ttoken* check_and_peek_token(Tinit* scanner_struct, token_type type);
+
+/**
+* \brief Check if next token keyword match type, consume and returns it, otherwise exit with error.
+* \param scanner_struct scanner context
+* \param type Desired type of next keyword
+* \return next token
+*/
+Keyword check_and_get_keyword(Tinit* scanner_struct, Keyword type);
+
+/**
+* \brief Check if next token keyword match type and returns it, otherwise exit with error. Does <b>NOT</b> consume token.
+* \param scanner_struct scanner context
+* \param type Desired type of next keyword
+* \return next token
+*/
+Keyword check_and_peek_keyword(Tinit* scanner_struct, Keyword type);
 #endif
