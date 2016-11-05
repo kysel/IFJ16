@@ -11,8 +11,6 @@
 #define IAL_H_
 #include "ast.h"
 
-
-
 /*typedef struct Value_type_s {
 	Data_type type;
 	union {
@@ -27,7 +25,7 @@ typedef struct Symbol_tree_leaf_s {
 	const char* key;
 	int id;
 	Data_type type;
-	Expression* init_value;
+	Expression* init_expr;
 	/**
 	 * @note Value_type_s'll used in interpret
 	 */
