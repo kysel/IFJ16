@@ -9,11 +9,8 @@
 
 #ifndef IAL_H_
 #define IAL_H_
-<<<<<<< HEAD
 
 #include <stdbool.h>
-
-int find(char* s, char* search);
 
 typedef enum {
 	int_literal,
@@ -24,21 +21,12 @@ typedef enum {
 
 typedef struct value_type {
 	symbol_type_t type;
-=======
-#include "ast.h"
-
-
-
-/*typedef struct Value_type_s {
-	Data_type type;
->>>>>>> LA_FUTURE
 	union {
 		int int_val;
 		double double_val;
 		bool bool_val;
 		char* string_val;
 	};
-<<<<<<< HEAD
 }value_type_t;
 
 typedef struct symbol_tree_leaf {
@@ -60,30 +48,5 @@ typedef struct symbol_tree {
 symbol_tree_t symbol_tree_new();
 symbol_tree_leaf_t* add_symbol(symbol_tree_t* root, const char* key);
 symbol_tree_leaf_t* get_symbol_by_key(symbol_tree_t* root, const char* key);
-=======
-}Value_type;*/
-
-typedef struct Symbol_tree_leaf_s {
-	const char* key;
-	int id;
-	Data_type type;
-	Expression* init_value;
-	/**
-	 * @note Value_type_s'll used in interpret
-	 */
-	//Value_type value;
-	struct Symbol_tree_leaf_s* left;
-	struct Symbol_tree_leaf_s* right;
-}Symbol_tree_leaf;
-
-typedef struct {
-	Symbol_tree_leaf* root;
-	int nextId;
-}Symbol_tree;
-
-Symbol_tree symbol_tree_new();
-Symbol_tree_leaf* add_symbol(Symbol_tree* root, const char* key);
-Symbol_tree_leaf* get_symbol_by_key(Symbol_tree* root, const char* key);
->>>>>>> LA_FUTURE
 
 #endif //IAL_H_

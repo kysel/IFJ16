@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 /** Interpretr jazyka IFJ16
-=======
-﻿/** Interpretr jazyka IFJ16
->>>>>>> LA_FUTURE
 * @file ial.c
 * @author Kyzlink Jiří <xkyzli02@stud.fit.vutbr.cz>
 * @author Kubiš Juraj <xkubis15@stud.fit.vutbr.cz>
@@ -17,56 +13,37 @@
 #include <string.h>
 #include <stdlib.h>
 
-int find(char* s, char* search) {
+//int find(char* s, char* search) {
 // https://en.wikipedia.org/wiki/Knuth%E2%80%93Morris%E2%80%93Pratt_algorithm
 // http://www.ms.mff.cuni.cz/~kopecky/vyuka/dis/02/dis02_v3.html
+//}
 
-	int position = -1; //defaultne vracena hodnota vyskytu
-	
-	if (!search) 	//hledame-li prazdny string, vracim defaultní hodnotu
-		return position; 		
-	if (strcmp(search,"") == 0)	//hledame-li prazdny string, vracim 0
-		return 0;
-	
-	int lenSearch = strlen(search); //zjistujeme delku hledaneho retezce
-	int lenString = strlen(s); //zjistujeme delku textoveho retezce
-	
-	int *p = malloc(sizeof(int) * lenString);	 //alokace pole
-	//int *p = gc_realloc(*p,(sizeof(int *) * (lenSearch+1)));
-	//int *p = gc_alloc(sizeof(int *) * (lenSearch+1));
-	p[0] = -1;
-	
-	int k = 1;
-	int l; int m;
-	
-	while (k < lenString) {
-		l=k-1;
-		m=l;
-		do {
-   			m=p[m];
-		} while ( (m==0 || s[m]==s[l]) );
-		p[k]=m+1;
-		k++;
-	}
-        
-	int i = 0;	//indexy jsou od nuly
-	int j = 0;
-	 
-	 while ((i < lenString) && (j < lenSearch)) {
-	 	while ((j >= 0) && (search[j] != s[i])) {
-      		j = p[j];
-      	}
-      	i++; j++;
-	 }
-	//printf("hledany delka = %d  i = %d, j = %d \n", lenSearch, i, j); //debug info
-	if (j <= lenSearch) position = i-j+1;
-    else position = 0;
-    free (p);
-    
-    
-    return position;
+char* sort(char* s) {      // razeni se snizujicim se prirustkem - Shell Sort
+   int n = strlen(s) - 1;  // spocitani poctu prvku (bez koncoveho znaku "\0")
+   int step = n / 2;       // jako prvni krok je bran pocet prvku lomen dvema (dle konvence)
+   int i;                  // pomocna promenna k prochazeni stringu od prvniho k poslednimu prvku
+   int j;                  // pomocna promenna k prochazeni paralelnich n-tic
+   char h;                 // pomocna promenna pro prohozeni dvou hodnot
+
+   while (step > 0) {            // dokud je krok vetsi jako nula
+      for(i = 0; i < n; i++) {   // cykly pro generovani paralelnich n-tic
+      //   printf("step=%d\n", step);
+      //   printf("i=%d\n", i);
+         j = i - step + 1;
+      //   printf("j1=%d\n", j);       
+         while (j >= 0 && s[j] > s[j + step]) { // prochazeni paralelnich n-tic
+      //      printf("j2=%d\n", j);
+            h = s[j];
+            s[j] = s[j + step];
+            s[j + step] = h;     // prohozeni dvojic na indexech rozdilnych o krok
+            j = j - step;        // snizeni indexu o krok
+         }
+      }
+      step = step / 2;           // redukce kroku dvema
+   }
+
+   return s;        
 }
-
 
 symbol_tree_t symbol_tree_new() {
 	return (symbol_tree_t) { .root = NULL, .nextId = 0 };
@@ -74,7 +51,6 @@ symbol_tree_t symbol_tree_new() {
 
 symbol_tree_leaf_t* add_symbol_impl(symbol_tree_t* tree, symbol_tree_leaf_t* leaf, const char* key, int depth) {
 	symbol_tree_leaf_t** newLeaf = NULL;
-
 	//add root
 	if (leaf == NULL)
 		newLeaf = &leaf;
@@ -95,14 +71,11 @@ symbol_tree_leaf_t* add_symbol_impl(symbol_tree_t* tree, symbol_tree_leaf_t* lea
 	}
 
 	if (!*newLeaf) {
-
 		*newLeaf = gc_alloc(sizeof(symbol_tree_leaf_t));
-
 		(*newLeaf)->left = NULL;
 		(*newLeaf)->right = NULL;
 		(*newLeaf)->key = key;
 		(*newLeaf)->id = tree->nextId++;
-
 		if (tree->root == NULL)
 			tree->root = *(newLeaf);
 		return *newLeaf;
@@ -119,16 +92,13 @@ symbol_tree_leaf_t* add_symbol_impl(symbol_tree_t* tree, symbol_tree_leaf_t* lea
  * \param key Leaf key
  * \return Pointer to inserted leaf
  */
-
 symbol_tree_leaf_t* add_symbol(symbol_tree_t* tree, const char* key) {
-
 	assert(tree);
 	return add_symbol_impl(tree, tree->root, key, 0);
 }
 
 
 symbol_tree_leaf_t* get_symbol_by_key_impl(symbol_tree_leaf_t* node, const char* key) {
-
 	assert(node);
 
 	int balance = strcmp(node->key, key);
@@ -149,9 +119,7 @@ symbol_tree_leaf_t* get_symbol_by_key_impl(symbol_tree_leaf_t* node, const char*
  * \param key Leaf key
  * \return If the leaf with the provided key exist, then it's returned, otherwise NULL
  */
-
 symbol_tree_leaf_t* get_symbol_by_key(symbol_tree_t* tree, const char* key) {
-
 	assert(tree);
 	return get_symbol_by_key_impl(tree->root, key);
 }
@@ -160,7 +128,6 @@ symbol_tree_leaf_t* get_symbol_by_key(symbol_tree_t* tree, const char* key) {
 /*
  *Currently not available, in future it should be faster than searching by key
  *symbol_tree_leaf_t* get_symbol_by_id(const symbol_tree_leaf_t* root, const int id) {
-
 	assert(root);
 	assert(root->id != 0);
 	assert(id != 0);
