@@ -6,10 +6,13 @@
 * @author Kubica Jan <xkubic39@stud.fit.vutbr.cz>
 * @author Kovařík Viktor <xkovar77@stud.fit.vutbr.cz>
 */
-
+#include <stdio.h>
+#include <stdlib.h>
+#include "scanner.h"
 #include "gc.h"
 
-int main()
+
+int main(int argc, char *argv[])
 {
 	gc_init();
 	void * q = NULL;

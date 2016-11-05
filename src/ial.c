@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 /** Interpretr jazyka IFJ16
+=======
+﻿/** Interpretr jazyka IFJ16
+>>>>>>> LA_FUTURE
 * @file ial.c
 * @author Kyzlink Jiří <xkyzli02@stud.fit.vutbr.cz>
 * @author Kubiš Juraj <xkubis15@stud.fit.vutbr.cz>
@@ -70,6 +74,7 @@ symbol_tree_t symbol_tree_new() {
 
 symbol_tree_leaf_t* add_symbol_impl(symbol_tree_t* tree, symbol_tree_leaf_t* leaf, const char* key, int depth) {
 	symbol_tree_leaf_t** newLeaf = NULL;
+
 	//add root
 	if (leaf == NULL)
 		newLeaf = &leaf;
@@ -90,11 +95,14 @@ symbol_tree_leaf_t* add_symbol_impl(symbol_tree_t* tree, symbol_tree_leaf_t* lea
 	}
 
 	if (!*newLeaf) {
+
 		*newLeaf = gc_alloc(sizeof(symbol_tree_leaf_t));
+
 		(*newLeaf)->left = NULL;
 		(*newLeaf)->right = NULL;
 		(*newLeaf)->key = key;
 		(*newLeaf)->id = tree->nextId++;
+
 		if (tree->root == NULL)
 			tree->root = *(newLeaf);
 		return *newLeaf;
@@ -111,13 +119,16 @@ symbol_tree_leaf_t* add_symbol_impl(symbol_tree_t* tree, symbol_tree_leaf_t* lea
  * \param key Leaf key
  * \return Pointer to inserted leaf
  */
+
 symbol_tree_leaf_t* add_symbol(symbol_tree_t* tree, const char* key) {
+
 	assert(tree);
 	return add_symbol_impl(tree, tree->root, key, 0);
 }
 
 
 symbol_tree_leaf_t* get_symbol_by_key_impl(symbol_tree_leaf_t* node, const char* key) {
+
 	assert(node);
 
 	int balance = strcmp(node->key, key);
@@ -138,7 +149,9 @@ symbol_tree_leaf_t* get_symbol_by_key_impl(symbol_tree_leaf_t* node, const char*
  * \param key Leaf key
  * \return If the leaf with the provided key exist, then it's returned, otherwise NULL
  */
+
 symbol_tree_leaf_t* get_symbol_by_key(symbol_tree_t* tree, const char* key) {
+
 	assert(tree);
 	return get_symbol_by_key_impl(tree->root, key);
 }
@@ -147,6 +160,7 @@ symbol_tree_leaf_t* get_symbol_by_key(symbol_tree_t* tree, const char* key) {
 /*
  *Currently not available, in future it should be faster than searching by key
  *symbol_tree_leaf_t* get_symbol_by_id(const symbol_tree_leaf_t* root, const int id) {
+
 	assert(root);
 	assert(root->id != 0);
 	assert(id != 0);

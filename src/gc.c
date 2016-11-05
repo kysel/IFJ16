@@ -1,4 +1,4 @@
-﻿/** Interpretr jazyka IFJ16
+/** Interpretr jazyka IFJ16
 * @file gc.c
 * @author Kyzlink Jiří <xkyzli02@stud.fit.vutbr.cz>
 * @author Kubiš Juraj <xkubis15@stud.fit.vutbr.cz>
