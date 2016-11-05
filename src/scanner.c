@@ -28,6 +28,18 @@ Tinit *init_scanner(FILE *fp) {
 	return scanner_struct;
 }
 
+char *octal_append(char *octal_string, unsigned char c) {
+    size_t octal_string_len;
+    octal_string_len = strlen(octal_string);
+    octal_string = (char *)gc_realloc(octal_string, sizeof(char)*(octal_string_len));
+
+    octal_string[octal_string_len] = c;
+    octal_string[octal_string_len + 1] = '\0';
+
+    return octal_string;
+}
+
+
 char *char_append(char *tmp_string, unsigned int *tmp_string_len, unsigned char c) {
 	(*tmp_string_len)++;
 	tmp_string = (char *)gc_realloc(tmp_string, sizeof(char)*(*tmp_string_len));
@@ -77,6 +89,9 @@ Ttoken *get_token_internal(Tinit *scanner_struct) {
     char *tmp_string = (char *)gc_alloc(sizeof(char));
     tmp_string[0] = 0;
 
+    char *octal_string = (char *)gc_alloc(sizeof(char));
+    octal_string[0] = 0;
+
     Ttoken *token = (Ttoken *)gc_alloc(sizeof(Ttoken));
 
     token->whence = ftell(scanner_struct->f);
@@ -88,43 +103,102 @@ Ttoken *get_token_internal(Tinit *scanner_struct) {
         case FSM_INIT:
             if (isspace(c)) {
                 state = FSM_INIT;
-                //if (c != EOF) { // este porozmyslaj
                 if (c == '\n') {
                     scanner_struct->line++;
                 }
-                //}
                 continue;
             }
-            else if ((isalpha(c)) || (c == '_') || (c == '$')) state = FSM_ID;
-            else if (isdigit(c))  state = FSM_INT;
-            else if (c == '*') state = FSM_MUL;
-            else if (c == '/') state = FSM_DIV;
-            else if (c == '+') state = FSM_ADD;
-            else if (c == '-') state = FSM_SUB;
-            else if (c == ',') state = FSM_COMMA;
-            else if (c == ';') state = FSM_SEMICOLON;
-            else if (c == '(') state = FSM_BRACKET_LROUND;
-            else if (c == ')') state = FSM_BRACKET_RROUND;
-            else if (c == '[') state = FSM_BRACKET_LSQUARE;
-            else if (c == ']') state = FSM_BRACKET_RSQUARE;
-            else if (c == '{') state = FSM_BRACKET_LCURLY;
-            else if (c == '}') state = FSM_BRACKET_RCURLY;
-            else if (c == '=') state = FSM_EQUAL;
-            else if (c == '!') state = FSM_NOT;
-            else if (c == '<') state = FSM_LOWER;
-            else if (c == '>') state = FSM_GREATER;
-            else if (c == '"') state = FSM_QUOTE;
-            else if (c == '.') state = FSM_DOT;
+            else if ((isalpha(c)) || (c == '_') || (c == '$')) {
+                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                state = FSM_ID;    
+            }
+            else if (isdigit(c)) {
+                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                state = FSM_INT;   
+            } 
+            else if (c == '*') {
+                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                state = FSM_MUL;
+            }
+            else if (c == '/') {
+                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                state = FSM_DIV;
+            }
+            else if (c == '+') {
+                 tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                 state = FSM_ADD;
+            }
+            else if (c == '-') {
+                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                state = FSM_SUB;
+            }
+            else if (c == ',') {
+                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                state = FSM_COMMA; 
+            }
+            else if (c == ';') {
+                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                state = FSM_SEMICOLON;
+            }
+            else if (c == '(') {
+                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                state = FSM_BRACKET_LROUND;
+            }
+            else if (c == ')') {
+                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                state = FSM_BRACKET_RROUND;  
+            }
+            else if (c == '[') {
+                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                state = FSM_BRACKET_LSQUARE;
+            }
+            else if (c == ']') {
+                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                state = FSM_BRACKET_RSQUARE;   
+            }
+            else if (c == '{') {
+                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                state = FSM_BRACKET_LCURLY;
+            }
+            else if (c == '}') {
+                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                state = FSM_BRACKET_RCURLY;
+            }
+            else if (c == '=') {
+                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                state = FSM_EQUAL;
+            }
+            else if (c == '!') {
+                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                state = FSM_NOT;
+            }
+            else if (c == '<') {
+                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                state = FSM_LOWER;   
+            }
+            else if (c == '>') {
+                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                state = FSM_GREATER;
+            }
+            else if (c == '"') {
+                state = FSM_QUOTE;
+            }
+            else if (c == '.') {
+                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                state = FSM_DOT;
+            }
             else if (c == EOF) {
                 read_file = 0;
                 continue;
             }
             else {
                 fprintf(stderr, "Unidentified lexem!");
-                exit(1);
+                exit(lexical_analysis_error);
             }
 
-            tmp_string = char_append(tmp_string, &tmp_string_len, c);
+            //if (c != '"') {
+            //    tmp_string = char_append(tmp_string, &tmp_string_len, c);
+            //}
             break;
 
         case FSM_ID:
@@ -308,6 +382,7 @@ Ttoken *get_token_internal(Tinit *scanner_struct) {
                 token->tlen = strlen(tmp_string);
                 token->line = scanner_struct->line;
                 token->li = strtol(tmp_string, &endptr, 10);
+                token->c = tmp_string;
                 return token;
             }
 
@@ -328,6 +403,7 @@ Ttoken *get_token_internal(Tinit *scanner_struct) {
                 token->tlen = strlen(tmp_string);
                 token->line = scanner_struct->line;
                 token->d = strtod(tmp_string, &endptr);
+                token->c = tmp_string;
                 return token;
             }
 
@@ -344,7 +420,7 @@ Ttoken *get_token_internal(Tinit *scanner_struct) {
             }
             else {
                 fprintf(stderr, "SCANNER ERROR: Exponent error!\n");
-                exit(1);
+                exit(lexical_analysis_error);
             }
 
             break;
@@ -356,7 +432,7 @@ Ttoken *get_token_internal(Tinit *scanner_struct) {
             }
             else {
                 fprintf(stderr, "SCANNER ERROR: Exponent sign error!\n");
-                exit(1);
+                exit(lexical_analysis_error);
             }
 
             break;
@@ -372,6 +448,7 @@ Ttoken *get_token_internal(Tinit *scanner_struct) {
                 token->tlen = strlen(tmp_string);
                 token->line = scanner_struct->line;
                 token->d = strtod(tmp_string, &endptr);
+                token->c = tmp_string;
                 return token;
             }
 
@@ -499,6 +576,7 @@ Ttoken *get_token_internal(Tinit *scanner_struct) {
 
         case FSM_NOT: {
             if (c == '=') {
+                tmp_string = (char_append(tmp_string, &tmp_string_len, c));
                 token->type = T_NOT_EQUAL;
                 token->tlen = strlen(tmp_string);
                 token->line = scanner_struct->line;
@@ -506,7 +584,7 @@ Ttoken *get_token_internal(Tinit *scanner_struct) {
                 return token;
             }
             fprintf(stderr, "SCANNER ERROR: Unidentified lexem!\n");
-            exit(1);
+            exit(lexical_analysis_error);
         }
 
         case FSM_LOWER: {
@@ -544,17 +622,21 @@ Ttoken *get_token_internal(Tinit *scanner_struct) {
         }
 
         case FSM_QUOTE:
+            //if (tmp_string[0] == '"') {
+            //    memset(tmp_string, 0, (tmp_string_len) * sizeof(char));
+            //    tmp_string_len = 1;
+            //}
+            
             if (c == '\\') {
                 state = FSM_ESCAPE;
-                tmp_string = (char_append(tmp_string, &tmp_string_len, c));
             }
             else if (c == '"') {
                 state = FSM_STRING;
-                tmp_string = (char_append(tmp_string, &tmp_string_len, c));
+                //tmp_string = (char_append(tmp_string, &tmp_string_len, c));
             }
             else if (!isprint(c)) {
                 fprintf(stderr, "SCANNER ERROR: Unidentified token!\n");
-                exit(1);
+                exit(lexical_analysis_error);
             }
             else {
                 state = FSM_QUOTE;
@@ -564,17 +646,31 @@ Ttoken *get_token_internal(Tinit *scanner_struct) {
             break;
 
         case FSM_ESCAPE:
-            if (c == '"' || c == 't' || c == 'n' || c == '\\') {
+            if (c == '\\') {
                 state = FSM_QUOTE;
-                tmp_string = (char_append(tmp_string, &tmp_string_len, c));
+                tmp_string = (char_append(tmp_string, &tmp_string_len, 92));
+            }
+
+            else if (c == '"') {
+                state = FSM_QUOTE;
+                tmp_string = (char_append(tmp_string, &tmp_string_len, 34));
+            }
+
+            else if (c == 't') {
+                state = FSM_QUOTE;
+                tmp_string = (char_append(tmp_string, &tmp_string_len, 9));
+            }
+            else if (c == 'n') {
+                state = FSM_QUOTE;
+                tmp_string = (char_append(tmp_string, &tmp_string_len, 10));
             }
             else if (c >= '0' && c <= '3') {
                 state = FSM_ESCAPE_OCTAL_1;
-                tmp_string = (char_append(tmp_string, &tmp_string_len, c));
+                octal_string = (octal_append(octal_string, c));
             }
             else {
                 fprintf(stderr, "SCANNER ERROR: String escape sequence error!\n");
-                exit(1);
+                exit(lexical_analysis_error);
             }
             break;
 
@@ -591,22 +687,24 @@ Ttoken *get_token_internal(Tinit *scanner_struct) {
         case FSM_ESCAPE_OCTAL_1:
             if (c >= '0' && c <= '7') {
                 state = FSM_ESCAPE_OCTAL_2;
-                tmp_string = (char_append(tmp_string, &tmp_string_len, c));
+                octal_string = (octal_append(octal_string, c));
             }
             else {
                 fprintf(stderr, "SCANNER ERROR: String escape sequence error!\n");
-                exit(1);
+                exit(lexical_analysis_error);
             }
             break;
 
         case FSM_ESCAPE_OCTAL_2:
             if (c >= '0' && c <= '7') {
                 state = FSM_QUOTE;
-                tmp_string = (char_append(tmp_string, &tmp_string_len, c));
+                octal_string = (octal_append(octal_string, c));
+                long int ascii_c = strtol(octal_string, &endptr, 8);
+                tmp_string = (char_append(tmp_string, &tmp_string_len, ascii_c));
             }
             else {
                 fprintf(stderr, "SCANNER ERROR: String escape sequence error!\n");
-                exit(1);
+                exit(lexical_analysis_error);
             }
             break;
 
@@ -644,7 +742,7 @@ Ttoken *get_token_internal(Tinit *scanner_struct) {
             }
             else if (c == EOF) {
                 fprintf(stderr, "Unterminated comment\n");
-                exit(1);
+                exit(lexical_analysis_error);
             }
             else {
                 if (c == '\n') {
@@ -665,7 +763,7 @@ Ttoken *get_token_internal(Tinit *scanner_struct) {
             }
             else if (c == EOF) {
                 fprintf(stderr, "Unterminated comment\n");
-                exit(1);
+                exit(lexical_analysis_error);
             }
             else {
                 if (c == '\n') {

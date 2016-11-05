@@ -7,6 +7,13 @@
 * @author Kovařík Viktor <xkovar77@stud.fit.vutbr.cz>
 */
 
+/*
+TODO:
+
+print line No. when lex. error occurs
+print filename when lex. error occurs
+*/
+
 #ifndef SCANNER_H_
 #define SCANNER_H_
 
@@ -130,15 +137,14 @@ typedef struct {
 	size_t tlen;
 	long long line;
 	long whence;
+    char *c;
 	union {
         Data_type dtype; //data types
-        //operators op; //operators
         Keyword kw; //keywords
     };
     union {
         long int li;
-        double d;
-        char *c;
+        double d; 
 	};
 }Ttoken;
 
