@@ -143,6 +143,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\ast.h" />
+    <ClInclude Include="..\expr_parser.h" />
     <ClInclude Include="..\gc.h" />
     <ClInclude Include="..\ial.h" />
     <ClInclude Include="..\return_codes.h" />
@@ -151,10 +152,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\ast.c" />
-    <ClCompile Include="..\binaryTree-test.c" />
+    <ClCompile Include="..\expr_parser.c" />
     <ClCompile Include="..\gc.c" />
     <ClCompile Include="..\ial.c" />
     <ClCompile Include="..\main.c" />
+    <ClCompile Include="..\scanner.c" />
     <ClCompile Include="..\syntaxAnalysis.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
