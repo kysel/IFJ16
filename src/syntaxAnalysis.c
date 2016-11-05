@@ -15,9 +15,12 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include "expr_parser.h"
 
 void parse_class(Syntax_context* ctx);
 void parse_function(Syntax_context* ctx, Data_type return_type, char* name);
+void parse_statement(Syntax_context* ctx, Statement_collection statements);
+void parse_block(Syntax_context* ctx, Statement_collection statements);
 Variable parse_global_variable(Syntax_context* ctx, Data_type type);
 
 /**
@@ -164,62 +167,89 @@ void parse_assigmnent(Syntax_context* ctx, Statement_collection statements) {
 	Statement st = {
 		.type = assigment,
 		.assignment.target = symbol->id,
-		/*TODO: parser here*/
 	};
+    //TODO use return value as exression in statement
+    parseExpression(ctx->s_ctx);
 	add_statement(statements, st);
 }
 
 void parse_declaration(Syntax_context* ctx, Statement_collection statements) {
-	Data_type type = check_and_get_token(ctx->s_ctx, T_TYPE)->dtype;
-	char* name = check_and_get_token(ctx->s_ctx, T_ID)->c;
+    Data_type type = check_and_get_token(ctx->s_ctx, T_TYPE)->dtype;
+    char* name = check_and_get_token(ctx->s_ctx, T_ID)->c;
 
-	Symbol_tree_leaf* symbol = add_symbol(&ctx->local_symbols, name);
-	symbol->type = type;
-	symbol->init_expr = NULL;
-	Statement st = {
-		.type = declaration,
-		.declaration.variable.id = symbol->id,
-		.declaration.variable.type = type,
-		.declaration.variable.init_expr = NULL
-	};
+    Symbol_tree_leaf* symbol = add_symbol(&ctx->local_symbols, name);
+    symbol->type = type;
+    symbol->init_expr = NULL;
+    Statement st = {
+        .type = declaration,
+        .declaration.variable.id = symbol->id,
+        .declaration.variable.type = type,
+        .declaration.variable.init_expr = NULL
+    };
 
-	if (peek_token(ctx->s_ctx)->type == T_SEMICOLON) {
-		get_token(ctx->s_ctx);
-	}else if(check_and_get_token(ctx->s_ctx, T_ASSIGN)) {
-		//TODO: get expression and assign to 'init_expr' in statement, optionaly in symbol leaf
-	}
-	add_statement(statements, st);
+    if (peek_token(ctx->s_ctx)->type == T_SEMICOLON) {
+        get_token(ctx->s_ctx);
+    }
+    else if (check_and_get_token(ctx->s_ctx, T_ASSIGN)) {
+        //TODO: get expression and assign to 'init_expr' in statement, optionaly in symbol leaf
+        parseExpression(ctx->s_ctx);
+    }
+    add_statement(statements, st);
+}
+
+void parse_if(Syntax_context* ctx, Statement_collection statements) {
+    check_and_get_keyword(ctx->s_ctx, K_IF);
+    Statement st = {
+        .type = condition,
+        .condition.condition = NULL,
+        .condition.caseTrue.size = 0,
+        .condition.caseFalse.size = 0
+    };  //TODO: assign expression
+
+    parseExpression(ctx->s_ctx);
+    if (peek_token(ctx->s_ctx)->type == T_BRACKET_LCURLY)
+        parse_block(ctx, st.condition.caseTrue);
+    else
+        parse_statement(ctx, st.condition.caseTrue);
+
+    Ttoken* ifels = peek_token(ctx->s_ctx);
+    if (ifels->type == T_KEYWORD && ifels->kw == K_ELSE) {
+        get_token(ctx->s_ctx);
+        if (peek_token(ctx->s_ctx)->type == T_BRACKET_LCURLY)
+            parse_block(ctx, st.condition.caseFalse);
+        else
+            parse_statement(ctx, st.condition.caseFalse);
+    }
 }
 
 void parse_statement(Syntax_context* ctx, Statement_collection statements) {
-	Ttoken* tok;
-	switch ((tok = check_and_peek_token(ctx->s_ctx, T_ID | T_KEYWORD | T_TYPE))->type) {
-	case T_TYPE:
-		parse_declaration(ctx, statements);
-		break;
-	case T_ID:
-		parse_assigmnent(ctx, statements);
-		break;
-	case T_KEYWORD:
-		switch (tok->kw) {
-		case K_BREAK: break;
-		case K_CLASS: break;
-		case K_CONTINUE: break;
-		case K_DO: break;
-		case K_ELSE: break;
-		case K_FALSE: break;
-		case K_FOR: break;
-		case K_IF: break;
-		case K_RETURN: break;
-		case K_STATIC: break;
-		case K_TRUE: break;
-		case K_WHILE: break;
-		default: break;
-		}break;
-	default:
-		fprintf(stderr, "Internal error on line %d in file %s.\n", __LINE__, __FILE__);
-		exit(internal_error);
-	}
+    Ttoken* tok;
+    switch ((tok = check_and_peek_token(ctx->s_ctx, T_ID | T_KEYWORD | T_TYPE))->type) {
+    case T_TYPE:
+        parse_declaration(ctx, statements);
+        break;
+    case T_ID:
+        parse_assigmnent(ctx, statements);
+        break;
+    case T_KEYWORD:
+        switch (check_and_peek_keyword(ctx->s_ctx, K_DO | K_FOR | K_IF | K_RETURN | K_WHILE)) {
+        case K_DO:
+        case K_FOR:
+            fprintf(stderr, "Use of unsupported extension.");
+            exit(98);
+        case K_IF:
+            parse_if(ctx, statements);
+            break;
+        case K_WHILE: break;
+        case K_RETURN: break;
+        default:
+            fprintf(stderr, "Internal error on line %d in file %s.\n", __LINE__, __FILE__);
+            exit(internal_error);
+        }break;
+    default:
+        fprintf(stderr, "Internal error on line %d in file %s.\n", __LINE__, __FILE__);
+        exit(internal_error);
+    }
 }
 
 void parse_block(Syntax_context* ctx, Statement_collection statements) {
