@@ -8,6 +8,7 @@
 */
 
 #include <stdlib.h>
+#include <string.h>
 #include "expr_parser.h"
 #include "gc.h"
 #include "ast.h"
@@ -72,7 +73,7 @@ void stackPush (t_Stack* s, t_Element_Type type, void * address) {
         s->top_token = s->top_element;
 }
 
-void stackApplyRule(t_Stack* s, t_Expr_Parser_Init *symbol_tabs) {
+void stackApplyRule(t_Stack* s, t_Expr_Parser_Init *symbol_tabs, long long line) {
     int rule_lenght;
     for (rule_lenght = 0; (rule_lenght < s->top_element) && !(s->arr[s->top_element - rule_lenght].stop_bit); rule_lenght++);
     
@@ -91,16 +92,23 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init *symbol_tabs) {
                 expression = gc_alloc(sizeof(Expression));
                 Ttoken *token = s->arr[s->top_element].address;
                 Symbol_tree_leaf *leaf;
+                
+                //Vytvorenie plne kvalifikovaného identifikátora
+                char *full_name = gc_alloc(sizeof(char) * (strlen(token->c) + strlen(symbol_tabs->class_name) + 2));
+                full_name = strcat(symbol_tabs->class_name, ".");
+                full_name = strcat(full_name, token->c);
 
                 switch (token->type){
                     case T_ID:
                         expression->type = variable;
-                        /*if (leaf = get_symbol_by_key(symbol_tabs->global_tab, token->c))        
+                        if (leaf = get_symbol_by_key(symbol_tabs->local_tab, token->c))        
                             expression->variable = leaf->id; 
+                        else if (leaf = get_symbol_by_key(symbol_tabs->global_tab, full_name))        
+                            expression->variable = leaf->id;
                         else {
-                            fprintf(stderr, "Syntax error on line %d in file %s.\n", __LINE__, __FILE__);
-                            exit(syntactic_analysis_error);
-                        }*/
+                            leaf = add_symbol(symbol_tabs->global_tab, full_name);
+                            expression->variable = leaf->id;
+                        }
                         break;
 
                     case T_INT:
@@ -145,6 +153,18 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init *symbol_tabs) {
                 
                 if (left_token->type == T_ID && middle_token->type == T_DOT && right_token->type == T_ID) {
                     //TODO plne kvalifikovaný identifikátor - čarovanie s tabulkou symbolov
+                    Symbol_tree_leaf *leaf;
+                    //Vytvorenie plne kvalifikovaného identifikátora
+                    char *full_name = gc_alloc(sizeof(char) * (strlen(left_token->c) + strlen(right_token->c) + 2));
+                    full_name = strcat(left_token->c, ".");
+                    full_name = strcat(full_name, right_token->c);
+
+                    if (leaf = get_symbol_by_key(symbol_tabs->global_tab, full_name))        
+                        expression->variable = leaf->id;
+                    else {
+                        leaf = add_symbol(symbol_tabs->global_tab, full_name);
+                        expression->variable = leaf->id;
+                    }
                 }
 
                 else {
@@ -260,11 +280,11 @@ int terminal2TabIndex(void * terminal) {
 }
 
 /***
- *          ____  ___     ____  _____ __________ 
- *         / __ \/    |  / __ \/ ___// ____/ __ \
+ *          ____  ___    ____  _____ __________ 
+ *         / __ \/   |  / __ \/ ___// ____/ __ \
  *        / /_/ / /| | / /_/ /\__ \/ __/ / /_/ /
- *      / ____/ ___ |/ _, _/___/ / /___/ _, _/ 
- *     /_/    /_/  |_/_/ |_|/____/_____/_/ |_|  
+ *       / ____/ ___ |/ _, _/___/ / /___/ _, _/ 
+ *      /_/   /_/  |_/_/ |_|/____/_____/_/ |_|  
  * 
  */
 
@@ -336,7 +356,7 @@ Expression* parseExpression(t_Expr_Parser_Init *symbol_tabs, Tinit *scanner) {
                 break;
             
             case 'M':
-                stackApplyRule(stack, symbol_tabs); 
+                stackApplyRule(stack, symbol_tabs, b->line); 
                 break;
             
             default:
