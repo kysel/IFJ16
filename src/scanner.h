@@ -61,8 +61,7 @@ static inline const char* token_to_string(token_type tok) {
     switch (tok) {
         FOREACH_TOKEN(GENERATE_CASE)
     default:
-        assert(false);
-        break;
+        return "";
     }
     assert(false);
     return "▲";
@@ -125,8 +124,7 @@ static inline const char* keyword_to_string(Keyword kw) {
     switch (kw) {
         FOREACH_KEYWORD(GENERATE_CASE)
     default:
-        assert(false);
-        break;
+        return "";
     }
     assert(false);
     return "▲";
