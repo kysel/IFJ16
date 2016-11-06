@@ -9,6 +9,13 @@
 
 #include <stdio.h>
 #include "scanner.h"
+#include "ial.h"
+
+typedef struct {
+   Symbol_tree *global_tab;
+   Symbol_tree *local_tab;
+   char *class_name;
+}t_Expr_Parser_Init;
 
 // Datový typ prvku na zásobníku
 typedef enum {
@@ -49,9 +56,10 @@ static const unsigned char precedence_tab[15][15] = {
    {'L', 'L', 'L', 'L', 'M', 'M', 'M', 'M', 'M', 'M', 'L', 'M', 'L', 'L', 'M'}, // !=
    {'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'E', ' ', 'L', 'O'}, // (
    {'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'O', 'M', ' ', 'O', 'M'}, // )
-   {'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', ' ', ' ', 'M', 'L', 'M'}, // .
-   {'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'O', 'M', 'M', 'O', 'M'}, // id
+   {'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', ' ', ' ', 'M', 'E', 'M'}, // .
+   {'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'O', 'M', 'E', 'O', 'M'}, // id
    {'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'O', 'L', 'L', 'O'}  // $
 };
 
-Expression* parseExpression(Tinit *scanner);
+t_Expr_Parser_Init *ExprParserInit(Symbol_tree *global_tab, Symbol_tree *local_tab, char *class_name);
+Expression* parseExpression(t_Expr_Parser_Init *symbol_tabs, Tinit *scanner);
