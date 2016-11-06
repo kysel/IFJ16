@@ -23,4 +23,5 @@ typedef struct {
 
 Syntax_context* init_syntax(FILE* input_file);
 Statement_collection* parse_program(Syntax_context* ctx);
+char* parse_id(Syntax_context* ctx);
 #endif
