@@ -29,10 +29,10 @@ Variable parse_global_variable(Syntax_context* ctx, Data_type type);
  * \param varName Variable name
  * \return fully kvalified variable name
  */
-char* get_fk_name(Syntax_context* ctx, char* varName) {
-    char* fkName = gc_alloc(sizeof(char)*(strlen(ctx->current_class) + strlen(varName) + 2));
+char* get_fk_name(const char* className, const char* varName) {
+    char* fkName = gc_alloc(sizeof(char)*(strlen(className) + strlen(varName) + 2));
     fkName[0] = 0;
-    strcat(fkName, ctx->current_class);
+    strcat(fkName, className);
     strcat(fkName, ".");
     strcat(fkName, varName);
     return fkName;
@@ -74,7 +74,7 @@ Statement_collection* parse_program(Syntax_context* ctx) {
              Ttoken* fnOrVar = check_and_peek_token(ctx->s_ctx, T_SEMICOLON | T_BRACKET_LROUND);
              if (fnOrVar->type == T_SEMICOLON) {
                  Variable var = parse_global_variable(ctx, type->dtype);
-                 Symbol_tree_leaf* varLeaf = add_symbol(&ctx->global_symbols, get_fk_name(ctx, name->c));
+                 Symbol_tree_leaf* varLeaf = add_symbol(&ctx->global_symbols, get_fk_name(ctx->current_class, name->c));
                  varLeaf->type = var.type;
                  varLeaf->init_expr = var.init_expr;
              }
@@ -142,18 +142,18 @@ void parse_parameters(Syntax_context* ctx, Parameter_list* params) {
     check_and_get_token(ctx->s_ctx, T_BRACKET_RROUND);
 }
 
-char* parse_id(Syntax_context* ctx) {
-    char* name = check_and_get_token(ctx->s_ctx, T_ID)->c;
-    if (peek_token(ctx->s_ctx)->type == T_DOT) {
-        get_token(ctx->s_ctx); //consume '.'
-        char* name2 = check_and_get_token(ctx->s_ctx, T_ID)->c;
+char* parse_id(Tinit* scanner, char* currentClass) {
+    char* name = check_and_get_token(scanner, T_ID)->c;
+    if (peek_token(scanner)->type == T_DOT) {
+        get_token(scanner); //consume '.'
+        char* name2 = check_and_get_token(scanner, T_ID)->c;
         char* FKname = gc_alloc(strlen(name) + strlen(name2) + 2);
         strcat(FKname, name);
         strcat(FKname, ".");
         strcat(FKname, name2);
         return FKname;
     }
-    return get_fk_name(ctx, name);
+    return get_fk_name(currentClass, name);
 }
 
 Symbol_tree_leaf* get_symbol(Syntax_context* ctx, char* key) {
@@ -287,7 +287,7 @@ void parse_statement(Syntax_context* ctx, Statement_collection* statements) {
         parse_declaration(ctx, statements);
         break;
     case T_ID: {
-        char* id = parse_id(ctx);
+        char* id = parse_id(ctx->s_ctx, ctx->current_class);
         if (check_and_peek_token(ctx->s_ctx, T_ASSIGN | T_BRACKET_LROUND)->type == T_ASSIGN)
             parse_assigmnent(ctx, statements, id);
         else
