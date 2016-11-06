@@ -19,7 +19,7 @@
 //}
 
 char* sort(char* s) {      // razeni se snizujicim se prirustkem - Shell Sort
-   int n = strlen(s) - 1;  // spocitani poctu prvku (bez koncoveho znaku "\0")
+   int n = strlen(s) - 1;  // spocitani poctu prvku
    int step = n / 2;       // jako prvni krok je bran pocet prvku lomen dvema (dle konvence)
    int i;                  // pomocna promenna k prochazeni stringu od prvniho k poslednimu prvku
    int j;                  // pomocna promenna k prochazeni paralelnich n-tic
@@ -27,12 +27,8 @@ char* sort(char* s) {      // razeni se snizujicim se prirustkem - Shell Sort
 
    while (step > 0) {            // dokud je krok vetsi jako nula
       for(i = 0; i < n; i++) {   // cykly pro generovani paralelnich n-tic
-      //   printf("step=%d\n", step);
-      //   printf("i=%d\n", i);
-         j = i - step + 1;
-      //   printf("j1=%d\n", j);       
+         j = i - step + 1;    
          while (j >= 0 && s[j] > s[j + step]) { // prochazeni paralelnich n-tic
-      //      printf("j2=%d\n", j);
             h = s[j];
             s[j] = s[j + step];
             s[j + step] = h;     // prohozeni dvojic na indexech rozdilnych o krok

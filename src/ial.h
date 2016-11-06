@@ -12,6 +12,8 @@
 
 #include <stdbool.h>
 
+char* sort(char* s);
+
 typedef enum {
 	int_literal,
 	double_literal,

@@ -8,7 +8,7 @@ OBJECTS=$(SOURCES:.c=.o)
 
 all: ifj16
 
-test: binaryTree-test
+test: binaryTree-test shellSort-test
 
 ifj16: $(OBJECTS)
 	$(CC) $(CFLAGS) $^ -o $@
@@ -16,6 +16,9 @@ ifj16: $(OBJECTS)
 binaryTree-test: $(filter-out main.o,$(OBJECTS))
 	$(CC) $(CFLAGS) $^ $@.c -o $@
 	valgrind -q --leak-check=full ./$@
+
+shellSort-test: $(filter-out main.o,$(OBJECTS))
+	$(CC) $(CFLAGS) $^ $@.c -o $@
 
 %.o: %.c
 	mkdir -p .depend
