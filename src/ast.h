@@ -70,6 +70,15 @@ typedef struct {
    Expression *right_expr;
 }BinOpTree;
 
+typedef struct {
+   Data_type type;
+   union {
+        long int li;
+        double d;
+        char *c;
+   };
+}Constant;
+
 /**
  * Expressions...
  */
@@ -83,11 +92,8 @@ typedef  struct Expression_s{
 	union {
       Function function;
       VariableId variable;
+      Constant constant;
       BinOpTree tree;
-
-      //TODO universal data type container
-	
-      //TODO BinOP tree
 	};
 }Expression;
 
