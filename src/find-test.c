@@ -7,6 +7,7 @@
 * @author Kovařík Viktor <xkovar77@stud.fit.vutbr.cz>
 */
 
+#include "gc.h"
 #include "ial.h"
 #include <stdio.h>
 
