@@ -37,6 +37,7 @@ struct Statement_collection_s {
 typedef struct {
     Func_parameter* parameters;
     int count;
+    int size;
 }Parameter_list;
 
 typedef struct Function_s {
@@ -63,6 +64,7 @@ typedef struct {
 typedef struct {
     Expression* expressions;
     int count;
+    int size;
 }Expression_list;
 
 typedef struct Variable_s {
@@ -89,6 +91,11 @@ typedef struct {
     Expression *right_expr;
 }BinOpTree;
 
+typedef struct {
+    char* name;
+    Parameter_list parameters;
+}FunctionCall;
+
 typedef struct Expression_s {
     enum {
         function_call,
@@ -97,7 +104,7 @@ typedef struct Expression_s {
         bin_op_tree
     }type;
     union {
-        Function function;
+        FunctionCall fCall;
         VariableId variable;
         BinOpTree tree;
 
@@ -110,7 +117,7 @@ typedef struct Expression_s {
 typedef struct Func_parameter_s {
     char* name;
     Data_type type;
-    //Expression value;
+    Expression value;
 }Func_parameter;
 
 typedef struct {
