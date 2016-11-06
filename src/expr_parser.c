@@ -127,7 +127,7 @@ void stackApplyRule(t_Stack* s) {
 
          //Pravidlá E -> E _ E 
          else if (s->arr[s->top_element - 2].type == EXPRESSION && s->arr[s->top_element - 1].type == TOKEN && s->arr[s->top_element].type == EXPRESSION) {
-            expression = malloc(sizeof(Expression));
+            expression = gc_alloc(sizeof(Expression));
             Ttoken *token = s->arr[s->top_element - 1].address;
             switch(token->type) {
                case T_ADD:
@@ -172,55 +172,7 @@ void stackApplyRule(t_Stack* s) {
          break;
 
    }
-   
-   /*
-   printf("%d\n", rule_lenght);
 
-   Expression *expression = malloc(sizeof(Expression));
-      
-   //TODO Pravidlo E -> i
-   if ((s->top_element > 0) && (s->arr[s->top_element - 1].stop_bit)) {
-      stackPop(s);
-   }
-   //TODO Pravidlá E -> E _ E
-   else if ((s->top_element > 2) && (s->arr[s->top_element - 3].stop_bit) && !(s->arr[s->top_element - 2].stop_bit) && !(s->arr[s->top_element - 1].stop_bit) && !(s->arr[s->top_element].stop_bit)) {
-      Ttoken *token = s->arr[s->top_element - 2].address;
-      
-      switch(token->type) {
-         case T_ADD:
-            expression->tree.BinOp = OP_ADD; break;
-         case T_SUB:
-            expression->tree.BinOp = OP_SUB; break;
-         case T_MUL:
-            expression->tree.BinOp = OP_MUL; break;
-         case T_DIV: 
-            expression->tree.BinOp = OP_DIV; break;
-         case T_LOWER: 
-            expression->tree.BinOp = OP_LOWER; break;
-         case T_GREATER: 
-            expression->tree.BinOp = OP_GREATER; break;
-         case T_LOWER_EQUAL: 
-            expression->tree.BinOp = OP_LOWER_EQUAL; break;
-         case T_GREATER_EQUAL: 
-            expression->tree.BinOp = OP_GREATER_EQUAL; break;
-         case T_BOOL_EQUAL: 
-            expression->tree.BinOp = OP_BOOL_EQUAL; break;
-         case T_NOT_EQUAL: 
-            expression->tree.BinOp = OP_NOT_EQUAL; break;
-         default:
-            //TODO ERROR break; 
-      }  
-      expression->tree.left_expr = s->arr[s->top_element - 2].address;
-      expression->tree.right_expr = s->arr[s->top_element].address;
-
-      stackPop(s);
-      stackPop(s);
-      stackPop(s);
-   }
-   else {
-      //TODO ERROR
-   }
-*/
    s->arr[s->top_element].stop_bit = 0;
    stackPush(s, EXPRESSION, expression);
 }
@@ -303,19 +255,21 @@ Expression* parseExpression(Tinit *scanner) {
    stackPush(stack, EOS, NULL);
    
    void *a = stack->arr[stack->top_token].address;
-   Ttoken *b = get_token(scanner);
+   Ttoken *b = peek_token(scanner);
 
-   while (!(a == NULL && (b->type == T_SEMICOLON || b->type == T_BRACKET_RROUND))) {
+   while (!(a == NULL && (b->type == T_SEMICOLON || b->type == T_COMMA || b->type == T_BRACKET_RROUND))) {
       switch(precedence_tab[terminal2TabIndex(a)][terminal2TabIndex(b)]){
          case 'E':
             stackPush(stack, TOKEN, b);
-            b = get_token(scanner);
+            get_token(scanner);
+            b = peek_token(scanner);
             break;
          
          case 'L':
             stackSetStopBit(stack);
             stackPush(stack, TOKEN, b);
-            b = get_token(scanner);
+            get_token(scanner);
+            b = peek_token(scanner);
             break;
          
          case 'M':
