@@ -164,7 +164,9 @@ symbol_tree_leaf_t* get_symbol_by_key_impl(symbol_tree_leaf_t* node, const char*
  */
 symbol_tree_leaf_t* get_symbol_by_key(symbol_tree_t* tree, const char* key) {
 	assert(tree);
-	return get_symbol_by_key_impl(tree->root, key);
+    if (tree->root != NULL)
+        return get_symbol_by_key_impl(tree->root, key);
+    return NULL;
 }
 
 
