@@ -92,26 +92,36 @@ typedef struct {
 }BinOpTree;
 
 typedef struct {
+   Data_type type;
+   union {
+        long int li;
+        double d;
+        char *c;
+   };
+}Constant;
+
+typedef struct {
     char* name;
     Parameter_list parameters;
 }FunctionCall;
 
-typedef struct Expression_s {
-    enum {
-        function_call,
-        variable,
-        constant,
-        bin_op_tree
-    }type;
-    union {
-        FunctionCall fCall;
-        VariableId variable;
-        BinOpTree tree;
+typedef  struct Expression_s{
+	enum {
+		function_call,
+		variable,
+      constant,
+      bin_op_tree
+	}type;
+	union {
+      Function function;
+      VariableId variable;
+      Constant constant;
+      BinOpTree tree;
 
-        //TODO universal data type container
-
-        //TODO BinOP tree
-    };
+      //TODO universal data type container
+	
+      //TODO BinOP tree
+	};
 }Expression;
 
 typedef struct Func_parameter_s {
