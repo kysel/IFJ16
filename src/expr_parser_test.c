@@ -9,6 +9,7 @@
 
 #include "gc.h"
 #include "scanner.h"
+#include "ial.h"
 #include <stdio.h>
 
 int main(int argc, char* argv[])
@@ -19,6 +20,6 @@ int main(int argc, char* argv[])
 
    Tinit *scanner = init_scanner(file);
 
-   printf("%x\n",parseExpression(scanner));
+   printf("%x\n",parseExpression(NULL ,scanner));
    return 1;   
 }
