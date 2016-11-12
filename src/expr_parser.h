@@ -7,8 +7,11 @@
 * @author Kovařík Viktor <xkovar77@stud.fit.vutbr.cz>
 */
 
+#ifndef EXPR_PARSER_H_
+#define EXPR_PARSER_H_
 #include <stdio.h>
 #include "scanner.h"
+#include "ast.h"
 #include "ial.h"
 
 typedef struct {
@@ -63,3 +66,5 @@ static const unsigned char precedence_tab[15][15] = {
 
 t_Expr_Parser_Init *ExprParserInit(Symbol_tree *global_tab, Symbol_tree *local_tab, char *class_name);
 Expression* parseExpression(t_Expr_Parser_Init *symbol_tabs, Tinit *scanner);
+
+#endif
