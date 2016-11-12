@@ -9,6 +9,7 @@
 
 #ifndef AST_H_
 #define AST_H_
+#include "scanner.h"
 
 typedef struct Statement_s Statement;
 typedef struct Statement_collection_s Statement_collection;
@@ -20,13 +21,6 @@ typedef Expression Return_statement;
 typedef struct Variable_s Variable;
 typedef struct Func_parameter_s Func_parameter;
 
-typedef enum {
-    void_t,
-    int_t,
-    double_t,
-    bool_t,
-    string_t
-}Data_type;
 
 struct Statement_collection_s {
     Statement* statements;
@@ -59,6 +53,7 @@ typedef struct Function_s {
 typedef struct {
     Function* items;
     int count;
+    int size;
 }Function_list;
 
 typedef struct {
@@ -105,23 +100,23 @@ typedef struct {
     Parameter_list parameters;
 }FunctionCall;
 
-typedef  struct Expression_s{
-	enum {
-		function_call,
-		variable,
-      constant,
-      bin_op_tree
-	}type;
-	union {
-      Function function;
-      VariableId variable;
-      Constant constant;
-      BinOpTree tree;
+typedef  struct Expression_s {
+    enum {
+        function_call,
+        variable,
+        constant,
+        bin_op_tree
+    }type;
+    union {
+        FunctionCall fCall;
+        VariableId variable;
+        Constant constant;
+        BinOpTree tree;
 
-      //TODO universal data type container
-	
-      //TODO BinOP tree
-	};
+        //TODO universal data type container
+
+        //TODO BinOP tree
+    };
 }Expression;
 
 typedef struct Func_parameter_s {

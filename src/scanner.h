@@ -16,12 +16,10 @@ print filename when lex. error occurs
 
 #ifndef SCANNER_H_
 #define SCANNER_H_
-
 #include <stdio.h>
 #include <stdbool.h>
 #include <assert.h>
 #include "hacks.h"
-#include "ast.h"
 
 
 #define FOREACH_TOKEN(TOKEN)                              \
@@ -125,12 +123,19 @@ static inline const char* keyword_to_string(Keyword kw) {
     switch (kw) {
         FOREACH_KEYWORD(GENERATE_CASE)
     default:
-        assert(false);
-        break;
+        return "";
     }
     assert(false);
     return "▲";
 }
+
+typedef enum {
+    void_t,
+    int_t,
+    double_t,
+    bool_t,
+    string_t
+}Data_type;
 
 typedef struct {
 	token_type type;
