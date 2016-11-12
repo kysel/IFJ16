@@ -282,29 +282,13 @@ Statement* parse_f_call(t_Expr_Parser_Init* exprCtx, Tinit* scanner, char* id) {
         } while (peek_token(scanner)->type == T_COMMA);
     }
     check_and_get_token(scanner, T_BRACKET_RROUND);
-    check_and_get_token(scanner, T_SEMICOLON);
     return st;
 }
 
 void parse_function_call(Syntax_context* ctx, Statement_collection* statements, char* id) {
-    Statement st = {
-        .type = expression,
-        .expression.type = function_call,
-        .expression.fCall.name = id,
-        .expression.fCall.parameters.count = 0
-    };
-
-    check_and_get_token(ctx->s_ctx, T_BRACKET_LROUND);
-    if (peek_token(ctx->s_ctx)->type != T_BRACKET_RROUND) {
-        do {
-            Expression* ex = parseExpression(ctx->expCtx, ctx->s_ctx);
-            add_parameter(st.expression.fCall.parameters, *ex);
-            //TODO: add_parameter(st.expression.fCall.parameters, parsedExpression);
-        } while (peek_token(ctx->s_ctx)->type == T_COMMA);
-    }
-    check_and_get_token(ctx->s_ctx, T_BRACKET_RROUND);
+    Statement* st = parse_f_call(ctx->expCtx, ctx->s_ctx, id);
     check_and_get_token(ctx->s_ctx, T_SEMICOLON);
-    add_statement(statements, st);
+    add_statement(statements, *st);
 }
 
 void parse_while(Syntax_context* ctx, Statement_collection* statements) {
