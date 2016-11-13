@@ -30,7 +30,6 @@ Variable parse_global_variable(Syntax_context* ctx, Data_type type);
  * \param varName Variable name
  * \return fully kvalified variable name
  */
-/*
 char* get_fk_name(const char* className, const char* varName) {
     char* fkName = gc_alloc(sizeof(char)*(strlen(className) + strlen(varName) + 2));
     fkName[0] = 0;
@@ -38,7 +37,7 @@ char* get_fk_name(const char* className, const char* varName) {
     strcat(fkName, ".");
     strcat(fkName, varName);
     return fkName;
-}*/
+}
 
 Syntax_context* init_syntax(FILE* input_file) {
     Syntax_context* ret = gc_alloc(sizeof(Syntax_context));
@@ -66,7 +65,7 @@ void parse_program(Syntax_context* ctx) {
 Parsed_id parse_id(Tinit* scanner, char* currentClass) {
     Parsed_id ret = { .fullQ = false };
     Ttoken* nameTok = check_and_get_token(scanner, T_ID);
-    ret.class = "";
+    ret.class = currentClass;
     ret.name = nameTok->c;
     ret.full = nameTok->c;
     ret.nameTok = nameTok;
@@ -74,6 +73,7 @@ Parsed_id parse_id(Tinit* scanner, char* currentClass) {
         get_token(scanner); //consume '.'
         char* name2 = check_and_get_token(scanner, T_ID)->c;
         char* FKname = gc_alloc(strlen(nameTok->c) + strlen(name2) + 2);
+        FKname[0] = 0;
         strcat(FKname, nameTok->c);
         strcat(FKname, ".");
         strcat(FKname, name2);
@@ -170,6 +170,9 @@ void parse_parameters(Syntax_context* ctx, Parameter_list* params) {
         params->parameters = gc_realloc(params->parameters, sizeof(Func_parameter)*(params->count + 1));
         params->parameters[params->count++] = param;
 
+        Symbol_tree_leaf* symbol = add_symbol(&ctx->local_symbols, param.name);
+        symbol->type = param.type;
+
         Ttoken* nextToken = check_and_peek_token(ctx->s_ctx, T_COMMA | T_BRACKET_RROUND);
         if (nextToken->type == T_COMMA)
             get_token(ctx->s_ctx);
@@ -200,10 +203,14 @@ Symbol_tree_leaf* get_symbol(Syntax_context* ctx, char* key) {
     return leaf;
 }
 
-void parse_assigmnent(Syntax_context* ctx, Statement_collection* statements, char* id) {
-    Symbol_tree_leaf* symbol = get_symbol(ctx, id);
+void parse_assigmnent(Syntax_context* ctx, Statement_collection* statements, Parsed_id id) {
+    Symbol_tree_leaf* symbol = get_symbol(ctx, id.full);
+    if (id.fullQ == false && symbol == NULL)
+        //not fully qualified class variable
+        id.full = get_fk_name(id.class, id.name);
+    symbol = get_symbol(ctx, id.full);
     if (symbol == NULL)
-        symbol = add_symbol(&ctx->global_symbols, id);
+        symbol = add_symbol(&ctx->global_symbols, id.full);
 
     check_and_get_token(ctx->s_ctx, T_ASSIGN);
     Statement st = {
@@ -273,6 +280,8 @@ Statement* parse_f_call(t_Expr_Parser_Init* exprCtx, Tinit* scanner, char* id) {
     st->expression.type = function_call;
     st->expression.fCall.name = id;
     st->expression.fCall.parameters.count = 0;
+    st->expression.fCall.parameters.size = 0;
+    st->expression.fCall.parameters.parameters = NULL;
 
     check_and_get_token(scanner, T_BRACKET_LROUND);
     if (peek_token(scanner)->type != T_BRACKET_RROUND) {
@@ -330,7 +339,7 @@ void parse_statement(Syntax_context* ctx, Statement_collection* statements) {
     case T_ID: {
         Parsed_id id = parse_id(ctx->s_ctx, ctx->current_class);
         if (check_and_peek_token(ctx->s_ctx, T_ASSIGN | T_BRACKET_LROUND)->type == T_ASSIGN)
-            parse_assigmnent(ctx, statements, id.full);
+            parse_assigmnent(ctx, statements, id);
         else
             parse_function_call(ctx, statements, id.full);
         break;
@@ -424,10 +433,12 @@ void parse_function(Syntax_context* ctx, Data_type return_type, char* name) {
         .name = name,
         .return_type = return_type,
         .type = user,
+        .parameters.size = 0,
         .parameters.count = 0,
         .parameters.parameters = NULL,
         .statements.size = 0,
         .statements.count = 0,
+        .statements.statements = NULL,
         .statements.statements = 0 };
 
     Symbol_tree oldSymbols = ctx->local_symbols;
@@ -438,10 +449,12 @@ void parse_function(Syntax_context* ctx, Data_type return_type, char* name) {
     parse_parameters(ctx, &f.parameters);
 
     parse_block(ctx, &f.statements);
+    f.stack_size = count_leafs(&ctx->local_symbols);
 #ifdef _DEBUG
     printStList(f.statements);
 #endif
     add_functionToList(&ctx->functions, f);
+
     ctx->local_symbols = oldSymbols;
     ctx->expCtx->local_tab = &ctx->local_symbols;
 }
