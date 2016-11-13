@@ -256,9 +256,9 @@ void parse_if(Syntax_context* ctx, Statement_collection* statements) {
     };
 
     check_and_get_keyword(ctx->s_ctx, K_IF);
-    check_and_get_keyword(ctx->s_ctx, T_BRACKET_LROUND);
+    check_and_get_token(ctx->s_ctx, T_BRACKET_LROUND);
     st.condition.condition = *parseExpression(ctx->expCtx, ctx->s_ctx);
-    check_and_get_keyword(ctx->s_ctx, T_BRACKET_RROUND);
+    check_and_get_token(ctx->s_ctx, T_BRACKET_RROUND);
 
     if (peek_token(ctx->s_ctx)->type == T_BRACKET_LCURLY)
         parse_block(ctx, &st.condition.caseTrue);
@@ -311,10 +311,10 @@ void parse_while(Syntax_context* ctx, Statement_collection* statements) {
         .type = while_loop
     };
     check_and_get_keyword(ctx->s_ctx, K_WHILE);
-    check_and_get_keyword(ctx->s_ctx, T_BRACKET_LROUND);
+    check_and_get_token(ctx->s_ctx, T_BRACKET_LROUND);
     //TODO assign expression
     parseExpression(ctx->expCtx, ctx->s_ctx);
-    check_and_get_keyword(ctx->s_ctx, T_BRACKET_RROUND);
+    check_and_get_token(ctx->s_ctx, T_BRACKET_RROUND);
     if (peek_token(ctx->s_ctx)->type != T_BRACKET_LCURLY)
         parse_statement(ctx, &st.while_loop.statements);
     else
