@@ -15,6 +15,7 @@
 #include "ial.h"
 #include "return_codes.h"
 
+int cnt = 0;
 //Inicializácia (prázdneho) zásobníka
 void stackInit (t_Stack* s) {
     s->arr = NULL; 
@@ -95,8 +96,10 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init *symbol_tabs, long long line)
                 
                 //Vytvorenie plne kvalifikovaného identifikátora
                 char *full_name = gc_alloc(sizeof(char) * (strlen(token->c) + strlen(symbol_tabs->class_name) + 2));
-                full_name = strcat(symbol_tabs->class_name, ".");
-                full_name = strcat(full_name, token->c);
+                full_name[0] = '\0';
+                strcat(full_name, symbol_tabs->class_name);
+                strcat(full_name, ".");
+                strcat(full_name, token->c);
 
                 switch (token->type){
                     case T_ID:
@@ -156,8 +159,10 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init *symbol_tabs, long long line)
                     Symbol_tree_leaf *leaf;
                     //Vytvorenie plne kvalifikovaného identifikátora
                     char *full_name = gc_alloc(sizeof(char) * (strlen(left_token->c) + strlen(right_token->c) + 2));
-                    full_name = strcat(left_token->c, ".");
-                    full_name = strcat(full_name, right_token->c);
+                    full_name[0] = '\0';
+                    strcat(full_name, left_token->c);
+                    strcat(full_name, ".");
+                    strcat(full_name, right_token->c);
 
                     if (leaf = get_symbol_by_key(symbol_tabs->global_tab, full_name))        
                         expression->variable = leaf->id;
@@ -260,8 +265,10 @@ void processFunCall(t_Stack* s, Tinit *scanner, t_Expr_Parser_Init *symbol_tabs,
 
         if (token->type == T_ID) {
             full_name = gc_alloc(sizeof(char) * (strlen(token->c) + strlen(symbol_tabs->class_name) + 2));
-            full_name = strcat(symbol_tabs->class_name, ".");
-            full_name = strcat(full_name, token->c);
+            full_name[0] = '\0';
+            strcat(full_name, symbol_tabs->class_name);
+            strcat(full_name, ".");
+            strcat(full_name, token->c);
         
             stackPop(s);
         }
@@ -281,8 +288,10 @@ void processFunCall(t_Stack* s, Tinit *scanner, t_Expr_Parser_Init *symbol_tabs,
         if (left_token->type == T_ID && middle_token->type == T_DOT && right_token->type == T_ID) {
             //Vytvorenie plne kvalifikovaného identifikátora
             full_name = gc_alloc(sizeof(char) * (strlen(left_token->c) + strlen(right_token->c) + 2));
-            full_name = strcat(left_token->c, ".");
-            full_name = strcat(full_name, right_token->c); 
+            full_name[0] = '\0';
+            strcat(full_name, left_token->c);
+            strcat(full_name, ".");
+            strcat(full_name, right_token->c); 
 
             stackPop(s);
             stackPop(s);
@@ -302,7 +311,6 @@ void processFunCall(t_Stack* s, Tinit *scanner, t_Expr_Parser_Init *symbol_tabs,
 
     s->arr[s->top_element].stop_bit = 0;
     stackPush(s, EXPRESSION, parse_f_call(symbol_tabs, scanner, full_name));
-    printf("function_created\n");
 }
 
 //
@@ -343,11 +351,11 @@ int terminal2TabIndex(void * terminal) {
  * 
  */
 
-void printStack(int cnt, t_Stack *s) {
+void printStack(t_Stack *s) {
     Ttoken *token;
     for (int i = 0; i <= s->top_element; i++) {
         switch(s->arr[i].type) {
-            case EOS: printf("%d: $", cnt); break;
+            case EOS: printf("%x: $", s); break;
             case EXPRESSION: printf("A"); break;
             case TOKEN: 
                 token = s->arr[i].address; 
@@ -388,15 +396,13 @@ t_Expr_Parser_Init *ExprParserInit(Symbol_tree *global_tab, Symbol_tree *local_t
 }
 
 Expression* parseExpression(t_Expr_Parser_Init *symbol_tabs, Tinit *scanner) {
-    static int cnt = 0;
-    cnt++;
     t_Stack* stack = gc_alloc(sizeof(t_Stack));
     stackInit(stack);
     stackPush(stack, EOS, NULL);
     
     void *a = stack->arr[stack->top_token].address;
     Ttoken *b = peek_token(scanner);
-    printf("%x\n", b->type);
+    //printf("%x\n", b->type);
     while (!(a == NULL && (b->type == T_SEMICOLON || b->type == T_COMMA || b->type == T_BRACKET_RROUND))) {
         switch(precedence_tab[terminal2TabIndex(a)][terminal2TabIndex(b)]){
             case 'E':
@@ -426,10 +432,10 @@ Expression* parseExpression(t_Expr_Parser_Init *symbol_tabs, Tinit *scanner) {
                 exit(syntactic_analysis_error);    
         }
 
-        printStack(cnt, stack);
+        printStack(stack);
         a = stack->arr[stack->top_token].address;
     }
-    printf("finito\n");
+    printf("Vracim vyraz\n");
     return stack->arr[stack->top_element].address;
 }
     
