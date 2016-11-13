@@ -15,19 +15,19 @@
 
 int main(int argc, char *argv[])
 {
-    gc_init();
+   gc_init();
 
-    if (argc == 1)
-        return -1;
-    FILE *fp;
+   if (argc == 1)
+      return -1;
+   FILE *fp;
 
-    fp = fopen(argv[1], "r");
+   fp = fopen(argv[1], "r");
 
-    if (fp == NULL)
-    {
-        fprintf(stderr, "Error opening file!\n");
-        return 99;
-    }
+   if (fp == NULL)
+   {
+      fprintf(stderr, "Error opening file!\n");
+      return 99;
+   }
 
     Syntax_context* syntax = init_syntax(fp);
     parse_program(syntax);
