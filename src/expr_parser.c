@@ -82,7 +82,7 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init *symbol_tabs, long long line)
     switch(rule_lenght) {
         //Ziadne pravidlo
         default:
-                fprintf(stderr, "Syntax error on line %d in file %s.\n", __LINE__, __FILE__);
+                fprintf(stderr, "Syntax error on line %d in file %s.\n", line, __FILE__);
                 exit(syntactic_analysis_error);
             
         //Krátke pravidlo
@@ -130,14 +130,14 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init *symbol_tabs, long long line)
                         break;
                     
                     default:
-                        fprintf(stderr, "Syntax error on line %d in file %s.\n", __LINE__, __FILE__);
+                        fprintf(stderr, "Syntax error on line %d in file %s.\n", line, __FILE__);
                         exit(syntactic_analysis_error);
                         break;    
                 }     
             }
 
             else {
-                fprintf(stderr, "Syntax error on line %d in file %s.\n", __LINE__, __FILE__);
+                fprintf(stderr, "Syntax error on line %d in file %s.\n", line, __FILE__);
                 exit(syntactic_analysis_error);
             }
         stackPop(s);
@@ -168,7 +168,7 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init *symbol_tabs, long long line)
                 }
 
                 else {
-                    fprintf(stderr, "Syntax error on line %d in file %s.\n", __LINE__, __FILE__);
+                    fprintf(stderr, "Syntax error on line %d in file %s.\n", line, __FILE__);
                     exit(syntactic_analysis_error);
                 }
 
@@ -183,7 +183,7 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init *symbol_tabs, long long line)
                 }
 
                 else {
-                    fprintf(stderr, "Syntax error on line %d in file %s.\n", __LINE__, __FILE__);
+                    fprintf(stderr, "Syntax error on line %d in file %s.\n", line, __FILE__);
                     exit(syntactic_analysis_error);
                 }
                     
@@ -226,7 +226,7 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init *symbol_tabs, long long line)
                         expression->tree.BinOp = OP_NOT_EQUAL; break;
                     
                     default:
-                        fprintf(stderr, "Syntax error on line %d in file %s.\n", __LINE__, __FILE__);
+                        fprintf(stderr, "Syntax error on line %d in file %s.\n", line, __FILE__);
                         exit(syntactic_analysis_error); 
                 }
 
@@ -235,7 +235,7 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init *symbol_tabs, long long line)
             }  
 
             else {
-                fprintf(stderr, "Syntax error on line %d in file %s.\n", __LINE__, __FILE__);
+                fprintf(stderr, "Syntax error on line %d in file %s.\n", line, __FILE__);
                 exit(syntactic_analysis_error);
             }
 
@@ -251,34 +251,58 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init *symbol_tabs, long long line)
 }
 
 void processFunCall(t_Stack* s, Tinit *scanner, t_Expr_Parser_Init *symbol_tabs, long long line) {
-    if (s->arr[s->top_element - 2].type == TOKEN && s->arr[s->top_element - 1].type == TOKEN && s->arr[s->top_element].type == TOKEN) { 
+    int rule_lenght;
+    for (rule_lenght = 0; (rule_lenght < s->top_element) && !(s->arr[s->top_element - rule_lenght].stop_bit); rule_lenght++);
+    char *full_name;
+
+    if (rule_lenght == 1 && s->arr[s->top_element].type == TOKEN) { 
+        Ttoken *token = s->arr[s->top_element].address;
+
+        if (token->type == T_ID) {
+            full_name = gc_alloc(sizeof(char) * (strlen(token->c) + strlen(symbol_tabs->class_name) + 2));
+            full_name = strcat(symbol_tabs->class_name, ".");
+            full_name = strcat(full_name, token->c);
+        
+            stackPop(s);
+        }
+
+        else {
+            fprintf(stderr, "Syntax error on line %d in file %s.\n", line, __FILE__);
+            exit(syntactic_analysis_error);
+        }
+
+    }
+    
+    else if (rule_lenght == 3 && s->arr[s->top_element - 2].type == TOKEN && s->arr[s->top_element - 1].type == TOKEN && s->arr[s->top_element].type == TOKEN) { 
         Ttoken *left_token = s->arr[s->top_element - 2].address;
         Ttoken *middle_token = s->arr[s->top_element - 1].address;
         Ttoken *right_token = s->arr[s->top_element].address;
         
         if (left_token->type == T_ID && middle_token->type == T_DOT && right_token->type == T_ID) {
             //Vytvorenie plne kvalifikovaného identifikátora
-            char *full_name = gc_alloc(sizeof(char) * (strlen(left_token->c) + strlen(right_token->c) + 2));
+            full_name = gc_alloc(sizeof(char) * (strlen(left_token->c) + strlen(right_token->c) + 2));
             full_name = strcat(left_token->c, ".");
             full_name = strcat(full_name, right_token->c); 
 
             stackPop(s);
             stackPop(s);
             stackPop(s);
-
-            stackPush(s, EXPRESSION, parse_f_call(symbol_tabs, scanner, full_name));
         }
 
         else {
-            fprintf(stderr, "Syntax error on line %d in file %s.\n", __LINE__, __FILE__);
+            fprintf(stderr, "Syntax error on line %d in file %s.\n", line, __FILE__);
             exit(syntactic_analysis_error);
         }
     }
 
     else {
-        fprintf(stderr, "Syntax error on line %d in file %s.\n", __LINE__, __FILE__);
+        fprintf(stderr, "Syntax error on line %d in file %s.\n", line, __FILE__);
         exit(syntactic_analysis_error);
     }
+
+    s->arr[s->top_element].stop_bit = 0;
+    stackPush(s, EXPRESSION, parse_f_call(symbol_tabs, scanner, full_name));
+    printf("function_created\n");
 }
 
 //
@@ -319,11 +343,11 @@ int terminal2TabIndex(void * terminal) {
  * 
  */
 
-void printStack(t_Stack *s) {
+void printStack(int cnt, t_Stack *s) {
     Ttoken *token;
     for (int i = 0; i <= s->top_element; i++) {
         switch(s->arr[i].type) {
-            case EOS: printf("$"); break;
+            case EOS: printf("%d: $", cnt); break;
             case EXPRESSION: printf("A"); break;
             case TOKEN: 
                 token = s->arr[i].address; 
@@ -336,7 +360,7 @@ void printStack(t_Stack *s) {
                 else if (token->type == T_DIV)
                     printf("/");
                 else if (token->type == T_INT)
-                    printf("1");
+                    printf("%s", token->c);
                 else if (token->type == T_BRACKET_LROUND)
                     printf("(");
                 else if (token->type == T_BRACKET_RROUND)
@@ -346,7 +370,7 @@ void printStack(t_Stack *s) {
                 else if (token->type == T_DOT)
                     printf(".");
                 else
-                    printf("x");
+                    printf("%s", token->c);
                 break;
         };
         if (s->arr[i].stop_bit)
@@ -364,13 +388,15 @@ t_Expr_Parser_Init *ExprParserInit(Symbol_tree *global_tab, Symbol_tree *local_t
 }
 
 Expression* parseExpression(t_Expr_Parser_Init *symbol_tabs, Tinit *scanner) {
+    static int cnt = 0;
+    cnt++;
     t_Stack* stack = gc_alloc(sizeof(t_Stack));
     stackInit(stack);
     stackPush(stack, EOS, NULL);
     
     void *a = stack->arr[stack->top_token].address;
     Ttoken *b = peek_token(scanner);
-
+    printf("%x\n", b->type);
     while (!(a == NULL && (b->type == T_SEMICOLON || b->type == T_COMMA || b->type == T_BRACKET_RROUND))) {
         switch(precedence_tab[terminal2TabIndex(a)][terminal2TabIndex(b)]){
             case 'E':
@@ -392,15 +418,18 @@ Expression* parseExpression(t_Expr_Parser_Init *symbol_tabs, Tinit *scanner) {
 
             case 'F':
                 processFunCall(stack, scanner, symbol_tabs, b->line);
+                b = peek_token(scanner);
+                break;
             
             default:
-                fprintf(stderr, "Syntax error\n");
+                fprintf(stderr, "Syntax error on line %d in file %s.\n", b->line, __FILE__);
                 exit(syntactic_analysis_error);    
         }
-        printStack(stack);
+
+        printStack(cnt, stack);
         a = stack->arr[stack->top_token].address;
     }
-
+    printf("finito\n");
     return stack->arr[stack->top_element].address;
 }
     
