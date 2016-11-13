@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 
 #rm *.class *.log
@@ -8,24 +8,100 @@
 #javac tmp.java
 #java ifj16 # nebo java ifj16 < test.in > test.out
 
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+
 for filename in input/*.ifj16
 do
-	echo $filename
    logfile=${filename%.*}.log
    shortname=$(basename "$filename") #java hates folders
-   echo "java compilation of $filename" > "$logfile"
+   
+   echo -e "      Start of log for file: $shortname" > "$logfile"
+   echo -e "--------------------------------------------------------\n" >> "$logfile"
+   echo -e "Currently working on ${GREEN}$shortname${NC}:"
+   
+   returncode=${shortname:0:2}
+   returncode="${returncode//[^0-9]/}"
+   
+   if [ "$returncode" == "0" ]; then
 
-   cat ifj16.java $filename > tmp.java
-   javac tmp.java >> "$logfile"
-   # java ifj16 # nebo java ifj16 < test.in > test.out
-   javaout=$(java ifj16)
-   echo $javaout
-   # cisteni
-   rm ifj16.class Main.class tmp.java
       
-   echo "IFJ16 compilation of $filename" >> "$logfile"
+      echo -e "      --------------JAVA--------------\n" >> "$logfile"
+      
+      cat ifj16.java $filename > tmp.java
+      javac tmp.java >> "$logfile"
+   # java ifj16 # nebo java ifj16 < test.in > test.out
+      if [ ! -f "${filename%.*}.in" ]; then
+         echo -e "File ${filename%.*}.in not present, no input will be entered.\n" >> "$logfile"
+         javaout=$(java ifj16)
+         echo "Output of java:" >> "$logfile"
+         echo -e "----------------------------" >> "$logfile"
+         echo "$javaout" >> "$logfile"
+         echo -e "----------------------------\n" >> "$logfile"
+      else
+         echo -e "There is ${filename%.*}.in, we will use it as input for program\n" >> "$logfile"
+         javaout=$(java ifj16 < "${filename%.*}.in")
+         echo "Output of java:" >> "$logfile"
+         echo -e "----------------------------" >> "$logfile"
+         echo "$javaout" >> "$logfile"
+         echo -e "----------------------------\n" >> "$logfile"
+      
+      fi
+      rm ifj16.class Main.class tmp.java
+   else
+      echo -e "----------------------------" >> "$logfile"
+      echo "Expected return code $returncode, so java compilation and comparing is not needed." >> "$logfile"
+      echo -e "----------------------------\n" >> "$logfile"
+   fi
    
-   ifj16out=$(../ifj16 "$filename")
-   echo $ifj16out
+   echo -e "      --------------IFJ16--------------\n" >> "$logfile"
    
+   if [ ! -f "${filename%.*}.in" ]; then
+      echo -e "File ${filename%.*}.in not present, no input will be entered.\n" >> "$logfile"
+      ifj16out=$(../ifj16 "$filename")
+      ifj16ret="$?"
+      echo "Output of IFJ16 interpret:" >> "$logfile"
+      echo -e "----------------------------" >> "$logfile"
+      echo "$ifj16out" >> "$logfile"
+      echo -e "----------------------------\n" >> "$logfile"
+      echo -e "IFJ16 returned $ifj16ret.\n" >> "$logfile"
+   else
+      echo -e "There is ${filename%.*}.in, we will use it as input for program\n" >> "$logfile"
+      ifj16out=$(echo "${filename%.*}.in" | ../ifj16 "$filename")
+      ifj16ret="$?"
+      echo "Output of IFJ16 interpret:" >> "$logfile"
+      echo -e "----------------------------" >> "$logfile"
+      echo "$ifj16out" >> "$logfile"
+      echo -e "----------------------------\n" >> "$logfile"
+      echo -e "IFJ16 returned $ifj16ret.\n" >> "$logfile"
+   fi
+   
+   
+   if [ "$returncode" != "$ifj16ret" ]; then
+      echo -e "${RED}[FAIL]${NC} ... IFJ16 return code is $ifj16ret, but $returncode was expected, see $logfile."
+   else
+      echo -e "${GREEN}[ OK ]${NC} ... IFJ16 return code is $ifj16ret, and it was expected."
+   fi
+   #echo $ifj16out
+   
+   if [ "$returncode" == "0" ]; then
+      echo -e "      --------------DIFF--------------\n" >> "$logfile"
+      DIFF=$(diff <(echo $javaout) <(echo $ifj16out))
+      if [ "$DIFF" != "" ]; then 
+         echo -e "${RED}[FAIL]${NC} ... IFJ16 output of $shortname is different, see $logfile."
+         echo "Output of diff:" >> "$logfile"
+         echo -e "----------------------------" >> "$logfile"
+         echo "$DIFF" >> "$logfile"
+         echo -e "----------------------------\n" >> "$logfile"
+      else
+         echo -e "${GREEN}[ OK ]${NC} ... IFJ16 output of $shortname is correctly intepreted."
+         echo -e "----------------------------" >> "$logfile"
+         echo -e "Outputs are matching." >> "$logfile"
+         echo -e "----------------------------\n" >> "$logfile"
+      fi
+      echo "" #EMPTY LINE
+   fi
+   echo -e "--------------------------------------------------------" >> "$logfile"
+   echo "      End of log for file: $shortname" >> "$logfile"
 done;
