@@ -54,6 +54,7 @@
     <ClInclude Include="..\expr_parser.h" />
     <ClInclude Include="..\ast.h" />
     <ClInclude Include="..\gc.h" />
+    <ClInclude Include="..\hacks.h" />
     <ClInclude Include="..\ial.h" />
     <ClInclude Include="..\return_codes.h" />
     <ClInclude Include="..\scanner.h" />

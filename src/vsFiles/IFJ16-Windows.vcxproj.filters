@@ -36,6 +36,12 @@
     <ClInclude Include="..\expr_parser.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\hacks.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\interpret.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\gc.c">
@@ -47,9 +53,6 @@
     <ClCompile Include="..\ial.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\ast.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\syntaxAnalysis.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -57,6 +60,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\scanner.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\interpret.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
