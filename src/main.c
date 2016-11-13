@@ -8,8 +8,8 @@
 */
 #include <stdio.h>
 #include <stdlib.h>
-#include "scanner.h"
 #include "gc.h"
+#include "syntaxAnalysis.h"
 
 
 int main(int argc, char *argv[])
