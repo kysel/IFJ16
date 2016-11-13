@@ -285,10 +285,15 @@ Statement* parse_f_call(t_Expr_Parser_Init* exprCtx, Tinit* scanner, char* id) {
 
     check_and_get_token(scanner, T_BRACKET_LROUND);
     if (peek_token(scanner)->type != T_BRACKET_RROUND) {
-        do {
+        while (true) {
             Expression* ex = parseExpression(exprCtx, scanner);
             add_parameter(st->expression.fCall.parameters, *ex);
-        } while (peek_token(scanner)->type == T_COMMA);
+            if (check_and_peek_token(scanner, T_COMMA | T_BRACKET_RROUND)->type == T_COMMA) {
+                get_token(scanner);
+            }
+            else
+                break;
+        }
     }
     check_and_get_token(scanner, T_BRACKET_RROUND);
     return st;
