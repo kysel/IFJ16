@@ -45,6 +45,7 @@ typedef struct {
 static const unsigned char precedence_tab[15][15] = {
 // 'M' - more    'L' - less
 // 'E' - equal   'O' - error
+// 'F' - function call
 //TODO nedokoncena bodka
 //   +    -    *    /    <    >    <=   >=   ==   !=   (    )    .    id   $  
    {'M', 'M', 'L', 'L', 'M', 'M', 'M', 'M', 'M', 'M', 'L', 'M', 'L', 'L', 'M'}, // +
@@ -60,7 +61,7 @@ static const unsigned char precedence_tab[15][15] = {
    {'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'E', ' ', 'L', 'O'}, // (
    {'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'O', 'M', ' ', 'O', 'M'}, // )
    {'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', ' ', ' ', 'M', 'E', 'M'}, // .
-   {'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'O', 'M', 'E', 'O', 'M'}, // id
+   {'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'F', 'M', 'E', 'O', 'M'}, // id
    {'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'O', 'L', 'L', 'O'}  // $
 };
 
