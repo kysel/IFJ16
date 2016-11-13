@@ -23,6 +23,21 @@ Symbol_tree symbol_tree_new() {
 	return (Symbol_tree) { .root = NULL, .nextId = 0 };
 }
 
+int count_leafs_impl(Symbol_tree_leaf* leaf) {
+    if (leaf == NULL)
+        return 0;
+    int ret = 1;
+    if (leaf->left != NULL)
+        ret += count_leafs_impl(leaf->left);
+    if (leaf->right != NULL)
+        ret += count_leafs_impl(leaf->right);
+    return ret;
+}
+
+int count_leafs(Symbol_tree* tree) {
+    return count_leafs_impl(tree->root);
+}
+
 Symbol_tree_leaf* add_symbol_impl(Symbol_tree* tree, Symbol_tree_leaf* leaf, const char* key, int depth) {
 	Symbol_tree_leaf** newLeaf = NULL;
 	//add root
@@ -96,7 +111,9 @@ Symbol_tree_leaf* get_symbol_by_key_impl(Symbol_tree_leaf* node, const char* key
  */
 Symbol_tree_leaf* get_symbol_by_key(Symbol_tree* tree, const char* key) {
 	assert(tree);
-	return get_symbol_by_key_impl(tree->root, key);
+    if (tree->root != NULL)
+        return get_symbol_by_key_impl(tree->root, key);
+    return NULL;
 }
 
 
