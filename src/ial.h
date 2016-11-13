@@ -10,6 +10,7 @@
 #ifndef IAL_H_
 #define IAL_H_
 #include "ast.h"
+#include "scanner.h"
 
 /*typedef struct Value_type_s {
 	Data_type type;
@@ -40,6 +41,7 @@ typedef struct {
 }Symbol_tree;
 
 Symbol_tree symbol_tree_new();
+int count_leafs(Symbol_tree* tree);
 Symbol_tree_leaf* add_symbol(Symbol_tree* root, const char* key);
 Symbol_tree_leaf* get_symbol_by_key(Symbol_tree* root, const char* key);
 

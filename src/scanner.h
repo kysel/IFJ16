@@ -59,8 +59,7 @@ static inline const char* token_to_string(token_type tok) {
     switch (tok) {
         FOREACH_TOKEN(GENERATE_CASE)
     default:
-        assert(false);
-        break;
+        return "";
     }
     assert(false);
     return "▲";

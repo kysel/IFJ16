@@ -44,6 +44,7 @@ typedef struct Function_s {
         struct {
             Statement_collection statements;
             Parameter_list parameters;
+            int stack_size;
         };
         //buildIn funkce
     };
