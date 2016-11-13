@@ -150,13 +150,14 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init *symbol_tabs, long long line)
         case 3:
             //Pravidlo E -> i . i
             if (s->arr[s->top_element - 2].type == TOKEN && s->arr[s->top_element - 1].type == TOKEN && s->arr[s->top_element].type == TOKEN) { 
+                expression = gc_alloc(sizeof(Expression));
                 Ttoken *left_token = s->arr[s->top_element - 2].address;
                 Ttoken *middle_token = s->arr[s->top_element - 1].address;
                 Ttoken *right_token = s->arr[s->top_element].address;
                 
                 if (left_token->type == T_ID && middle_token->type == T_DOT && right_token->type == T_ID) {
-                    //TODO plne kvalifikovaný identifikátor - čarovanie s tabulkou symbolov
                     Symbol_tree_leaf *leaf;
+                    
                     //Vytvorenie plne kvalifikovaného identifikátora
                     char *full_name = gc_alloc(sizeof(char) * (strlen(left_token->c) + strlen(right_token->c) + 2));
                     full_name[0] = '\0';
@@ -168,8 +169,9 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init *symbol_tabs, long long line)
                         expression->variable = leaf->id;
                     else {
                         leaf = add_symbol(symbol_tabs->global_tab, full_name);
-                        expression->variable = leaf->id;
+                        expression->variable = leaf->id; 
                     }
+
                 }
 
                 else {
