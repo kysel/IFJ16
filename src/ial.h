@@ -9,6 +9,7 @@
 
 #ifndef IAL_H_
 #define IAL_H_
+#define INC_STRLEN 10
 
 #include <stdbool.h>
 
