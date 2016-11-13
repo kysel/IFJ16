@@ -62,10 +62,11 @@ void parse_program(Syntax_context* ctx) {
     //return NULL;
 }
 
-Parsed_id parse_id(Tinit* scanner, char* currentClass) {
+Parsed_id parse_id(Tinit* scanner, const char* currentClass) {
     Parsed_id ret = { .fullQ = false };
     Ttoken* nameTok = check_and_get_token(scanner, T_ID);
-    ret.class = currentClass;
+    ret.class = gc_alloc(sizeof(char)*strlen(currentClass) +1);
+    ret.class = strcpy(ret.class, currentClass);
     ret.name = nameTok->c;
     ret.full = nameTok->c;
     ret.nameTok = nameTok;
@@ -113,7 +114,6 @@ Parsed_id parse_id(Tinit* scanner, char* currentClass) {
              }
              else if (fnOrVar->type == T_BRACKET_LROUND)
                  parse_function(ctx, type->dtype, name.name);
-
          }
      }
      check_and_get_token(ctx->s_ctx, T_BRACKET_RCURLY);
@@ -329,6 +329,7 @@ void parse_return(Syntax_context* ctx, Statement_collection* statements) {
     check_and_get_keyword(ctx->s_ctx, K_RETURN);
 
     if (peek_token(ctx->s_ctx)->type == T_SEMICOLON) {
+        get_token(ctx->s_ctx);
         st.ret.type = constant;
         //TODO return null
     }else {
