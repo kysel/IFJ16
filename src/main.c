@@ -14,30 +14,21 @@
 
 int main(int argc, char *argv[])
 {
-    gc_init();
-    for (int i=0; i!=50; i++) {
-        gc_alloc(50);
-    }
-    
-    //return 0;
+   gc_init();
 
-    if(argc == 1)
-        return -1;
-    FILE *fp;
+   if (argc == 1)
+      return -1;
+   FILE *fp;
 
-    fp = fopen (argv[1],"r");
+   fp = fopen(argv[1], "r");
 
-    if (fp == NULL)
-    {
-    fprintf(stderr, "Error opening file!\n");
-    return 99;
-    }
-    get_token(fp);
-       get_token(fp);
-    //Ttoken *t = (get_token(fp));
-    //printf("Zavolal som token");
-    //printf("TOKEN 1: %ld", t->li);
+   if (fp == NULL)
+   {
+      fprintf(stderr, "Error opening file!\n");
+      return 99;
+   }
 
-    fclose(fp);
-    return 0;
+   parse_program(init_syntax(fp));
+   fclose(fp);
+   return 0;
 }
