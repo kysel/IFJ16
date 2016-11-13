@@ -6,29 +6,32 @@
 * @author Kubica Jan <xkubic39@stud.fit.vutbr.cz>
 * @author Kovařík Viktor <xkovar77@stud.fit.vutbr.cz>
 */
+
 #include <stdio.h>
 #include <stdlib.h>
-#include "scanner.h"
 #include "gc.h"
-
+#include "syntaxAnalysis.h"
+#include "interpret.h"
 
 int main(int argc, char *argv[])
 {
-   gc_init();
+    gc_init();
 
-   if (argc == 1)
-      return -1;
-   FILE *fp;
+    if (argc == 1)
+        return -1;
+    FILE *fp;
 
-   fp = fopen(argv[1], "r");
+    fp = fopen(argv[1], "r");
 
-   if (fp == NULL)
-   {
-      fprintf(stderr, "Error opening file!\n");
-      return 99;
-   }
+    if (fp == NULL)
+    {
+        fprintf(stderr, "Error opening file!\n");
+        return 99;
+    }
 
-   parse_program(init_syntax(fp));
-   fclose(fp);
-   return 0;
+    Syntax_context* syntax = init_syntax(fp);
+    parse_program(syntax);
+    execute(syntax);
+
+    return 0;
 }
