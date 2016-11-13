@@ -250,6 +250,37 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init *symbol_tabs, long long line)
     stackPush(s, EXPRESSION, expression);
 }
 
+void processFunCall(t_Stack* s, Tinit *scanner, t_Expr_Parser_Init *symbol_tabs, long long line) {
+    if (s->arr[s->top_element - 2].type == TOKEN && s->arr[s->top_element - 1].type == TOKEN && s->arr[s->top_element].type == TOKEN) { 
+        Ttoken *left_token = s->arr[s->top_element - 2].address;
+        Ttoken *middle_token = s->arr[s->top_element - 1].address;
+        Ttoken *right_token = s->arr[s->top_element].address;
+        
+        if (left_token->type == T_ID && middle_token->type == T_DOT && right_token->type == T_ID) {
+            //Vytvorenie plne kvalifikovaného identifikátora
+            char *full_name = gc_alloc(sizeof(char) * (strlen(left_token->c) + strlen(right_token->c) + 2));
+            full_name = strcat(left_token->c, ".");
+            full_name = strcat(full_name, right_token->c); 
+
+            stackPop(s);
+            stackPop(s);
+            stackPop(s);
+
+            stackPush(s, EXPRESSION, parse_f_call(symbol_tabs, scanner, full_name));
+        }
+
+        else {
+            fprintf(stderr, "Syntax error on line %d in file %s.\n", __LINE__, __FILE__);
+            exit(syntactic_analysis_error);
+        }
+    }
+
+    else {
+        fprintf(stderr, "Syntax error on line %d in file %s.\n", __LINE__, __FILE__);
+        exit(syntactic_analysis_error);
+    }
+}
+
 //
 int terminal2TabIndex(void * terminal) {
     //Jediný terminál, ktorý má adresu nula je EOS - End of Stack - Dno zásobníka
@@ -358,6 +389,9 @@ Expression* parseExpression(t_Expr_Parser_Init *symbol_tabs, Tinit *scanner) {
             case 'M':
                 stackApplyRule(stack, symbol_tabs, b->line); 
                 break;
+
+            case 'F':
+                processFunCall(stack, scanner, symbol_tabs, b->line);
             
             default:
                 fprintf(stderr, "Syntax error\n");
