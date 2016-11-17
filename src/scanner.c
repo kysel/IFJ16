@@ -34,19 +34,22 @@ char *octal_append(char *octal_string, unsigned char c)
 {
     size_t octal_string_len;
     octal_string_len = strlen(octal_string);
-    octal_string = (char *)gc_realloc(octal_string, sizeof(char)*(octal_string_len));
     octal_string[octal_string_len] = c;
     octal_string[octal_string_len + 1] = '\0';
     return octal_string;
 }
 
 
-char *char_append(char *tmp_string, unsigned int *tmp_string_len, unsigned char c)
+char *char_append(char *tmp_string, unsigned int *alloc_len, unsigned char c)
 {
-    (*tmp_string_len)++;
-    tmp_string = (char *)gc_realloc(tmp_string, sizeof(char)*(*tmp_string_len));
-    tmp_string[(*tmp_string_len - 2)] = c;
-    tmp_string[*tmp_string_len - 1] = '\0';
+    unsigned int tmp_string_len;
+    tmp_string_len = strlen(tmp_string);
+    if (*alloc_len < (tmp_string_len+2)) {
+        tmp_string = (char *)gc_realloc(tmp_string, sizeof(char)*(tmp_string_len+5));
+        *alloc_len = 6;
+    }
+    tmp_string[tmp_string_len] = c;
+    tmp_string[tmp_string_len + 1] = '\0';
     return tmp_string;
 }
 
@@ -90,13 +93,13 @@ Ttoken *get_token_internal(Tinit *scanner_struct)
     char *endptr;
     char c;
     int read_file = 1;
-    unsigned int tmp_string_len = 1;
+    unsigned int alloc_len = 2; 
     states state = FSM_INIT;
 
-    char *tmp_string = (char *)gc_alloc(sizeof(char));
+    char *tmp_string = (char *)gc_alloc(sizeof(char)*alloc_len);
     tmp_string[0] = 0;
 
-    char *octal_string = (char *)gc_alloc(sizeof(char));
+    char *octal_string = (char *)gc_alloc(sizeof(char)*4);
     octal_string[0] = 0;
 
     Ttoken *token = (Ttoken *)gc_alloc(sizeof(Ttoken));
@@ -120,92 +123,92 @@ Ttoken *get_token_internal(Tinit *scanner_struct)
             }
             else if ((isalpha(c)) || (c == '_') || (c == '$'))
             {
-                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                tmp_string = char_append(tmp_string, &alloc_len, c);
                 state = FSM_ID;
             }
             else if (isdigit(c))
             {
-                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                tmp_string = char_append(tmp_string, &alloc_len, c);
                 state = FSM_INT;
             }
             else if (c == '*')
             {
-                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                tmp_string = char_append(tmp_string, &alloc_len, c);
                 state = FSM_MUL;
             }
             else if (c == '/')
             {
-                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                tmp_string = char_append(tmp_string, &alloc_len, c);
                 state = FSM_DIV;
             }
             else if (c == '+')
             {
-                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                tmp_string = char_append(tmp_string, &alloc_len, c);
                 state = FSM_ADD;
             }
             else if (c == '-')
             {
-                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                tmp_string = char_append(tmp_string, &alloc_len, c);
                 state = FSM_SUB;
             }
             else if (c == ',')
             {
-                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                tmp_string = char_append(tmp_string, &alloc_len, c);
                 state = FSM_COMMA;
             }
             else if (c == ';')
             {
-                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                tmp_string = char_append(tmp_string, &alloc_len, c);
                 state = FSM_SEMICOLON;
             }
             else if (c == '(')
             {
-                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                tmp_string = char_append(tmp_string, &alloc_len, c);
                 state = FSM_BRACKET_LROUND;
             }
             else if (c == ')')
             {
-                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                tmp_string = char_append(tmp_string, &alloc_len, c);
                 state = FSM_BRACKET_RROUND;
             }
             else if (c == '[')
             {
-                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                tmp_string = char_append(tmp_string, &alloc_len, c);
                 state = FSM_BRACKET_LSQUARE;
             }
             else if (c == ']')
             {
-                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                tmp_string = char_append(tmp_string, &alloc_len, c);
                 state = FSM_BRACKET_RSQUARE;
             }
             else if (c == '{')
             {
-                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                tmp_string = char_append(tmp_string, &alloc_len, c);
                 state = FSM_BRACKET_LCURLY;
             }
             else if (c == '}')
             {
-                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                tmp_string = char_append(tmp_string, &alloc_len, c);
                 state = FSM_BRACKET_RCURLY;
             }
             else if (c == '=')
             {
-                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                tmp_string = char_append(tmp_string, &alloc_len, c);
                 state = FSM_EQUAL;
             }
             else if (c == '!')
             {
-                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                tmp_string = char_append(tmp_string, &alloc_len, c);
                 state = FSM_NOT;
             }
             else if (c == '<')
             {
-                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                tmp_string = char_append(tmp_string, &alloc_len, c);
                 state = FSM_LOWER;
             }
             else if (c == '>')
             {
-                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                tmp_string = char_append(tmp_string, &alloc_len, c);
                 state = FSM_GREATER;
             }
             else if (c == '"')
@@ -214,7 +217,7 @@ Ttoken *get_token_internal(Tinit *scanner_struct)
             }
             else if (c == '.')
             {
-                tmp_string = char_append(tmp_string, &tmp_string_len, c);
+                tmp_string = char_append(tmp_string, &alloc_len, c);
                 state = FSM_DOT;
             }
             else if (c == EOF)
@@ -232,7 +235,7 @@ Ttoken *get_token_internal(Tinit *scanner_struct)
         case FSM_ID:
             if (isalpha(c) || isdigit(c) || c == '_' || c == '$')
             {
-                tmp_string = (char_append(tmp_string, &tmp_string_len, c));
+                tmp_string = char_append(tmp_string, &alloc_len, c);
                 state = FSM_ID;
             }
             else
@@ -415,17 +418,17 @@ Ttoken *get_token_internal(Tinit *scanner_struct)
             if (isdigit(c))
             {
                 state = FSM_INT;
-                tmp_string = (char_append(tmp_string, &tmp_string_len, c));
+                tmp_string = char_append(tmp_string, &alloc_len, c);
             }
             else if (c == '.')
             {
-                tmp_string = (char_append(tmp_string, &tmp_string_len, c));
+                tmp_string = char_append(tmp_string, &alloc_len, c);
                 state = FSM_DOUBLE;
             }
             else if (c == 'E' || c == 'e')
             {
                 state = FSM_EXPONENT;
-                tmp_string = (char_append(tmp_string, &tmp_string_len, c));
+                tmp_string = char_append(tmp_string, &alloc_len, c);
             }
             else
             {
@@ -443,12 +446,12 @@ Ttoken *get_token_internal(Tinit *scanner_struct)
             if (isdigit(c))
             {
                 state = FSM_DOUBLE;
-                tmp_string = (char_append(tmp_string, &tmp_string_len, c));
+                tmp_string = char_append(tmp_string, &alloc_len, c);
             }
             else if (c == 'E' || c == 'e')
             {
                 state = FSM_EXPONENT;
-                tmp_string = (char_append(tmp_string, &tmp_string_len, c));
+                tmp_string = char_append(tmp_string, &alloc_len, c);
             }
             else
             {
@@ -466,12 +469,12 @@ Ttoken *get_token_internal(Tinit *scanner_struct)
             if (c == '+' || c == '-')
             {
                 state = FSM_EXPONENT_SIGN;
-                tmp_string = (char_append(tmp_string, &tmp_string_len, c));
+                tmp_string = char_append(tmp_string, &alloc_len, c);
             }
             else if (isdigit(c))
             {
                 state = FSM_EXPONENT_2;
-                tmp_string = (char_append(tmp_string, &tmp_string_len, c));
+                tmp_string = char_append(tmp_string, &alloc_len, c);
             }
             else
             {
@@ -484,7 +487,7 @@ Ttoken *get_token_internal(Tinit *scanner_struct)
             if (isdigit(c))
             {
                 state = FSM_EXPONENT_2;
-                tmp_string = (char_append(tmp_string, &tmp_string_len, c));
+                tmp_string = char_append(tmp_string, &alloc_len, c);
             }
             else
             {
@@ -497,7 +500,7 @@ Ttoken *get_token_internal(Tinit *scanner_struct)
             if (isdigit(c))
             {
                 state = FSM_EXPONENT_2;
-                tmp_string = (char_append(tmp_string, &tmp_string_len, c));
+                tmp_string = char_append(tmp_string, &alloc_len, c);
             }
             else
             {
@@ -619,7 +622,7 @@ Ttoken *get_token_internal(Tinit *scanner_struct)
         {
             if (c == '=')
             {
-                tmp_string = (char_append(tmp_string, &tmp_string_len, c));
+                tmp_string = char_append(tmp_string, &alloc_len, c);
                 token->type = T_BOOL_EQUAL;
                 token->tlen = strlen(tmp_string);
                 token->line = scanner_struct->line;
@@ -638,7 +641,7 @@ Ttoken *get_token_internal(Tinit *scanner_struct)
         {
             if (c == '=')
             {
-                tmp_string = (char_append(tmp_string, &tmp_string_len, c));
+                tmp_string = char_append(tmp_string, &alloc_len, c);
                 token->type = T_NOT_EQUAL;
                 token->tlen = strlen(tmp_string);
                 token->line = scanner_struct->line;
@@ -653,7 +656,7 @@ Ttoken *get_token_internal(Tinit *scanner_struct)
         {
             if (c == '=')
             {
-                tmp_string = (char_append(tmp_string, &tmp_string_len, c));
+                tmp_string = char_append(tmp_string, &alloc_len, c);
                 token->type = T_LOWER_EQUAL;
                 token->tlen = strlen(tmp_string);
                 token->line = scanner_struct->line;
@@ -672,7 +675,7 @@ Ttoken *get_token_internal(Tinit *scanner_struct)
         {
             if (c == '=')
             {
-                tmp_string = (char_append(tmp_string, &tmp_string_len, c));
+                tmp_string = char_append(tmp_string, &alloc_len, c);
                 token->type = T_GREATER_EQUAL;
                 token->tlen = strlen(tmp_string);
                 token->line = scanner_struct->line;
@@ -704,7 +707,7 @@ Ttoken *get_token_internal(Tinit *scanner_struct)
             else
             {
                 state = FSM_QUOTE;
-                tmp_string = (char_append(tmp_string, &tmp_string_len, c));
+                tmp_string = char_append(tmp_string, &alloc_len, c);
             }
             break;
 
@@ -712,24 +715,24 @@ Ttoken *get_token_internal(Tinit *scanner_struct)
             if (c == '\\')
             {
                 state = FSM_QUOTE;
-                tmp_string = (char_append(tmp_string, &tmp_string_len, 92));
+                tmp_string = (char_append(tmp_string, &alloc_len, 92));
             }
 
             else if (c == '"')
             {
                 state = FSM_QUOTE;
-                tmp_string = (char_append(tmp_string, &tmp_string_len, 34));
+                tmp_string = (char_append(tmp_string, &alloc_len, 34));
             }
 
             else if (c == 't')
             {
                 state = FSM_QUOTE;
-                tmp_string = (char_append(tmp_string, &tmp_string_len, 9));
+                tmp_string = (char_append(tmp_string, &alloc_len, 9));
             }
             else if (c == 'n')
             {
                 state = FSM_QUOTE;
-                tmp_string = (char_append(tmp_string, &tmp_string_len, 10));
+                tmp_string = (char_append(tmp_string, &alloc_len, 10));
             }
             else if (c >= '0' && c <= '3')
             {
@@ -771,7 +774,7 @@ Ttoken *get_token_internal(Tinit *scanner_struct)
                 state = FSM_QUOTE;
                 octal_string = (octal_append(octal_string, c));
                 long int ascii_c = strtol(octal_string, &endptr, 8);
-                tmp_string = (char_append(tmp_string, &tmp_string_len, ascii_c));
+                tmp_string = (char_append(tmp_string, &alloc_len, ascii_c));
             }
             else
             {
@@ -794,8 +797,7 @@ Ttoken *get_token_internal(Tinit *scanner_struct)
             }
             else
             {
-                memset(tmp_string, 0, (tmp_string_len) * sizeof(char));
-                tmp_string_len = 1;
+                memset(tmp_string, 0, (strlen(tmp_string)) * sizeof(char));
                 ungetc(c, scanner_struct->f);
                 state = FSM_INIT;
             }
@@ -824,8 +826,7 @@ Ttoken *get_token_internal(Tinit *scanner_struct)
         case FSM_COMMENT_BLOCK_FIN:
             if (c == '/')
             {
-                memset(tmp_string, 0, (tmp_string_len) * sizeof(char));
-                tmp_string_len = 1;
+                memset(tmp_string, 0, (strlen(tmp_string)) * sizeof(char));
                 state = FSM_INIT;
             }
             else if (c == '*')
