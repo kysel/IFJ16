@@ -46,7 +46,7 @@ char *char_append(char *tmp_string, unsigned int *alloc_len, unsigned char c)
     tmp_string_len = strlen(tmp_string);
     if (*alloc_len < (tmp_string_len+2)) {
         tmp_string = (char *)gc_realloc(tmp_string, sizeof(char)*(tmp_string_len+5));
-        *alloc_len = 6;
+        *alloc_len = (*alloc_len)+4;
     }
     tmp_string[tmp_string_len] = c;
     tmp_string[tmp_string_len + 1] = '\0';
