@@ -1,0 +1,14 @@
+/* Hello World! program in Java 8 */
+
+class Main 
+{
+   static void run() 
+   {
+    String str = "123456789abcdefghijklmn";
+    String str2 = "abcdefgh123456789ijklmn";
+    str2 = ifj16.sort(str2);
+    ifj16.print("nasledujici stringy se musi shodovat\n");
+    ifj16.print("string1 "+str+"\n");
+    ifj16.print("serazeny string2 "+str2+"\n");
+   }
+}

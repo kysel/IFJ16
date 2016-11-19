@@ -1,0 +1,14 @@
+/* Hello World! program in Java 8 */
+
+class Main 
+{
+   static void run() 
+   {
+    String search = "abc";
+    String str = "123456789abcdefghijklmnabcd";
+    
+    ifj16.print("hledam "+ search +" v retezci "+ str +"\n");
+    
+	ifj16.print("pozice: "+ ifj16.find(str, search) +"\n");
+   }
+}
