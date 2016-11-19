@@ -1,0 +1,9 @@
+/* Hello World! program in Java 8 */
+
+class Main 
+{
+   static int run() 
+   {
+      ifj16.print("Hello World\n");
+   }
+}

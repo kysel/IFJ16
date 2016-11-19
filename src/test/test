@@ -48,7 +48,7 @@ do
          echo -e "----------------------------\n" >> "$logfile"
       
       fi
-      rm ifj16.class Main.class tmp.java
+      rm *.class tmp.java
    else
       echo -e "----------------------------" >> "$logfile"
       echo "Expected return code $returncode, so java compilation and comparing is not needed." >> "$logfile"
