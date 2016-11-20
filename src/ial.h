@@ -9,20 +9,15 @@
 
 #ifndef IAL_H_
 #define IAL_H_
+#include <stdbool.h>
 #include "ast.h"
-#include "scanner.h"
 
-#define INC_STRLEN 10
-
-/*typedef struct Value_type_s {
-	Data_type type;
-	union {
-		int int_val;
-		double double_val;
-		bool bool_val;
-		char* string_val;
-	};
-}Value_type;*/
+typedef enum {
+	int_literal,
+	double_literal,
+	bool_literal,
+	string_literal
+}symbol_type_t;
 
 typedef struct Symbol_tree_leaf_s {
 	const char* key;
