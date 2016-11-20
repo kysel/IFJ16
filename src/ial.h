@@ -12,6 +12,8 @@
 #include "ast.h"
 #include "scanner.h"
 
+#define INC_STRLEN 10
+
 /*typedef struct Value_type_s {
 	Data_type type;
 	union {
