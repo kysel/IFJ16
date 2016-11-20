@@ -879,14 +879,26 @@ char* tokens_to_string(token_type tokens)
     return ret;
 }
 
-Ttoken* check_and_get_token(Tinit* scanner_struct, token_type type)
-{
-    Ttoken* tok = get_token(scanner_struct);
-    if (((int)tok->type & type) == 0)
-    {
-        fprintf(stderr, "Expected %s got '%s', on line %lld", tokens_to_string(type), tok->c, tok->line);
-        exit(semantic_error_in_code);
+char* keywords_to_string(Keyword keywords) {
+    char* ret = gc_alloc(sizeof(char) * 2);
+    ret[0] = 0;
+    for (int i = 1; i <= 1 << ((sizeof(int) * 8) - 1); i <<= 1) {
+        if (i & keywords) {
+            const char* kwString = keyword_to_string((Keyword)i);
+            ret = gc_realloc(ret, sizeof(char)*(strlen(kwString) + strlen(ret) + 3));
+            strcat(ret, kwString);
+            strcat(ret, ", ");
+        }
     }
+    //remove trailing ', '
+    if (strlen(ret))
+        ret[strlen(ret) - 2] = 0;
+    return ret;
+}
+
+Ttoken* check_and_get_token(Tinit* scanner_struct, token_type type) {
+    Ttoken* tok = check_and_peek_token(scanner_struct, type);
+    get_token(scanner_struct);
     return tok;
 }
 
@@ -901,3 +913,17 @@ Ttoken* check_and_peek_token(Tinit* scanner_struct, token_type type)
     return tok;
 }
 
+Keyword check_and_get_keyword(Tinit* scanner_struct, Keyword keyword) {
+    Keyword kw = check_and_peek_keyword(scanner_struct, keyword);
+    get_token(scanner_struct);
+    return kw;
+}
+
+Keyword check_and_peek_keyword(Tinit* scanner_struct, Keyword keyword) {
+    Ttoken* tok = check_and_peek_token(scanner_struct, T_KEYWORD);
+    if (((int)tok->kw & keyword) == 0) {
+        fprintf(stderr, "Expected %s got '%s', on line %lld", keywords_to_string(keyword), tok->c, tok->line);
+        exit(semantic_error_in_code);
+    }
+    return tok->kw;
+}
