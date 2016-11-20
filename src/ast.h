@@ -22,6 +22,30 @@ typedef struct Variable_s Variable;
 typedef struct Func_parameter_s Func_parameter;
 
 
+typedef struct {
+    Data_type type;
+    union {
+        bool b;
+        int i;
+        double d;
+        char* s;
+    };
+    bool init;
+} Value;
+
+typedef struct {
+    Value val;
+    bool returned;
+}Return_value;
+
+typedef struct {
+    Value* val;
+    int size;
+    int count;
+} Value_list;
+
+typedef Value(*BuildInPtr) (Value_list vals);
+
 struct Statement_collection_s {
     Statement* statements;
     int count;
@@ -46,7 +70,7 @@ typedef struct Function_s {
             Parameter_list parameters;
             int stack_size;
         };
-        //buildIn funkce
+        BuildInPtr build_in;
     };
     Data_type return_type;
 }Function;

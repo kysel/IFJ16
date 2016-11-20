@@ -14,27 +14,6 @@
 #include "syntaxAnalysis.h"
 
 
-typedef struct {
-    Data_type type;
-    union {
-        bool b;
-        int i;
-        double d;
-        char* s;
-    };
-    bool init;
-} Value;
-
-typedef struct {
-    Value val;
-    bool returned;
-}Return_value;
-
-typedef struct {
-    Value* val;
-    int size;
-    int count;
-} Value_list;
 
 typedef struct {
     Syntax_context* s;
