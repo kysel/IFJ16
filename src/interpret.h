@@ -26,14 +26,20 @@ typedef struct {
 } Value;
 
 typedef struct {
+    Value val;
+    bool returned;
+}Return_value;
+
+typedef struct {
     Value* val;
     int size;
     int count;
 } Value_list;
 
 typedef struct {
-    Syntax_context* s;    
-    Value_list* loc_stack, global_stack;
+    Syntax_context* s;
+    Value_list* loc_stack;
+    Value_list* globals;
 }Inter_ctx;
 
 void execute(Syntax_context* ctx);
