@@ -9,7 +9,7 @@
 
 #ifndef INTERPRET_H_
 #define INTERPRET_H_
-#include "syntaxAnalysis.h"
+#include "syntax_analysis.h"
 
 typedef struct {
     Syntax_context* s;

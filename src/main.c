@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "gc.h"
-#include "syntaxAnalysis.h"
+#include "syntax_analysis.h"
 #include "interpret.h"
 
 #ifdef _MSC_VER 

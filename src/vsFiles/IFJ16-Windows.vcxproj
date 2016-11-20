@@ -143,7 +143,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\ast.h" />
-    <ClInclude Include="..\buildIn.h" />
+    <ClInclude Include="..\build_in.h" />
     <ClInclude Include="..\expr_parser.h" />
     <ClInclude Include="..\gc.h" />
     <ClInclude Include="..\hacks.h" />
@@ -151,17 +151,17 @@
     <ClInclude Include="..\interpret.h" />
     <ClInclude Include="..\return_codes.h" />
     <ClInclude Include="..\scanner.h" />
-    <ClInclude Include="..\syntaxAnalysis.h" />
+    <ClInclude Include="..\syntax_analysis.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\buildIn.c" />
+    <ClCompile Include="..\build_in.c" />
     <ClCompile Include="..\expr_parser.c" />
     <ClCompile Include="..\gc.c" />
     <ClCompile Include="..\ial.c" />
     <ClCompile Include="..\interpret.c" />
     <ClCompile Include="..\main.c" />
     <ClCompile Include="..\scanner.c" />
-    <ClCompile Include="..\syntaxAnalysis.c" />
+    <ClCompile Include="..\syntax_analysis.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
