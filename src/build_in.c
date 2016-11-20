@@ -13,6 +13,7 @@
 #include "gc.h"
 #include "return_codes.h"
 #include "build_in.h"
+#include "ial.h"
 
 #define INC_STRLEN 10
 
@@ -165,6 +166,29 @@ Value readString(Value_list vals) {
 }
 
 // void print ( term_nebo_konkatenace );
+Value print(Value_list vals) {
+    if (vals.count != 1) {
+        fprintf(stderr, "Invalid arguments\n");
+        exit(semantic_error_in_types);
+    }
+    Value arg = vals.val[0];
+
+    switch (arg.type) {
+    case int_t:
+        printf("%d", arg.i);
+        break;
+    case double_t:
+        printf("%g", arg.d);
+        break;
+    case string_t:
+        printf("%s", arg.s);
+        break;
+    default:
+        fprintf(stderr, "Invalid arguments\n");
+        exit(semantic_error_in_types);
+    }
+    return (Value) { .init = true, .type = void_t };
+}
 
 // int length(String s);
 Value length(Value_list vals) {
@@ -204,4 +228,24 @@ Value compare(Value_list vals) {
     }
 
     return (Value) {.type = int_t, .init = true, .i = strcmp(vals.val[0].s, vals.val[1].s)};
+}
+
+// int find(String s, String search);
+Value findBI(Value_list vals) {
+    if (vals.count != 2 || vals.val[0].type != string_t || vals.val[1].type != string_t) {
+        fprintf(stderr, "Invalid arguments\n");
+        exit(semantic_error_in_types);
+    }
+
+    return (Value) { .type = int_t, .init = true, .i = find(vals.val[0].s, vals.val[1].s) };
+}
+
+// String sort(String s);
+Value sortBI(Value_list vals) {
+    if (vals.count != 1 || vals.val[0].type != string_t) {
+        fprintf(stderr, "Invalid arguments\n");
+        exit(semantic_error_in_types);
+    }
+
+    return (Value) { .type = string_t, .init = true, .s = sort(vals.val[0].s) };
 }

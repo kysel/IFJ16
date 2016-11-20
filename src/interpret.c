@@ -79,13 +79,16 @@ Value implicit_cast(Value val, Data_type to) {
             if (val.type == int_t) {
                 strLength = snprintf(NULL, 0, "%d", val.i);
                 ret.s = gc_alloc(sizeof(char) * (strLength + 1));
-                snprintf(ret.s, strLength, "%d", val.i);
-            } else if (val.type == double_t) {
+                snprintf(ret.s, strLength + 1, "%d", val.i);
+            }
+            else if (val.type == double_t) {
                 strLength = snprintf(NULL, 0, "%g", val.d);
                 ret.s = gc_alloc(sizeof(char) * (strLength + 1));
-                snprintf(ret.s, strLength, "%g", val.d);
-            } else
+                snprintf(ret.s, strLength + 1, "%g", val.d);
+            }
+            else
                 break;
+            return ret;
         }
         default: break;
     }
@@ -114,7 +117,10 @@ Return_value eval_func(Inter_ctx* ctx, FunctionCall* fCall) {
 #endif
 
     Value_list* oldStack = ctx->loc_stack;
-    ctx->loc_stack = alloc_stack(f->stack_size);
+    if (f->type == user)
+        ctx->loc_stack = alloc_stack(f->stack_size);
+    else if (f->type == build_in)
+        ctx->loc_stack = alloc_stack(fCall->parameters.count);
     for (int i = 0; i != fCall->parameters.count; i++)
         *get_val(ctx, i) = eval_expr(ctx, &fCall->parameters.parameters[i].value);
 

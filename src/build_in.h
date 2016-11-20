@@ -27,7 +27,7 @@ Value readDouble(Value_list vals);
 Value readString(Value_list vals);
 
 // void print ( term_nebo_konkatenace );
-//Value print(Value_list vals);
+Value print(Value_list vals);
 
 // int length(String s);
 Value length(Value_list vals);
@@ -37,5 +37,11 @@ Value substr(Value_list vals);
 
 // int compare(String s1, String s2);
 Value compare(Value_list vals);
+
+// int find(String s, String search);
+Value findBI(Value_list vals);
+
+// String sort(String s);
+Value sortBI(Value_list vals);
 
 #endif
