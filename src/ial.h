@@ -14,6 +14,8 @@
 
 int find(char* s, char* search);
 
+char* sort(char* s);
+
 typedef enum {
 	int_literal,
 	double_literal,
