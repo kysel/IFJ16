@@ -37,7 +37,12 @@ void add_buildIn(Syntax_context* ctx) {
     add_functionToList(&ctx->functions, (Function) {.type = build_in, .name = "ifj16.readInt", .build_in = readInt});
     add_functionToList(&ctx->functions, (Function) {.type = build_in, .name = "ifj16.readDouble", .build_in = readDouble});
     add_functionToList(&ctx->functions, (Function) {.type = build_in, .name = "ifj16.readString", .build_in = readString});
-    //add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.print", .build_in = print });
+    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.print", .build_in = print });
+    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.length", .build_in = length });
+    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.substr", .build_in = substr });
+    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.compare", .build_in = compare });
+    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.find", .build_in = findBI });
+    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.sort", .build_in = sortBI });
 }
 
 Syntax_context* init_syntax(FILE* input_file) {
