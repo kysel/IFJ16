@@ -1,4 +1,4 @@
-﻿CC=gcc
+CC=gcc
 CFLAGS=-std=c11 -Wall -Wextra -pedantic -g
 SHELL := /bin/bash
 
@@ -28,9 +28,9 @@ find-test: $(filter-out main.o,$(OBJECTS))
 	$(CC) $(CFLAGS) -MF".depend/$@.d" -MG -MM -MP -MT"$@" "$<"
 
 clean:
-	rm -rf *.o *.d .depend ifj16 find-test binaryTree-test test/input/*.log
+	rm -rf *.o *.d .depend ifj16 find-test binaryTree-test ../test/*.class ../test/input/*.log
 
 ifj16-test: ifj16
-	cd test/; ./test; \
+	cd ../test/; ./test; \
 
 -include .depend/*.d
