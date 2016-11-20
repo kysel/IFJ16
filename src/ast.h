@@ -10,6 +10,7 @@
 #ifndef AST_H_
 #define AST_H_
 #include "scanner.h"
+#include <stdbool.h>
 
 typedef struct Statement_s Statement;
 typedef struct Statement_collection_s Statement_collection;

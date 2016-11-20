@@ -9,7 +9,7 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include "syntaxAnalysis.h"
+#include "syntax_analysis.h"
 #include "ast.h"
 #include "interpret.h"
 #include "gc.h"

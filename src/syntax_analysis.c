@@ -1,5 +1,5 @@
 ﻿/** Interpretr jazyka IFJ16
-* @file syntaxAnalysis.c
+* @file syntax_analysis.c
 * @author Kyzlink Jiří <xkyzli02@stud.fit.vutbr.cz>
 * @author Kubiš Juraj <xkubis15@stud.fit.vutbr.cz>
 * @author Korček Juraj <xkorce01@stud.fit.vutbr.cz>
@@ -15,8 +15,8 @@
 #include "scanner.h"
 #include "ast.h"
 #include "expr_parser.h"
-#include "syntaxAnalysis.h"
-#include "buildIn.h"
+#include "syntax_analysis.h"
+#include "build_in.h"
 
 void parse_class(Syntax_context* ctx);
 void parse_function(Syntax_context* ctx, Data_type return_type, char* name);

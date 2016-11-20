@@ -1,5 +1,5 @@
 ﻿/** Interpretr jazyka IFJ16
-* @file syntaxAnalysis.h
+* @file syntax_analysis.h
 * @author Kyzlink Jiří <xkyzli02@stud.fit.vutbr.cz>
 * @author Kubiš Juraj <xkubis15@stud.fit.vutbr.cz>
 * @author Korček Juraj <xkorce01@stud.fit.vutbr.cz>

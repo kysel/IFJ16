@@ -14,7 +14,7 @@
 #include "ast.h"
 #include "ial.h"
 #include "return_codes.h"
-#include "syntaxAnalysis.h"
+#include "syntax_analysis.h"
 
 #define stackEmpty(s) ((s)->top_element == -1)
 #define stackFull(s) ((s)->top_element == (s)->stack_size - 1)
