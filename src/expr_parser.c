@@ -14,22 +14,18 @@
 #include "ast.h"
 #include "ial.h"
 #include "return_codes.h"
+#include "syntaxAnalysis.h"
 
-int cnt = 0;
+#define stackEmpty(s) ((s)->top_element == -1)
+#define stackFull(s) ((s)->top_element == (s)->stack_size - 1)
+#define stackSetStopBit(s) ((s)->arr[(s)->top_token].stop_bit = 1)
+
 //Inicializácia (prázdneho) zásobníka
-void stackInit (t_Stack* s) {
+void stackInit (t_Stack* s) { 
     s->arr = NULL; 
     s->stack_size = 0;
     s->top_element = -1;
     s->top_token = -1;
-}
-
-int stackEmpty (const t_Stack* s) {
-    return (s->top_element == -1) ? 1:0;
-}
-
-int stackFull (const t_Stack* s) {
-    return (s->top_element == s->stack_size - 1) ? 1:0; 
 }
 
 //Rozšírenie zásobníka o 5 prvkov
@@ -46,10 +42,6 @@ int findTopTerminal (t_Stack* s) {
         if (s->arr[i].type == EOS || s->arr[i].type == TOKEN )
             return i;
     return -1;
-}
-
-void stackSetStopBit (t_Stack* s) {
-    s->arr[s->top_token].stop_bit = 1;
 }
 
 void stackPop (t_Stack* s) {
@@ -116,19 +108,19 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init *symbol_tabs, long long line)
 
                     case T_INT:
                         expression->type = constant;
-                        expression->constant.type = token->dtype;
+                        expression->constant.type = int_t;
                         expression->constant.li = token->li;
                         break;
                     
                     case T_DOUBLE:
                         expression->type = constant;
-                        expression->constant.type = token->dtype;
+                        expression->constant.type = double_t;
                         expression->constant.d = token->d;
                         break;
                     
                     case T_STRING:
                         expression->type = constant;
-                        expression->constant.type = token->dtype;
+                        expression->constant.type = string_t;
                         expression->constant.c = token->c;
                         break;
                     
@@ -359,29 +351,7 @@ void printStack(t_Stack *s) {
         switch(s->arr[i].type) {
             case EOS: printf("%x: $", s); break;
             case EXPRESSION: printf("A"); break;
-            case TOKEN: 
-                token = s->arr[i].address; 
-                if (token->type == T_ADD)
-                    printf("+");
-                else if (token->type == T_SUB)
-                    printf("-");
-                else if (token->type == T_MUL)
-                    printf("*");
-                else if (token->type == T_DIV)
-                    printf("/");
-                else if (token->type == T_INT)
-                    printf("%s", token->c);
-                else if (token->type == T_BRACKET_LROUND)
-                    printf("(");
-                else if (token->type == T_BRACKET_RROUND)
-                    printf(")");
-                else if (token->type == T_BOOL_EQUAL)
-                    printf("==");
-                else if (token->type == T_DOT)
-                    printf(".");
-                else
-                    printf("%s", token->c);
-                break;
+            case TOKEN: printf("%s", ((Ttoken *)s->arr[i].address)->c); break;
         };
         if (s->arr[i].stop_bit)
             printf("<");
@@ -404,7 +374,7 @@ Expression* parseExpression(t_Expr_Parser_Init *symbol_tabs, Tinit *scanner) {
     
     void *a = stack->arr[stack->top_token].address;
     Ttoken *b = peek_token(scanner);
-    //printf("%x\n", b->type);
+    
     while (!(a == NULL && (b->type == T_SEMICOLON || b->type == T_COMMA || b->type == T_BRACKET_RROUND))) {
         switch(precedence_tab[terminal2TabIndex(a)][terminal2TabIndex(b)]){
             case 'E':
@@ -437,7 +407,7 @@ Expression* parseExpression(t_Expr_Parser_Init *symbol_tabs, Tinit *scanner) {
         printStack(stack);
         a = stack->arr[stack->top_token].address;
     }
-    printf("Vracim vyraz\n");
+
     return stack->arr[stack->top_element].address;
 }
     
