@@ -19,8 +19,10 @@
 // http://www.ms.mff.cuni.cz/~kopecky/vyuka/dis/02/dis02_v3.html
 //}
 
-Symbol_tree symbol_tree_new() {
-	return (Symbol_tree) { .root = NULL, .nextId = 0 };
+Symbol_tree symbol_tree_new(bool incIds) {
+    if (incIds)
+        return (Symbol_tree) { .root = NULL, .nextId = 0, .inc = true};
+    return (Symbol_tree) { .root = NULL, .nextId = -1, .inc = false };
 }
 
 int count_leafs_impl(Symbol_tree_leaf* leaf) {
@@ -64,7 +66,7 @@ Symbol_tree_leaf* add_symbol_impl(Symbol_tree* tree, Symbol_tree_leaf* leaf, con
 		(*newLeaf)->left = NULL;
 		(*newLeaf)->right = NULL;
 		(*newLeaf)->key = key;
-		(*newLeaf)->id = tree->nextId++;
+        (*newLeaf)->id = tree->inc ? tree->nextId++ : tree->nextId--;
 		(*newLeaf)->type = 0;
 		if (tree->root == NULL)
 			tree->root = *(newLeaf);
