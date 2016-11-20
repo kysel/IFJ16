@@ -14,6 +14,7 @@
 #include "ast.h"
 #include "ial.h"
 #include "return_codes.h"
+#include "syntaxAnalysis.h"
 
 #define stackEmpty(s) ((s)->top_element == -1)
 #define stackFull(s) ((s)->top_element == (s)->stack_size - 1)
@@ -107,19 +108,19 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init *symbol_tabs, long long line)
 
                     case T_INT:
                         expression->type = constant;
-                        expression->constant.type = token->dtype;
+                        expression->constant.type = int_t;
                         expression->constant.li = token->li;
                         break;
                     
                     case T_DOUBLE:
                         expression->type = constant;
-                        expression->constant.type = token->dtype;
+                        expression->constant.type = double_t;
                         expression->constant.d = token->d;
                         break;
                     
                     case T_STRING:
                         expression->type = constant;
-                        expression->constant.type = token->dtype;
+                        expression->constant.type = string_t;
                         expression->constant.c = token->c;
                         break;
                     
