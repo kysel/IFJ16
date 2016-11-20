@@ -15,8 +15,6 @@
 #include "build_in.h"
 #include "ial.h"
 
-#define INC_STRLEN 10
-
 // int readInt ();
 Value readInt(Value_list vals) {
     if (vals.count != 0) {
@@ -24,33 +22,19 @@ Value readInt(Value_list vals) {
         exit(semantic_error_in_types);
     }
 
-    Tstring* r_int; // deklarace struktury
+    Tstring* r_int;
     int i = 0; // delka, nasledne vysledne cislo
-    //int sig = 1;		// znamenko vysledneho cisla
-    //int sig_det = 0; 	// detekce znamenka
     int err = 0; // detekce erroru (podminky retezce)
-    char c; // nacteny znak
+    char c;
 
-    r_int = gc_alloc(sizeof(struct Tstring)); // alokace mista pro strukturu
-    r_int->str = gc_alloc(sizeof(char) * INC_STRLEN); // alokace mista pro string
+    r_int = gc_alloc(sizeof(struct Tstring));
+    r_int->str = gc_alloc(sizeof(char) * INC_STRLEN);
 
-    r_int->size = INC_STRLEN; // aktualni alokovana velikost
-    r_int->len = 0; // delka retezce
+    r_int->size = INC_STRLEN;
+    r_int->len = 0;
 
     c = getchar(); // cteni prvniho znaku
-    /*	if (c == '-' || c == '+') {		// kontrola na znamenko
-            if (c == '-') {
-                sig = -1;
-                sig_det = 1;
-            }
-            if (c == '+') {
-                sig = 1;
-                sig_det = 1;
-            }
-            c = getchar();	// cte se nasledujici znak
-        }
-    */
-    while (c >= '0' && c <= '9') { // cteni cisla
+    while (c >= '0' && c <= '9') {
         if (r_int->len == r_int->size) { // pokud je zaplnen alokovany prostor
             r_int->str = gc_realloc(r_int->str, r_int->size + (sizeof(char) * INC_STRLEN));
             r_int->size += INC_STRLEN;
@@ -62,9 +46,8 @@ Value readInt(Value_list vals) {
     }
     if (c == '\n' || c == EOF) // pokud je ukonceno cteni
     {
-        if (r_int->len > 0 /*|| sig_det == 0*/) { // pokud se nacetlo cislo
+        if (r_int->len > 0) { // pokud se nacetlo cislo
             i = atoi(r_int->str);
-            i = /*sig **/ i;
         } else
             err = 1;
     }
@@ -84,28 +67,28 @@ Value readDouble(Value_list vals) {
         exit(semantic_error_in_types);
     }
 
-    Tstring* r_dbl; // deklarace struktury
+    Tstring* r_dbl;
     int i = 0; // delka
     double d = 0; // vysledne desetinne cislo
-    char* ptr; // spatny retezec
+    char* ptr; // prebytkovy retezec
     int err = 0; // detekce erroru (podminky retezce)
     char c; // nacteny znak
 
-    r_dbl = gc_alloc(sizeof(struct Tstring)); // alokace mista pro strukturu
-    r_dbl->str = gc_alloc(sizeof(char) * INC_STRLEN); // alokace mista pro string
+    r_dbl = gc_alloc(sizeof(struct Tstring)); 
+    r_dbl->str = gc_alloc(sizeof(char) * INC_STRLEN);
 
-    r_dbl->size = INC_STRLEN; // prvotni alokovana velikost
-    r_dbl->len = 0; // delka retezce
+    r_dbl->size = INC_STRLEN;
+    r_dbl->len = 0;
 
     c = getchar(); // cteni prvniho znaku
     if (c == '\n' || c == EOF) { // pokud je vstupem prazdny retezec
         fprintf(stderr, "Empty input\n");
         exit(runtime_input_error);
     }
-    if (/*c != '-' && c != '+' && */(c < '0' || c > '9')) { // kontrola na spatny prvni znak
+    if (c < '0' || c > '9') { // kontrola na spatny prvni znak
         err = 1;
     }
-    while ((c >= '0' && c <= '9') || c == '.' || c == 'e' || c == 'E' /* || c == '+' || c == '-'*/) { // cteni stringu tvoreneho povolenými znaky
+    while ((c >= '0' && c <= '9') || c == '.' || c == 'e' || c == 'E') { // cteni stringu tvoreneho povolenými znaky
         if (r_dbl->len == r_dbl->size) { // pokud je zaplnen alokovany prostor
             r_dbl->str = gc_realloc(r_dbl->str, r_dbl->size + (sizeof(char) * INC_STRLEN));
             r_dbl->size += INC_STRLEN;
@@ -140,11 +123,11 @@ Value readString(Value_list vals) {
     int i = 0; // delka, nasledne vysledne cislo
     char c; // nacteny znak
 
-    r_str = gc_alloc(sizeof(struct Tstring)); // alokace mista pro strukturu
-    r_str->str = gc_alloc(sizeof(char) * INC_STRLEN); // alokace mista pro string
+    r_str = gc_alloc(sizeof(struct Tstring)); 
+    r_str->str = gc_alloc(sizeof(char) * INC_STRLEN); 
 
-    r_str->size = INC_STRLEN; // aktualni alokovana velikost
-    r_str->len = 0; // delka retezce
+    r_str->size = INC_STRLEN;
+    r_str->len = 0;
 
     c = getchar(); // cteni prvniho znaku
     while (c != '\n' && c != EOF) {
@@ -212,12 +195,16 @@ Value substr(Value_list vals) {
 
     int len = strlen(s);
 
-    if ((i + n) > len) {
+    if ((i + n) > len || n < 0) {
         fprintf(stderr, "Substring error\n");
         exit(runtime_error);
     }
-    //	strncpy(dest, src + beginIndex, endIndex - beginIndex);
-    return (Value) {.type = string_t, .init = true, .s = s};
+
+    char* cs = gc_alloc(sizeof(char) * (n + 1));
+    memcpy(cs, s + i, n);
+    cs[n+1] = '\0';
+    
+    return (Value) {.type = string_t, .init = true, .s = cs};
 }
 
 // int compare(String s1, String s2);
