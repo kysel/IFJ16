@@ -13,34 +13,29 @@
 #include "ast.h"
 
 int find(char* s, char* search);
-
 char* sort(char* s);
 
 typedef enum {
-	int_literal,
-	double_literal,
-	bool_literal,
-	string_literal
-}symbol_type_t;
+    int_literal,
+    double_literal,
+    bool_literal,
+    string_literal
+} symbol_type_t;
 
 typedef struct Symbol_tree_leaf_s {
-	const char* key;
-	int id;
-	Data_type type;
-	Expression* init_expr;
-	/**
-	 * @note Value_type_s'll used in interpret
-	 */
-	//Value_type value;
-	struct Symbol_tree_leaf_s* left;
-	struct Symbol_tree_leaf_s* right;
-}Symbol_tree_leaf;
+    const char* key;
+    int id;
+    Data_type type;
+    Expression* init_expr;
+    struct Symbol_tree_leaf_s* left;
+    struct Symbol_tree_leaf_s* right;
+} Symbol_tree_leaf;
 
 typedef struct {
-	Symbol_tree_leaf* root;
-	int nextId;
+    Symbol_tree_leaf* root;
+    int nextId;
     bool inc;
-}Symbol_tree;
+} Symbol_tree;
 
 Symbol_tree symbol_tree_new(bool inc);
 int count_leafs(Symbol_tree* tree);

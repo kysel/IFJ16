@@ -12,13 +12,10 @@
 #include "interpret.h"
 
 typedef struct Tstring {
-	char* str;
-	int len;
-	int size;
+    char* str;
+    int len;
+    int size;
 } Tstring;
-
-// https://wis.fit.vutbr.cz/FIT/st/course-files-st.php/course/IFJ-IT/projects/ifj2016.pdf 
-// sekce 6
 
 // int readInt ();
 Value readInt(Value_list vals);
@@ -40,6 +37,5 @@ Value substr(Value_list vals);
 
 // int compare(String s1, String s2);
 Value compare(Value_list vals);
-
 
 #endif

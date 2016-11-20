@@ -10,7 +10,6 @@
 #ifndef SCANNER_H_
 #define SCANNER_H_
 #include <stdio.h>
-#include <stdbool.h>
 #include <assert.h>
 #include "hacks.h"
 
@@ -44,23 +43,19 @@
     TOKEN(T_STRING,           "string value",      0x2)   \
     TOKEN(T_TYPE,             "type",              0x1)
 
-typedef enum
-{
+typedef enum {
     FOREACH_TOKEN(GENERATE_ENUM)
 } token_type;
 
-static inline const char* token_to_string(token_type tok)
-{
-    switch (tok)
-    {
-        FOREACH_TOKEN(GENERATE_CASE)
-    default:
-        return "";
+static inline const char* token_to_string(token_type tok) {
+    switch (tok) {
+            FOREACH_TOKEN(GENERATE_CASE)
+        default:
+            return "";
     }
 }
 
-typedef enum
-{
+typedef enum {
     FSM_INIT,
     FSM_ID,
     FSM_INT,
@@ -77,10 +72,10 @@ typedef enum
     FSM_BRACKET_LCURLY,
     FSM_BRACKET_RCURLY,
     FSM_COMMA,
-    FSM_LOWER,			// "<"
-    FSM_GREATER,		// ">"
-    FSM_NOT,			// "!"
-    FSM_QUOTE,          // """
+    FSM_LOWER, // "<"
+    FSM_GREATER, // ">"
+    FSM_NOT, // "!"
+    FSM_QUOTE, // """
     FSM_ESCAPE,
     FSM_ESCAPE_OCTAL_1,
     FSM_ESCAPE_OCTAL_2,
@@ -109,18 +104,15 @@ typedef enum
     KEYWORD(K_TRUE,      "true",      0x400)    \
     KEYWORD(K_WHILE,     "while",     0x800)
 
-typedef enum
-{
+typedef enum {
     FOREACH_KEYWORD(GENERATE_ENUM)
 } Keyword;
 
-static inline const char* keyword_to_string(Keyword kw)
-{
-    switch (kw)
-    {
-        FOREACH_KEYWORD(GENERATE_CASE)
-    default:
-        return "";
+static inline const char* keyword_to_string(Keyword kw) {
+    switch (kw) {
+            FOREACH_KEYWORD(GENERATE_CASE)
+        default:
+            return "";
     }
 }
 
@@ -130,35 +122,29 @@ typedef enum {
     double_t,
     bool_t,
     string_t
-}Data_type;
+} Data_type;
 
-typedef struct
-{
+typedef struct {
     token_type type;
-    size_t tlen;   //lenght of token string
-    long long line;    //line number
-    long whence;   //position within line
-    char *c;    //token string literally
-    union
-    {
-        Data_type dtype;    //data types eg.double,int..
-        Keyword kw;     //keywords eg.while,break..
+    size_t tlen; //lenght of token string
+    long long line; //line number
+    long whence; //position within line
+    char* c; //token string literally
+    union {
+        Data_type dtype; //data types eg.double,int..
+        Keyword kw; //keywords eg.while,break..
     };
-    union
-    {
-        long int li;    //if string is num,int value of char*c
-        double d;   //if string is num,double value of char*c
+    union {
+        long int li; //if string is num,int value of char*c
+        double d; //if string is num,double value of char*c
     };
 } Ttoken;
 
 
-
-
-typedef struct
-{
-    FILE *f;
-    long long line;    //save line number among calling get_token
-    Ttoken *token;
+typedef struct {
+    FILE* f;
+    long long line; //save line number among calling get_token
+    Ttoken* token;
 } Tinit;
 
 /**
@@ -166,21 +152,21 @@ typedef struct
  * \param fp File handle of the source
  * \return scanner context
  */
-Tinit *init_scanner(FILE *fp);
+Tinit* init_scanner(FILE* fp);
 
 /**
  * \brief Return next token from input file. <B>It does NOT consume the token</B>
  * \param scanner_struct scanner context
  * \return next available token
  */
-Ttoken *peek_token(Tinit *scanner_struct);
+Ttoken* peek_token(Tinit* scanner_struct);
 
 /**
  * \brief Consume next token from input file
  * \param scanner_struct scanner context
  * \return next available token
  */
-Ttoken *get_token(Tinit *scanner_struct);
+Ttoken* get_token(Tinit* scanner_struct);
 
 /**
  * \brief Check if next token match type, consume and returns it, otherwise exit with error.
@@ -214,4 +200,3 @@ Keyword check_and_get_keyword(Tinit* scanner_struct, Keyword type);
 */
 Keyword check_and_peek_keyword(Tinit* scanner_struct, Keyword type);
 #endif
-
