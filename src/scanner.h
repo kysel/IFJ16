@@ -9,12 +9,10 @@
 
 #ifndef SCANNER_H_
 #define SCANNER_H_
-
 #include <stdio.h>
 #include <stdbool.h>
 #include <assert.h>
 #include "hacks.h"
-#include "ast.h"
 
 
 #define FOREACH_TOKEN(TOKEN)                              \
@@ -59,8 +57,6 @@ static inline const char* token_to_string(token_type tok)
     default:
         return "";
     }
-    assert(false);
-    return "▲";
 }
 
 typedef enum
@@ -126,9 +122,15 @@ static inline const char* keyword_to_string(Keyword kw)
     default:
         return "";
     }
-    assert(false);
-    return "▲";
 }
+
+typedef enum {
+    void_t,
+    int_t,
+    double_t,
+    bool_t,
+    string_t
+}Data_type;
 
 typedef struct
 {
@@ -195,5 +197,21 @@ Ttoken* check_and_get_token(Tinit* scanner_struct, token_type type);
 * \return next token
 */
 Ttoken* check_and_peek_token(Tinit* scanner_struct, token_type type);
+
+/**
+* \brief Check if next token keyword match type, consume and returns it, otherwise exit with error.
+* \param scanner_struct scanner context
+* \param type Desired type of next keyword
+* \return next token
+*/
+Keyword check_and_get_keyword(Tinit* scanner_struct, Keyword type);
+
+/**
+* \brief Check if next token keyword match type and returns it, otherwise exit with error. Does <b>NOT</b> consume token.
+* \param scanner_struct scanner context
+* \param type Desired type of next keyword
+* \return next token
+*/
+Keyword check_and_peek_keyword(Tinit* scanner_struct, Keyword type);
 #endif
 

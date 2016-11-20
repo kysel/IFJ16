@@ -11,24 +11,31 @@
 #include <stdlib.h>
 #include "gc.h"
 #include "syntaxAnalysis.h"
+#include "interpret.h"
+
+#ifdef _MSC_VER 
+#define _CRT_SECURE_NO_WARNINGS
+#endif
 
 int main(int argc, char *argv[])
 {
-	gc_init();
+    gc_init();
 
-	if (argc == 1)
-		return -1;
-	FILE *fp;
+    if (argc == 1)
+        return -1;
+    FILE *fp;
 
-	fp = fopen(argv[1], "r");
+    fp = fopen(argv[1], "r");
 
-	if (fp == NULL)
-	{
-		fprintf(stderr, "Error opening file!\n");
-		return 99;
-	}
+    if (fp == NULL)
+    {
+        fprintf(stderr, "Error opening file!\n");
+        return 99;
+    }
 
-	parse_program(init_syntax(fp));
-	fclose(fp)
-	return 0;
+    Syntax_context* syntax = init_syntax(fp);
+    parse_program(syntax);
+    execute(syntax);
+
+    return 0;
 }
