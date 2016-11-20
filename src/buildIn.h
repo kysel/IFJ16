@@ -7,11 +7,9 @@
 * @author Kovařík Viktor <xkovar77@stud.fit.vutbr.cz>
 */
 
-#include "gc.h"
-#include "ial.h"
-#include "return_codes.h"
-#include <stdio.h>
-#include <stdlib.h> // atoi
+#ifndef BUILDIN_H_
+#define BUILDIN_H_
+#include "interpret.h"
 
 typedef struct Tstring {
 	char* str;
@@ -23,23 +21,25 @@ typedef struct Tstring {
 // sekce 6
 
 // int readInt ();
-int readInt();
+Value readInt(Value_list vals);
 
 // double readDouble ();
-double readDouble();
+Value readDouble(Value_list vals);
 
 // String readString ();
-char* readString();
+Value readString(Value_list vals);
 
 // void print ( term_nebo_konkatenace );
+//Value print(Value_list vals);
 
 // int length(String s);
-int length(char* s);
+Value length(Value_list vals);
 
 // String substr(String s, int i, int n);
-char* substr(char* s, int i, int n);
+Value substr(Value_list vals);
 
 // int compare(String s1, String s2);
-int compare(char* s1, char* s2);
+Value compare(Value_list vals);
 
 
+#endif
