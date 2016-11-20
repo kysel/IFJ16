@@ -19,61 +19,58 @@
 
 void parse_class(Syntax_context* ctx);
 void parse_function(Syntax_context* ctx, Data_type return_type, char* name);
-void parse_statement(Syntax_context* ctx, Statement_collection* statements);
 void parse_block(Syntax_context* ctx, Statement_collection* statements);
+void parse_statement(Syntax_context* ctx, Statement_collection* statements);
 Variable parse_global_variable(Syntax_context* ctx, Data_type type);
 
 
-/**
- * \brief Gets fully kvalified variable name eg. "Main.foo"
- * \param ctx Syntax context
- * \param varName Variable name
- * \return fully kvalified variable name
- */
-char* get_fk_name(const char* className, const char* varName) {
-    char* fkName = gc_alloc(sizeof(char)*(strlen(className) + strlen(varName) + 2));
-    fkName[0] = 0;
-    strcat(fkName, className);
-    strcat(fkName, ".");
-    strcat(fkName, varName);
-    return fkName;
+void add_functionToList(Function_list* list, Function f) {
+    if (list->size == list->count) {
+        list->size += 10;
+        list->items = gc_realloc(list->items, sizeof(Function)*list->size);
+    }
+    list->items[list->count++] = f;
+}
+
+void add_buildIn(Syntax_context* ctx) {
+    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.readInt", .return_type = int_t });
+    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.readDouble", .return_type = double_t });
+    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.readString", .return_type = string_t });
+    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.print", .return_type = void_t });
 }
 
 Syntax_context* init_syntax(FILE* input_file) {
     Syntax_context* ret = gc_alloc(sizeof(Syntax_context));
     ret->s_ctx = init_scanner(input_file);
-    ret->global_symbols = symbol_tree_new();
-    ret->local_symbols = symbol_tree_new();
+    ret->global_symbols = symbol_tree_new(false);
+    ret->local_symbols = symbol_tree_new(true);
     ret->functions.count = 0;
     ret->functions.size = 0;
     ret->functions.items = 0;
+    ret->depth = 0;
     ret->expCtx = ExprParserInit(&ret->global_symbols, &ret->local_symbols, "");
+    add_buildIn(ret);
     return ret;
 }
 
 void parse_program(Syntax_context* ctx) {
-    while (peek_token(ctx->s_ctx)->type == T_KEYWORD && peek_token(ctx->s_ctx)->kw == K_CLASS) {
+    while (peek_token(ctx->s_ctx)->type == T_KEYWORD && peek_token(ctx->s_ctx)->kw == K_CLASS)
         parse_class(ctx);
-    }
-
-    /**
-     * while token != endOfFile; parse_class(ctx);
-     */
-    //return NULL;
+    ctx->globals = count_leafs(&ctx->global_symbols);
+    check_and_get_token(ctx->s_ctx, T_EOF);
 }
 
 Parsed_id parse_id(Tinit* scanner, const char* currentClass) {
     Parsed_id ret = { .fullQ = false };
     Ttoken* nameTok = check_and_get_token(scanner, T_ID);
     ret.class = gc_alloc(sizeof(char)*strlen(currentClass) +1);
-    ret.class = strcpy(ret.class, currentClass);
+    strcpy(ret.class, currentClass);
     ret.name = nameTok->c;
-    ret.full = nameTok->c;
     ret.nameTok = nameTok;
     if (peek_token(scanner)->type == T_DOT) {
         get_token(scanner); //consume '.'
         char* name2 = check_and_get_token(scanner, T_ID)->c;
-        char* FKname = gc_alloc(strlen(nameTok->c) + strlen(name2) + 2);
+        char* FKname = gc_alloc(sizeof(char)*(strlen(nameTok->c) + strlen(name2)) + 2);
         FKname[0] = 0;
         strcat(FKname, nameTok->c);
         strcat(FKname, ".");
@@ -82,7 +79,12 @@ Parsed_id parse_id(Tinit* scanner, const char* currentClass) {
         ret.class = nameTok->c;
         ret.name = name2;
         ret.full = FKname;
+        return ret;
     }
+    ret.full = gc_alloc(sizeof(char)*(strlen(currentClass) + strlen(nameTok->c)) + 2);
+    strcpy(ret.full, currentClass);
+    strcat(ret.full, ".");
+    strcat(ret.full, nameTok->c);
     return ret;
 }
 
@@ -113,7 +115,7 @@ Parsed_id parse_id(Tinit* scanner, const char* currentClass) {
                  varLeaf->init_expr = var.init_expr;
              }
              else if (fnOrVar->type == T_BRACKET_LROUND)
-                 parse_function(ctx, type->dtype, name.name);
+                 parse_function(ctx, type->dtype, name.full);
          }
      }
      check_and_get_token(ctx->s_ctx, T_BRACKET_RCURLY);
@@ -129,14 +131,14 @@ Parsed_id parse_id(Tinit* scanner, const char* currentClass) {
      collection->statements[collection->count++] = statement;
  }
 
-void add_parameter(Parameter_list collection, Expression expr) {
-    if (collection.size == collection.count) {
-        collection.size += 10;
-        collection.parameters = gc_realloc(collection.parameters, sizeof(Func_parameter)*collection.size);
+void add_parameter(Parameter_list* collection, Expression expr) {
+    if (collection->size == collection->count) {
+        collection->size += 10;
+        collection->parameters = gc_realloc(collection->parameters, sizeof(Func_parameter)*collection->size);
     }
-    collection.parameters[collection.count].type = 0;
-    collection.parameters[collection.count].name = 0;
-    collection.parameters[collection.count++].value = expr;
+    collection->parameters[collection->count].type = 0;
+    collection->parameters[collection->count].name = 0;
+    collection->parameters[collection->count++].value = expr;
 }
 
  Variable parse_global_variable(Syntax_context* ctx, Data_type type) {
@@ -170,6 +172,7 @@ void parse_parameters(Syntax_context* ctx, Parameter_list* params) {
         params->parameters = gc_realloc(params->parameters, sizeof(Func_parameter)*(params->count + 1));
         params->parameters[params->count++] = param;
 
+        //params' id should be ascending from zero (in local symbol table)
         Symbol_tree_leaf* symbol = add_symbol(&ctx->local_symbols, param.name);
         symbol->type = param.type;
 
@@ -204,30 +207,35 @@ Symbol_tree_leaf* get_symbol(Syntax_context* ctx, char* key) {
 }
 
 void parse_assigmnent(Syntax_context* ctx, Statement_collection* statements, Parsed_id id) {
-    Symbol_tree_leaf* symbol = get_symbol(ctx, id.full);
-    if (id.fullQ == false && symbol == NULL)
-        //not fully qualified class variable
-        id.full = get_fk_name(id.class, id.name);
-    symbol = get_symbol(ctx, id.full);
-    if (symbol == NULL)
-        symbol = add_symbol(&ctx->global_symbols, id.full);
+    Symbol_tree_leaf* symbol = NULL;
+    if (id.fullQ == false)
+        //definitely local symbol
+        symbol = get_symbol(ctx, id.name);
+    if (symbol == NULL && id.fullQ == true) {
+        symbol = get_symbol(ctx, id.full);
+        if (symbol == NULL)
+            symbol = add_symbol(&ctx->global_symbols, id.full);
+    }
 
     check_and_get_token(ctx->s_ctx, T_ASSIGN);
     Statement st = {
         .type = assigment,
         .assignment.target = symbol->id,
     };
-    //TODO use return value as exression in statement
-    parseExpression(ctx->expCtx, ctx->s_ctx);
+    st.assignment.source = *parseExpression(ctx->expCtx, ctx->s_ctx);
     add_statement(statements, st);
     check_and_get_token(ctx->s_ctx, T_SEMICOLON);
 }
 
-void parse_declaration(Syntax_context* ctx, Statement_collection* statements) {
+void parse_definition(Syntax_context* ctx, Statement_collection* statements) {
     Data_type type = check_and_get_token(ctx->s_ctx, T_TYPE)->dtype;
-    char* name = check_and_get_token(ctx->s_ctx, T_ID)->c;
+    Parsed_id id = parse_id(ctx->s_ctx, ctx->current_class);
+    if(id.fullQ) {
+        fprintf(stderr, "Declaration of class variable inside method. line %d in file %s.\n", __LINE__, __FILE__);
+        exit(1337);
+    }
 
-    Symbol_tree_leaf* symbol = add_symbol(&ctx->local_symbols, name);
+    Symbol_tree_leaf* symbol = add_symbol(&ctx->local_symbols, id.name);
     symbol->type = type;
     symbol->init_expr = NULL;
     Statement st = {
@@ -237,15 +245,11 @@ void parse_declaration(Syntax_context* ctx, Statement_collection* statements) {
         .declaration.variable.init_expr = NULL
     };
 
-    if (peek_token(ctx->s_ctx)->type == T_SEMICOLON) {
-        get_token(ctx->s_ctx);
-    }
-    else if (check_and_get_token(ctx->s_ctx, T_ASSIGN)) {
-        //TODO: get expression and assign to 'init_expr' in statement, optionaly in symbol leaf
-        parseExpression(ctx->expCtx, ctx->s_ctx);
-        check_and_get_token(ctx->s_ctx, T_SEMICOLON);
-    }
     add_statement(statements, st);
+    if (peek_token(ctx->s_ctx)->type == T_SEMICOLON)
+        get_token(ctx->s_ctx);
+    else if (check_and_peek_token(ctx->s_ctx, T_ASSIGN))
+        parse_assigmnent(ctx, statements, id);
 }
 
 void parse_if(Syntax_context* ctx, Statement_collection* statements) {
@@ -289,7 +293,7 @@ Statement* parse_f_call(t_Expr_Parser_Init* exprCtx, Tinit* scanner, char* id) {
     if (peek_token(scanner)->type != T_BRACKET_RROUND) {
         while (true) {
             Expression* ex = parseExpression(exprCtx, scanner);
-            add_parameter(st->expression.fCall.parameters, *ex);
+            add_parameter(&st->expression.fCall.parameters, *ex);
             if (check_and_peek_token(scanner, T_COMMA | T_BRACKET_RROUND)->type == T_COMMA)
                 get_token(scanner);
             else
@@ -312,8 +316,7 @@ void parse_while(Syntax_context* ctx, Statement_collection* statements) {
     };
     check_and_get_keyword(ctx->s_ctx, K_WHILE);
     check_and_get_token(ctx->s_ctx, T_BRACKET_LROUND);
-    //TODO assign expression
-    parseExpression(ctx->expCtx, ctx->s_ctx);
+    st.while_loop.condition = *parseExpression(ctx->expCtx, ctx->s_ctx);
     check_and_get_token(ctx->s_ctx, T_BRACKET_RROUND);
     if (peek_token(ctx->s_ctx)->type != T_BRACKET_LCURLY)
         parse_statement(ctx, &st.while_loop.statements);
@@ -331,11 +334,9 @@ void parse_return(Syntax_context* ctx, Statement_collection* statements) {
     if (peek_token(ctx->s_ctx)->type == T_SEMICOLON) {
         get_token(ctx->s_ctx);
         st.ret.type = constant;
-        //TODO return null
-    }else {
-        parseExpression(ctx->expCtx, ctx->s_ctx);
-        //TODO assign expression to statement
-    }
+        st.ret.constant.type = void_t;
+    }else
+        st.ret = *(Return_statement*)parseExpression(ctx->expCtx, ctx->s_ctx);
     add_statement(statements, st);
 }
 
@@ -343,7 +344,13 @@ void parse_statement(Syntax_context* ctx, Statement_collection* statements) {
     Ttoken* tok;
     switch ((tok = check_and_peek_token(ctx->s_ctx, T_ID | T_KEYWORD | T_TYPE))->type) {
     case T_TYPE:
-        parse_declaration(ctx, statements);
+        if (ctx->depth <= 1)
+            parse_definition(ctx, statements);
+        else {
+            //TODO engliš
+            fprintf(stderr, "Local variable cannot be defined inside fixme(SLOZENY VYRAZ).");
+            exit(1337);
+        }
         break;
     case T_ID: {
         Parsed_id id = parse_id(ctx->s_ctx, ctx->current_class);
@@ -379,16 +386,18 @@ void parse_statement(Syntax_context* ctx, Statement_collection* statements) {
 }
 
 void parse_block(Syntax_context* ctx, Statement_collection* statements) {
+    ctx->depth++;
     check_and_get_token(ctx->s_ctx, T_BRACKET_LCURLY);
     while (true) {
         token_type tType = peek_token(ctx->s_ctx)->type;
         if (tType == T_BRACKET_LCURLY)
             parse_block(ctx, statements);
-        else if (tType == T_BRACKET_RCURLY)
+        if (peek_token(ctx->s_ctx)->type == T_BRACKET_RCURLY)
             break;
         parse_statement(ctx, statements);
     }
     check_and_get_token(ctx->s_ctx, T_BRACKET_RCURLY);
+    ctx->depth--;
 }
 
 
@@ -419,14 +428,6 @@ void printStList(Statement_collection stc) {
     }
 }
 
-void add_functionToList(Function_list* list, Function f) {
-    if (list->size == list->count) {
-        list->size += 10;
-        list->items = gc_realloc(list->items, sizeof(Function)*list->size);
-    }
-    list->items[list->count++] = f;
-}
-
 void parse_function(Syntax_context* ctx, Data_type return_type, char* name) {
     /**
      * Vytvoření kontextu funkce
@@ -451,7 +452,7 @@ void parse_function(Syntax_context* ctx, Data_type return_type, char* name) {
         .statements.statements = 0 };
 
     Symbol_tree oldSymbols = ctx->local_symbols;
-    ctx->local_symbols = symbol_tree_new();
+    ctx->local_symbols = symbol_tree_new(true);
     ctx->expCtx->local_tab = &ctx->local_symbols;
 
     check_and_get_token(ctx->s_ctx, T_BRACKET_LROUND);

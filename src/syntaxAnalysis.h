@@ -20,6 +20,8 @@ typedef struct {
 	char* current_class;
 	Function_list functions;
     t_Expr_Parser_Init* expCtx;
+    int depth;
+    int globals;
 }Syntax_context;
 
 typedef struct {
