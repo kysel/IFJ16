@@ -31,7 +31,7 @@ shellSort-test: $(filter-out main.o,$(OBJECTS))
 	$(CC) $(CFLAGS) -MF".depend/$@.d" -MG -MM -MP -MT"$@" "$<"
 
 clean:
-	rm -rf *.o *.d .depend ifj16 find-test binaryTree-test ../test/*.class ../test/input/*.log
+	rm -rf *.o *.d .depend ifj16 find-test binaryTree-test ../test/*.class ../test/logs/*.log
 
 ifj16-test: ifj16
 	cd ../test/; ./test; \
