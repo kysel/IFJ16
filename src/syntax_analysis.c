@@ -265,20 +265,19 @@ void parse_if(Syntax_context* ctx, Statement_collection* statements) {
     add_statement(statements, st);
 }
 
-Statement* parse_f_call(t_Expr_Parser_Init* exprCtx, Tinit* scanner, char* id) {
-    Statement* st = gc_alloc(sizeof(Statement));
-    st->type = expression;
-    st->expression.type = function_call;
-    st->expression.fCall.name = id;
-    st->expression.fCall.parameters.count = 0;
-    st->expression.fCall.parameters.size = 0;
-    st->expression.fCall.parameters.parameters = NULL;
+Expression* parse_f_call(t_Expr_Parser_Init* exprCtx, Tinit* scanner, char* id) {
+    Expression* st = gc_alloc(sizeof(Statement));
+    st->type = function_call;
+    st->fCall.name = id;
+    st->fCall.parameters.count = 0;
+    st->fCall.parameters.size = 0;
+    st->fCall.parameters.parameters = NULL;
 
     check_and_get_token(scanner, T_BRACKET_LROUND);
     if (peek_token(scanner)->type != T_BRACKET_RROUND) {
         while (true) {
             Expression* ex = parseExpression(exprCtx, scanner);
-            add_parameter(&st->expression.fCall.parameters, *ex);
+            add_parameter(&st->fCall.parameters, *ex);
             if (check_and_peek_token(scanner, T_COMMA | T_BRACKET_RROUND)->type == T_COMMA)
                 get_token(scanner);
             else
@@ -290,7 +289,9 @@ Statement* parse_f_call(t_Expr_Parser_Init* exprCtx, Tinit* scanner, char* id) {
 }
 
 void parse_function_call(Syntax_context* ctx, Statement_collection* statements, char* id) {
-    Statement* st = parse_f_call(ctx->expCtx, ctx->s_ctx, id);
+    Statement* st = gc_alloc(sizeof(Statement));
+    st->type = expression;
+    st->expression = *parse_f_call(ctx->expCtx, ctx->s_ctx, id);
     check_and_get_token(ctx->s_ctx, T_SEMICOLON);
     add_statement(statements, *st);
 }

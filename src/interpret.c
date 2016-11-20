@@ -117,12 +117,18 @@ Return_value eval_func(Inter_ctx* ctx, FunctionCall* fCall) {
 #endif
 
     Value_list* oldStack = ctx->loc_stack;
+    Value_list* newStack;
     if (f->type == user)
-        ctx->loc_stack = alloc_stack(f->stack_size);
+        newStack = alloc_stack(f->stack_size);
     else if (f->type == build_in)
-        ctx->loc_stack = alloc_stack(fCall->parameters.count);
+        newStack = alloc_stack(fCall->parameters.count);
+    else {
+        fprintf(stderr, "Ouch this type of function i don't know. line %d in file %s.\n", __LINE__, __FILE__);
+        exit(1337);
+    }
     for (int i = 0; i != fCall->parameters.count; i++)
-        *get_val(ctx, i) = eval_expr(ctx, &fCall->parameters.parameters[i].value);
+        newStack->val[i] = eval_expr(ctx, &fCall->parameters.parameters[i].value);
+    ctx->loc_stack = newStack;
 
     Return_value ret = {.returned = false};
     if (f->type == user)
@@ -142,8 +148,9 @@ Return_value eval_func(Inter_ctx* ctx, FunctionCall* fCall) {
 #endif
 
     ctx->loc_stack = oldStack;
-
-    return (Return_value) {.val = implicit_cast(ret.val, f->return_type), .returned = true};
+    if (f->type == user)
+        return (Return_value) { .val = implicit_cast(ret.val, f->return_type), .returned = true };
+    return (Return_value) { .val = ret.val, .returned = true };
 }
 
 Value eval_op_tree(Inter_ctx* ctx, BinOpTree* tree) {

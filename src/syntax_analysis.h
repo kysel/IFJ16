@@ -32,7 +32,7 @@ typedef struct {
     Ttoken* nameTok;
 } Parsed_id;
 
-Statement* parse_f_call(t_Expr_Parser_Init* exprCtx, Tinit* scanner, char* id);
+Expression* parse_f_call(t_Expr_Parser_Init* exprCtx, Tinit* scanner, char* id);
 Syntax_context* init_syntax(FILE* input_file);
 void parse_program(Syntax_context* ctx);
 #endif
