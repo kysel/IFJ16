@@ -42,6 +42,9 @@
     <ClInclude Include="..\interpret.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\buildIn.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\gc.c">
@@ -63,6 +66,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\interpret.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\buildIn.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
