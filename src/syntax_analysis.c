@@ -318,11 +318,11 @@ void parse_return(Syntax_context* ctx, Statement_collection* statements) {
     check_and_get_keyword(ctx->s_ctx, K_RETURN);
 
     if (peek_token(ctx->s_ctx)->type == T_SEMICOLON) {
-        get_token(ctx->s_ctx);
         st.ret.type = constant;
         st.ret.constant.type = void_t;
     } else
         st.ret = *(Return_statement*)parseExpression(ctx->expCtx, ctx->s_ctx);
+    get_token(ctx->s_ctx); // gets ';', cause parseExpression leaves it
     add_statement(statements, st);
 }
 
@@ -439,6 +439,8 @@ void parse_function(Syntax_context* ctx, Data_type return_type, char* name) {
 #ifdef DEBUG
     printStList(f.statements);
 #endif
+    if (f.return_type == void_t)
+        add_statement(&f.statements, (Statement) { .type = Return, .ret.type = constant, .ret.constant.type = void_t });
     add_functionToList(&ctx->functions, f);
 
     ctx->local_symbols = oldSymbols;

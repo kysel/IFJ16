@@ -370,16 +370,18 @@ void eval_assign(Inter_ctx* ctx, Statement* st) {
     *get_val(ctx, st->assignment.target) = eval_expr(ctx, &st->assignment.source);
 }
 
-void eval_cond(Inter_ctx* ctx, If_statement* ifSt) {
+Return_value eval_cond(Inter_ctx* ctx, If_statement* ifSt) {
     if (eval_expr(ctx, &ifSt->condition).b)
-        eval_st_list(ctx, &ifSt->caseTrue);
-    else
-        eval_st_list(ctx, &ifSt->caseFalse);
+        return eval_st_list(ctx, &ifSt->caseTrue);
+    return  eval_st_list(ctx, &ifSt->caseFalse);
 }
 
-void eval_while(Inter_ctx* ctx, While_statement* stWhile) {
+Return_value eval_while(Inter_ctx* ctx, While_statement* stWhile) {
+    Return_value ret;
     while (eval_expr(ctx, &stWhile->condition).b)
-        eval_st_list(ctx, &stWhile->statements);
+        if ((ret = eval_st_list(ctx, &stWhile->statements)).returned)
+            return ret;
+    return (Return_value) { .returned = false };
 }
 
 Return_value eval_statement(Inter_ctx* ctx, Statement* st) {
@@ -388,14 +390,12 @@ Return_value eval_statement(Inter_ctx* ctx, Statement* st) {
             break;
         case expression:
             return (Return_value) {.returned = false, .val = eval_expr(ctx, &st->expression)};
-        case condition: eval_cond(ctx, &st->condition);
-            break;
+        case condition: return eval_cond(ctx, &st->condition);
         case assigment: eval_assign(ctx, st);
             break;
-        case while_loop: eval_while(ctx, &st->while_loop);
-            break;
+        case while_loop: return eval_while(ctx, &st->while_loop);
         case Return:
-            return (Return_value) {.returned = true, .val = eval_expr(ctx, &st->expression)};
+            return (Return_value) { .returned = true, .val = eval_expr(ctx, &st->ret) };
         default: break;
     }
     return (Return_value) {.returned = false};
@@ -406,7 +406,7 @@ Return_value eval_st_list(Inter_ctx* ctx, const Statement_collection* statements
     for (int i = 0; i != statements->count; i++)
         if ((ret = eval_statement(ctx, &statements->statements[i])).returned)
             return ret;
-    return (Return_value) {.returned = true, .val.type = void_t};
+    return (Return_value) {.returned = false, .val.type = void_t};
 }
 
 void execute(Syntax_context* syntax) {
