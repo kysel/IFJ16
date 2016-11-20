@@ -17,18 +17,16 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char* argv[]) {
     gc_init();
 
     if (argc == 1)
         return -1;
-    FILE *fp;
+    FILE* fp;
 
     fp = fopen(argv[1], "r");
 
-    if (fp == NULL)
-    {
+    if (fp == NULL) {
         fprintf(stderr, "Error opening file!\n");
         return 99;
     }

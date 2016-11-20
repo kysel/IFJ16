@@ -15,14 +15,14 @@
 #include "expr_parser.h"
 
 typedef struct {
-	Symbol_tree global_symbols, local_symbols;
-	Tinit* s_ctx;
-	char* current_class;
-	Function_list functions;
+    Symbol_tree global_symbols, local_symbols;
+    Tinit* s_ctx;
+    char* current_class;
+    Function_list functions;
     t_Expr_Parser_Init* expCtx;
     int depth;
     int globals;
-}Syntax_context;
+} Syntax_context;
 
 typedef struct {
     bool fullQ;
@@ -30,7 +30,7 @@ typedef struct {
     char* name;
     char* full;
     Ttoken* nameTok;
-}Parsed_id;
+} Parsed_id;
 
 Statement* parse_f_call(t_Expr_Parser_Init* exprCtx, Tinit* scanner, char* id);
 Syntax_context* init_syntax(FILE* input_file);

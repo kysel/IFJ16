@@ -36,7 +36,7 @@ typedef struct {
 typedef struct {
     Value val;
     bool returned;
-}Return_value;
+} Return_value;
 
 typedef struct {
     Value* val;
@@ -44,7 +44,7 @@ typedef struct {
     int count;
 } Value_list;
 
-typedef Value(*BuildInPtr) (Value_list vals);
+typedef Value (*BuildInPtr)(Value_list vals);
 
 struct Statement_collection_s {
     Statement* statements;
@@ -56,14 +56,14 @@ typedef struct {
     Func_parameter* parameters;
     int count;
     int size;
-}Parameter_list;
+} Parameter_list;
 
 typedef struct Function_s {
     char* name;
     enum {
         user,
         build_in
-    }type;
+    } type;
     union {
         struct {
             Statement_collection statements;
@@ -73,102 +73,97 @@ typedef struct Function_s {
         BuildInPtr build_in;
     };
     Data_type return_type;
-}Function;
+} Function;
 
 typedef struct {
     Function* items;
     int count;
     int size;
-}Function_list;
+} Function_list;
 
 typedef struct {
     Expression* expressions;
     int count;
     int size;
-}Expression_list;
+} Expression_list;
 
 typedef struct Variable_s {
     int id;
     Expression* init_expr;
     Data_type type;
-}Variable;
+} Variable;
 
-/*typedef struct Class_s {
-	char* Name;
-}Class;*/
-
-//TODO enum BinOP
-//TODO struct BinOP tree (BinOP, left_expression, right_expression)
 typedef struct {
     enum {
-        OP_ADD, OP_SUB, OP_MUL, OP_DIV,
-        OP_LOWER, OP_GREATER,
-        OP_LOWER_EQUAL, OP_GREATER_EQUAL,
-        OP_BOOL_EQUAL, OP_NOT_EQUAL
-    }BinOp;
-
-    Expression *left_expr;
-    Expression *right_expr;
-}BinOpTree;
+        OP_ADD,
+        OP_SUB,
+        OP_MUL,
+        OP_DIV,
+        OP_LOWER,
+        OP_GREATER,
+        OP_LOWER_EQUAL,
+        OP_GREATER_EQUAL,
+        OP_BOOL_EQUAL,
+        OP_NOT_EQUAL
+    } BinOp;
+    Expression* left_expr;
+    Expression* right_expr;
+} BinOpTree;
 
 typedef struct {
-   Data_type type;
-   union {
+    Data_type type;
+    union {
         long int li;
         double d;
-        char *c;
-   };
-}Constant;
+        char* c;
+    };
+} Constant;
 
 typedef struct {
     char* name;
     Parameter_list parameters;
-}FunctionCall;
+} FunctionCall;
 
-typedef  struct Expression_s {
+typedef struct Expression_s {
     enum {
         function_call,
         variable,
         constant,
         bin_op_tree
-    }type;
+    } type;
     union {
         FunctionCall fCall;
         VariableId variable;
         Constant constant;
         BinOpTree tree;
-
-        //TODO universal data type container
-
-        //TODO BinOP tree
     };
-}Expression;
+} Expression;
 
 typedef struct Func_parameter_s {
     char* name;
     Data_type type;
     Expression value;
-}Func_parameter;
+} Func_parameter;
 
 typedef struct {
     Expression condition;
     Statement_block caseTrue;
     Statement_block caseFalse;
-}If_statement;
+} If_statement;
 
 typedef struct {
     VariableId target;
     Expression source;
-}Assign_statement;
+} Assign_statement;
 
 typedef struct {
     Expression condition;
     Statement_block statements;
-}While_statement;
+} While_statement;
 
 typedef struct {
     Variable variable;
-}Declaration;
+} Declaration;
 
 typedef struct Statement_s {
     enum {
@@ -178,16 +173,14 @@ typedef struct Statement_s {
         assigment,
         while_loop,
         Return
-    }type;
-
+    } type;
     union {
         Declaration declaration;
         Expression expression;
         If_statement condition;
         Assign_statement assignment;
         While_statement while_loop;
-        //for? aka cycles extension
         Return_statement ret;
     };
-}Statement;
+} Statement;
 #endif
