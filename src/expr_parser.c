@@ -75,7 +75,7 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init* symbol_tabs, long long line)
     switch (rule_lenght) {
             //Ziadne pravidlo
         default:
-            fprintf(stderr, "Syntax error on line %d in file %s.\n", line, __FILE__);
+            fprintf(stderr, "Syntax error on line %lld in file %s.\n", line, __FILE__);
             exit(syntactic_analysis_error);
 
             //Krátke pravidlo
@@ -96,9 +96,9 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init* symbol_tabs, long long line)
                 switch (token->type) {
                     case T_ID:
                         expression->type = variable;
-                        if (leaf = get_symbol_by_key(symbol_tabs->local_tab, token->c))
+                        if ((leaf = get_symbol_by_key(symbol_tabs->local_tab, token->c)))
                             expression->variable = leaf->id;
-                        else if (leaf = get_symbol_by_key(symbol_tabs->global_tab, full_name))
+                        else if ((leaf = get_symbol_by_key(symbol_tabs->global_tab, full_name)))
                             expression->variable = leaf->id;
                         else {
                             leaf = add_symbol(symbol_tabs->global_tab, full_name);
@@ -125,11 +125,11 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init* symbol_tabs, long long line)
                         break;
 
                     default:
-                        fprintf(stderr, "Syntax error on line %d in file %s.\n", line, __FILE__);
+                        fprintf(stderr, "Syntax error on line %lld in file %s.\n", line, __FILE__);
                         exit(syntactic_analysis_error);
                 }
             } else {
-                fprintf(stderr, "Syntax error on line %d in file %s.\n", line, __FILE__);
+                fprintf(stderr, "Syntax error on line %lld in file %s.\n", line, __FILE__);
                 exit(syntactic_analysis_error);
             }
             stackPop(s);
@@ -154,7 +154,7 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init* symbol_tabs, long long line)
                     strcat(full_name, ".");
                     strcat(full_name, right_token->c);
 
-                    if (leaf = get_symbol_by_key(symbol_tabs->global_tab, full_name))
+                    if ((leaf = get_symbol_by_key(symbol_tabs->global_tab, full_name)))
                         expression->variable = leaf->id;
                     else {
                         leaf = add_symbol(symbol_tabs->global_tab, full_name);
@@ -162,7 +162,7 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init* symbol_tabs, long long line)
                     }
 
                 } else {
-                    fprintf(stderr, "Syntax error on line %d in file %s.\n", line, __FILE__);
+                    fprintf(stderr, "Syntax error on line %lld in file %s.\n", line, __FILE__);
                     exit(syntactic_analysis_error);
                 }
 
@@ -175,7 +175,7 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init* symbol_tabs, long long line)
                 if (left_token->type == T_BRACKET_LROUND && right_token->type == T_BRACKET_RROUND) {
                     expression = s->arr[s->top_element - 1].address;
                 } else {
-                    fprintf(stderr, "Syntax error on line %d in file %s.\n", line, __FILE__);
+                    fprintf(stderr, "Syntax error on line %lld in file %s.\n", line, __FILE__);
                     exit(syntactic_analysis_error);
                 }
 
@@ -228,14 +228,14 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init* symbol_tabs, long long line)
                         break;
 
                     default:
-                        fprintf(stderr, "Syntax error on line %d in file %s.\n", line, __FILE__);
+                        fprintf(stderr, "Syntax error on line %lld in file %s.\n", line, __FILE__);
                         exit(syntactic_analysis_error);
                 }
                 expression->type = bin_op_tree;
                 expression->tree.left_expr = s->arr[s->top_element - 2].address;
                 expression->tree.right_expr = s->arr[s->top_element].address;
             } else {
-                fprintf(stderr, "Syntax error on line %d in file %s.\n", line, __FILE__);
+                fprintf(stderr, "Syntax error on line %lld in file %s.\n", line, __FILE__);
                 exit(syntactic_analysis_error);
             }
 
@@ -266,7 +266,7 @@ void processFunCall(t_Stack* s, Tinit* scanner, t_Expr_Parser_Init* symbol_tabs,
 
             stackPop(s);
         } else {
-            fprintf(stderr, "Syntax error on line %d in file %s.\n", line, __FILE__);
+            fprintf(stderr, "Syntax error on line %lld in file %s.\n", line, __FILE__);
             exit(syntactic_analysis_error);
         }
 
@@ -287,11 +287,11 @@ void processFunCall(t_Stack* s, Tinit* scanner, t_Expr_Parser_Init* symbol_tabs,
             stackPop(s);
             stackPop(s);
         } else {
-            fprintf(stderr, "Syntax error on line %d in file %s.\n", line, __FILE__);
+            fprintf(stderr, "Syntax error on line %lld in file %s.\n", line, __FILE__);
             exit(syntactic_analysis_error);
         }
     } else {
-        fprintf(stderr, "Syntax error on line %d in file %s.\n", line, __FILE__);
+        fprintf(stderr, "Syntax error on line %lld in file %s.\n", line, __FILE__);
         exit(syntactic_analysis_error);
     }
 
@@ -338,7 +338,6 @@ int terminal2TabIndex(void* terminal) {
  */
 
 void printStack(t_Stack* s) {
-    Ttoken* token;
     for (int i = 0; i <= s->top_element; i++) {
         switch (s->arr[i].type) {
             case EOS: printf("%x: $", s);
@@ -395,11 +394,13 @@ Expression* parseExpression(t_Expr_Parser_Init* symbol_tabs, Tinit* scanner) {
                 break;
 
             default:
-                fprintf(stderr, "Syntax error on line %d in file %s.\n", b->line, __FILE__);
+                fprintf(stderr, "Syntax error on line %lld in file %s.\n", b->line, __FILE__);
                 exit(syntactic_analysis_error);
         }
 
+#ifdef DEBUG
         printStack(stack);
+#endif
         a = stack->arr[stack->top_token].address;
     }
 
