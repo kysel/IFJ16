@@ -59,7 +59,7 @@ do
    
    if [ ! -f "${filename%.*}.in" ]; then
       echo -e "File ${filename%.*}.in not present, no input will be entered.\n" >> "$logfile"
-      ifj16out=$(../ifj16 "$filename")
+      ifj16out=$(../src/ifj16 "$filename")
       ifj16ret="$?"
       echo "Output of IFJ16 interpret:" >> "$logfile"
       echo -e "----------------------------" >> "$logfile"
