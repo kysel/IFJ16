@@ -9,121 +9,179 @@
 
 #ifndef AST_H_
 #define AST_H_
-typedef int VariableId;
+#include "scanner.h"
+#include <stdbool.h>
+
 typedef struct Statement_s Statement;
 typedef struct Statement_collection_s Statement_collection;
 typedef Statement_collection Statement_block;
 
+typedef int VariableId;
 typedef struct Expression_s Expression;
 typedef Expression Return_statement;
-typedef struct If_statement_s If_statement;
-typedef struct Assign_statement_s Assign_statement;
-typedef struct While_statement_s While_statement;
+typedef struct Variable_s Variable;
 typedef struct Func_parameter_s Func_parameter;
 
-/*typedef struct Class_s {
-	char* Name;
-}Class;*/
-
-typedef enum {
-	void_t,
-	int_t,
-	double_t,
-	bool_t,
-	string_t
-}Data_type;
-
-/**
- * Functions...
- */
 
 typedef struct {
-	Func_parameter* parameters;
-	int count;
-}Parameter_list;
-
-typedef struct Function_s {
-	enum {
-		user,
-		build_in
-	}type;
-	Parameter_list parameters;
-	Data_type return_type;
-}Function;
+    Data_type type;
+    union {
+        bool b;
+        int i;
+        double d;
+        char* s;
+    };
+    bool init;
+} Value;
 
 typedef struct {
-	Function* items;
-	int count;
-}Function_list;
-
-
-
-/**
- * Expressions...
- */
-typedef  struct Expression_s{
-	enum {
-		function_call,
-		variable
-	}type;
-	union {
-		Function function;
-		VariableId variable;
-	};
-}Expression;
+    Value val;
+    bool returned;
+} Return_value;
 
 typedef struct {
-	Expression* expressions;
-	int count;
-}Expression_list;
+    Value* val;
+    int size;
+    int count;
+} Value_list;
 
-typedef struct Func_parameter_s {
-	char* name;
-	Expression value;
-}Func_parameter;
+typedef Value (*BuildInPtr)(Value_list vals);
 
-
-
-/**
- * Statements...
- */
 struct Statement_collection_s {
-	Statement* statements;
-	int count;
+    Statement* statements;
+    int count;
+    int size;
 };
 
-typedef struct If_statement_s{
-	Expression condition;
-	Statement_block caseTrue;
-	Statement_block caseFalse;
-}If_statement;
+typedef struct {
+    Func_parameter* parameters;
+    int count;
+    int size;
+} Parameter_list;
 
-typedef struct Assign_statement_s {
-	VariableId target;
-	Expression source;
-}Assign_statement;
+typedef struct Function_s {
+    char* name;
+    enum {
+        user,
+        build_in
+    } type;
+    union {
+        struct {
+            Statement_collection statements;
+            Parameter_list parameters;
+            int stack_size;
+        };
+        BuildInPtr build_in;
+    };
+    Data_type return_type;
+} Function;
 
-typedef struct While_statement_s {
-	Expression condition;
-	Statement_block statements;
-}While_statement;
+typedef struct {
+    Function* items;
+    int count;
+    int size;
+} Function_list;
+
+typedef struct {
+    Expression* expressions;
+    int count;
+    int size;
+} Expression_list;
+
+typedef struct Variable_s {
+    int id;
+    Expression* init_expr;
+    Data_type type;
+} Variable;
+
+typedef struct {
+    enum {
+        OP_ADD,
+        OP_SUB,
+        OP_MUL,
+        OP_DIV,
+        OP_LOWER,
+        OP_GREATER,
+        OP_LOWER_EQUAL,
+        OP_GREATER_EQUAL,
+        OP_BOOL_EQUAL,
+        OP_NOT_EQUAL
+    } BinOp;
+    Expression* left_expr;
+    Expression* right_expr;
+} BinOpTree;
+
+typedef struct {
+    Data_type type;
+    union {
+        long int li;
+        double d;
+        char* c;
+    };
+} Constant;
+
+typedef struct {
+    char* name;
+    Parameter_list parameters;
+} FunctionCall;
+
+typedef struct Expression_s {
+    enum {
+        function_call,
+        variable,
+        constant,
+        bin_op_tree
+    } type;
+    union {
+        FunctionCall fCall;
+        VariableId variable;
+        Constant constant;
+        BinOpTree tree;
+    };
+} Expression;
+
+typedef struct Func_parameter_s {
+    char* name;
+    Data_type type;
+    Expression value;
+} Func_parameter;
+
+typedef struct {
+    Expression condition;
+    Statement_block caseTrue;
+    Statement_block caseFalse;
+} If_statement;
+
+typedef struct {
+    VariableId target;
+    Expression source;
+} Assign_statement;
+
+typedef struct {
+    Expression condition;
+    Statement_block statements;
+} While_statement;
+
+typedef struct {
+    Variable variable;
+} Declaration;
 
 typedef struct Statement_s {
-	enum {
-		expression,
-		condition,
-		assigment,
-		while_loop,
-		Return
-	}type;
-
-	union {
-		Expression expression;
-		If_statement condition;
-		Assign_statement assignment;
-		While_statement while_loop;
-		//for? aka cycles extension
-		Return_statement ret;
-	};
-}Statement;
+    enum {
+        declaration,
+        expression,
+        condition,
+        assigment,
+        while_loop,
+        Return
+    } type;
+    union {
+        Declaration declaration;
+        Expression expression;
+        If_statement condition;
+        Assign_statement assignment;
+        While_statement while_loop;
+        Return_statement ret;
+    };
+} Statement;
 #endif
