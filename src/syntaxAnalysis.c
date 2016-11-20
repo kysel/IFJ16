@@ -16,6 +16,7 @@
 #include "ast.h"
 #include "expr_parser.h"
 #include "syntaxAnalysis.h"
+#include "buildIn.h"
 
 void parse_class(Syntax_context* ctx);
 void parse_function(Syntax_context* ctx, Data_type return_type, char* name);
@@ -33,10 +34,10 @@ void add_functionToList(Function_list* list, Function f) {
 }
 
 void add_buildIn(Syntax_context* ctx) {
-    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.readInt", .return_type = int_t });
-    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.readDouble", .return_type = double_t });
-    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.readString", .return_type = string_t });
-    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.print", .return_type = void_t });
+    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.readInt", .build_in = readInt });
+    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.readDouble", .build_in = readDouble });
+    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.readString", .build_in = readString });
+    //add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.print", .build_in = print });
 }
 
 Syntax_context* init_syntax(FILE* input_file) {

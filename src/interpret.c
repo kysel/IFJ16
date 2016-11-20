@@ -110,19 +110,22 @@ Return_value eval_func(Inter_ctx* ctx, FunctionCall* fCall) {
         fprintf(stderr, "Function %s does not exist. line %d in file %s.\n", fCall->name, __LINE__, __FILE__);
         exit(1337);
     }
-    if (f->parameters.count != fCall->parameters.count) {
+    if (f->type == user && f->parameters.count != fCall->parameters.count) {
         fprintf(stderr, "Function %s was called with invalid params count. line %d in file %s.\n", fCall->name, __LINE__, __FILE__);
         exit(1337);
     }
-
 #endif
-    
+
     Value_list* oldStack = ctx->loc_stack;
     ctx->loc_stack = alloc_stack(f->stack_size);
     for (int i = 0; i != fCall->parameters.count; i++)
         *get_val(ctx, i) = eval_expr(ctx, &fCall->parameters.parameters[i].value);
 
-    Return_value ret = eval_st_list(ctx, &f->statements);
+    Return_value ret = { .returned = false };
+    if (f->type == user)
+        ret = eval_st_list(ctx, &f->statements);
+    else if (f->type == build_in)
+        ret = (Return_value) { .val = f->build_in(*ctx->loc_stack), .returned = true };
 
 #ifdef SEM_CHECK
     if(ret.returned != true) {
