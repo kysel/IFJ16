@@ -424,8 +424,7 @@ void parse_function(Syntax_context* ctx, Data_type return_type, char* name) {
         .parameters.parameters = NULL,
         .statements.size = 0,
         .statements.count = 0,
-        .statements.statements = NULL,
-        .statements.statements = 0};
+        .statements.statements = NULL};
 
     Symbol_tree oldSymbols = ctx->local_symbols;
     ctx->local_symbols = symbol_tree_new(true);
@@ -436,7 +435,7 @@ void parse_function(Syntax_context* ctx, Data_type return_type, char* name) {
 
     parse_block(ctx, &f.statements);
     f.stack_size = count_leafs(&ctx->local_symbols);
-#ifdef _DEBUG
+#ifdef DEBUG
     printStList(f.statements);
 #endif
     add_functionToList(&ctx->functions, f);

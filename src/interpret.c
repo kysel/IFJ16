@@ -44,7 +44,7 @@ Value_list* alloc_stack(int size) {
 Data_type resulting_type(Data_type t1, Data_type t2) {
     if (t1 == t2)
         return t1;
-    if (t1 == double_t && t2 == int_t || t1 == int_t && t2 == double_t)
+    if ((t1 == double_t && t2 == int_t) || (t1 == int_t && t2 == double_t))
         return double_t;
     return t1;
 }
