@@ -38,9 +38,10 @@ typedef struct Symbol_tree_leaf_s {
 typedef struct {
 	Symbol_tree_leaf* root;
 	int nextId;
+    bool inc;
 }Symbol_tree;
 
-Symbol_tree symbol_tree_new();
+Symbol_tree symbol_tree_new(bool inc);
 int count_leafs(Symbol_tree* tree);
 Symbol_tree_leaf* add_symbol(Symbol_tree* root, const char* key);
 Symbol_tree_leaf* get_symbol_by_key(Symbol_tree* root, const char* key);
