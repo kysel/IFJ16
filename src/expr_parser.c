@@ -228,7 +228,7 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init *symbol_tabs, long long line)
                         fprintf(stderr, "Syntax error on line %d in file %s.\n", line, __FILE__);
                         exit(syntactic_analysis_error); 
                 }
-
+                expression->type = bin_op_tree;
                 expression->tree.left_expr = s->arr[s->top_element - 2].address;
                 expression->tree.right_expr = s->arr[s->top_element].address;
             }  
