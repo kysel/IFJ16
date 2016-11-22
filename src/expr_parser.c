@@ -75,7 +75,7 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init* symbol_tabs, long long line)
     switch (rule_lenght) {
             //Ziadne pravidlo
         default:
-            fprintf(stderr, "Syntax error on line %lld in file %s.\n", line, __FILE__);
+            fprintf(stderr, "Syntax error on line %lld.\n", line);
             exit(syntactic_analysis_error);
 
             //Krátke pravidlo
@@ -125,11 +125,11 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init* symbol_tabs, long long line)
                         break;
 
                     default:
-                        fprintf(stderr, "Syntax error on line %lld in file %s.\n", line, __FILE__);
+                        fprintf(stderr, "Syntax error on line %lld.\n", line);
                         exit(syntactic_analysis_error);
                 }
             } else {
-                fprintf(stderr, "Syntax error on line %lld in file %s.\n", line, __FILE__);
+                fprintf(stderr, "Syntax error on line %lld.\n", line);
                 exit(syntactic_analysis_error);
             }
             stackPop(s);
@@ -162,7 +162,7 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init* symbol_tabs, long long line)
                     }
 
                 } else {
-                    fprintf(stderr, "Syntax error on line %lld in file %s.\n", line, __FILE__);
+                    fprintf(stderr, "Syntax error on line %lld.\n", line);
                     exit(syntactic_analysis_error);
                 }
 
@@ -175,7 +175,7 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init* symbol_tabs, long long line)
                 if (left_token->type == T_BRACKET_LROUND && right_token->type == T_BRACKET_RROUND) {
                     expression = s->arr[s->top_element - 1].address;
                 } else {
-                    fprintf(stderr, "Syntax error on line %lld in file %s.\n", line, __FILE__);
+                    fprintf(stderr, "Syntax error on line %lld.\n", line);
                     exit(syntactic_analysis_error);
                 }
 
@@ -228,14 +228,14 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init* symbol_tabs, long long line)
                         break;
 
                     default:
-                        fprintf(stderr, "Syntax error on line %lld in file %s.\n", line, __FILE__);
+                        fprintf(stderr, "Syntax error on line %lld.\n", line);
                         exit(syntactic_analysis_error);
                 }
                 expression->type = bin_op_tree;
                 expression->tree.left_expr = s->arr[s->top_element - 2].address;
                 expression->tree.right_expr = s->arr[s->top_element].address;
             } else {
-                fprintf(stderr, "Syntax error on line %lld in file %s.\n", line, __FILE__);
+                fprintf(stderr, "Syntax error on line %lld.\n", line);
                 exit(syntactic_analysis_error);
             }
 
@@ -266,7 +266,7 @@ void processFunCall(t_Stack* s, Tinit* scanner, t_Expr_Parser_Init* symbol_tabs,
 
             stackPop(s);
         } else {
-            fprintf(stderr, "Syntax error on line %lld in file %s.\n", line, __FILE__);
+            fprintf(stderr, "Syntax error on line %lld.\n", line);
             exit(syntactic_analysis_error);
         }
 
@@ -287,11 +287,11 @@ void processFunCall(t_Stack* s, Tinit* scanner, t_Expr_Parser_Init* symbol_tabs,
             stackPop(s);
             stackPop(s);
         } else {
-            fprintf(stderr, "Syntax error on line %lld in file %s.\n", line, __FILE__);
+            fprintf(stderr, "Syntax error on line %lld.\n", line);
             exit(syntactic_analysis_error);
         }
     } else {
-        fprintf(stderr, "Syntax error on line %lld in file %s.\n", line, __FILE__);
+        fprintf(stderr, "Syntax error on line %lld.\n", line);
         exit(syntactic_analysis_error);
     }
 
@@ -300,7 +300,7 @@ void processFunCall(t_Stack* s, Tinit* scanner, t_Expr_Parser_Init* symbol_tabs,
 }
 
 //
-int terminal2TabIndex(void* terminal) {
+int terminal2TabIndex(void* terminal, long long line) {
     //Jediný terminál, ktorý má adresu nula je EOS - End of Stack - Dno zásobníka
     if (terminal == NULL)
         return 14;
@@ -323,8 +323,10 @@ int terminal2TabIndex(void* terminal) {
         case T_BRACKET_RROUND: return 11;
         case T_DOT: return 12;
         case T_ID: case T_INT: case T_DOUBLE: case T_STRING: return 13;
-        case T_SEMICOLON: return 14;
-        default: return -1;//TODO error;
+        case T_COMMA: case T_SEMICOLON: return 14;
+        default:
+            fprintf(stderr, "Syntax error on line %lld.\n", line);
+            exit(syntactic_analysis_error);
     }
 }
 
@@ -340,7 +342,7 @@ int terminal2TabIndex(void* terminal) {
 void printStack(t_Stack* s) {
     for (int i = 0; i <= s->top_element; i++) {
         switch (s->arr[i].type) {
-            case EOS: printf("%x: $", s);
+            case EOS: printf("%p: $", (void*)s);
                 break;
             case EXPRESSION: printf("A");
                 break;
@@ -370,7 +372,7 @@ Expression* parseExpression(t_Expr_Parser_Init* symbol_tabs, Tinit* scanner) {
     Ttoken* b = peek_token(scanner);
 
     while (!(a == NULL && (b->type == T_SEMICOLON || b->type == T_COMMA || b->type == T_BRACKET_RROUND))) {
-        switch (precedence_tab[terminal2TabIndex(a)][terminal2TabIndex(b)]) {
+        switch (precedence_tab[terminal2TabIndex(a, b->line)][terminal2TabIndex(b, b->line)]) {
             case 'E':
                 stackPush(stack, TOKEN, b);
                 get_token(scanner);
@@ -394,7 +396,7 @@ Expression* parseExpression(t_Expr_Parser_Init* symbol_tabs, Tinit* scanner) {
                 break;
 
             default:
-                fprintf(stderr, "Syntax error on line %lld in file %s.\n", b->line, __FILE__);
+                fprintf(stderr, "Syntax error on line %lld.\n", b->line);
                 exit(syntactic_analysis_error);
         }
 
