@@ -1,5 +1,16 @@
 language: c
-compiler: gcc
+compiler: gcc-4.8
 
-before_script: cd src/
+addons:
+    apt:
+        sources:
+            - ubuntu-toolchain-r-test
+        packages:
+            - gcc-4.8
+            - valgrind
+
+before_script:
+  - cc --version
+  - cd src/
+
 script: make && make test

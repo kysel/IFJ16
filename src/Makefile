@@ -1,4 +1,3 @@
-CC=gcc
 CFLAGS=-std=c11 -Wall -Wextra -pedantic -g
 SHELL := /bin/bash
 
