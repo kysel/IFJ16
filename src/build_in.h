@@ -11,6 +11,8 @@
 #define BUILDIN_H_
 #include "interpret.h"
 
+#define INC_STRLEN 10
+
 typedef struct Tstring {
     char* str;
     int len;
