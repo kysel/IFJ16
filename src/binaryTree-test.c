@@ -15,7 +15,7 @@ int main()
 {
 	gc_init();
 	
-	Symbol_tree st = symbol_tree_new();
+	Symbol_tree st = symbol_tree_new(true);
 	if(st.root == NULL)
 		printf("[OK] init table\n");
 	else
