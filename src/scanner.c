@@ -746,7 +746,7 @@ Ttoken* check_and_peek_token(Tinit* scanner_struct, token_type type) {
     Ttoken* tok = peek_token(scanner_struct);
     if (((int)tok->type & type) == 0) {
         fprintf(stderr, "Expected %s got '%s', on line %lld", tokens_to_string(type), tok->c, tok->line);
-        exit(semantic_error_in_code);
+        exit(syntactic_analysis_error);
     }
     return tok;
 }
@@ -761,7 +761,7 @@ Keyword check_and_peek_keyword(Tinit* scanner_struct, Keyword keyword) {
     Ttoken* tok = check_and_peek_token(scanner_struct, T_KEYWORD);
     if (((int)tok->kw & keyword) == 0) {
         fprintf(stderr, "Expected %s got '%s', on line %lld", keywords_to_string(keyword), tok->c, tok->line);
-        exit(semantic_error_in_code);
+        exit(syntactic_analysis_error);
     }
     return tok->kw;
 }
