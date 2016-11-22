@@ -7,6 +7,7 @@ addons:
             - ubuntu-toolchain-r-test
         packages:
             - gcc-4.8
+            - valgrind
 
 before_script:
   - cc --version
