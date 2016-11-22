@@ -1,4 +1,4 @@
-﻿/** Interpretr jazyka IFJ16
+/** Interpretr jazyka IFJ16
 * @file hacks.h
 * @author Kyzlink Jiří <xkyzli02@stud.fit.vutbr.cz>
 */

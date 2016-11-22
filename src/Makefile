@@ -1,5 +1,6 @@
-﻿CC=gcc
+CC=gcc
 CFLAGS=-std=c11 -Wall -Wextra -pedantic -g
+SHELL := /bin/bash
 
 #source files
 TESTSOURCES=$(wildcard *test.c)
@@ -8,7 +9,7 @@ OBJECTS=$(SOURCES:.c=.o)
 
 all: ifj16
 
-test: binaryTree-test shellSort-test
+test: binaryTree-test find-test shellSort-test ifj16-test
 
 ifj16: $(OBJECTS)
 	$(CC) $(CFLAGS) $^ -o $@
@@ -30,6 +31,9 @@ shellSort-test: $(filter-out main.o,$(OBJECTS))
 	$(CC) $(CFLAGS) -MF".depend/$@.d" -MG -MM -MP -MT"$@" "$<"
 
 clean:
-	rm -rf *.o *.d .depend ifj16
+	rm -rf *.o *.d .depend ifj16 find-test binaryTree-test ../test/*.class ../test/logs/*.log
+
+ifj16-test: ifj16
+	cd ../test/; ./test; \
 
 -include .depend/*.d
