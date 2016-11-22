@@ -1,13 +1,15 @@
 language: c
-compiler: gcc-4.7
+compiler: gcc-4.8
+
+addons:
+    apt:
+        sources:
+            - ubuntu-toolchain-r-test
+        packages:
+            - gcc-4.8
 
 before_script:
-  - wget https://github.com/n1k0/casperjs/archive/1.0.2.tar.gz -O /tmp/casper.tar.gz
-  - tar -
-
-before_script:
-  - export CC=gcc-4.8
-  - gcc --version
+  - cc --version
   - cd src/
 
 script: make && make test
