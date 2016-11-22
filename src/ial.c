@@ -55,7 +55,7 @@ int find(char* s, char* search) {
     }
     //printf("hledany delka = %d  i = %d, j = %d \n", lenSearch, i, j); //debug info
     if (j <= lenSearch)
-        position = i - j + 1;
+        position = i - j;
     else
         position = 0;
 
