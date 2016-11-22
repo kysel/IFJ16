@@ -1,0 +1,5 @@
+language: c
+compiler: gcc
+
+before_script: cd src/
+script: make && make test
