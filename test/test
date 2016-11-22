@@ -67,7 +67,7 @@ do
       echo -e "IFJ16 returned $ifj16ret.\n" >> "$logfile"
    else
       echo -e "There is ${filename%.*}.in, we will use it as input for program\n" >> "$logfile"
-      ifj16out=$(echo "${filename%.*}.in" | ../ifj16 "$filename")
+      ifj16out=$(cat "${filename%.*}.in" | ../src/ifj16 "$filename")
       ifj16ret="$?"
       echo "Output of IFJ16 interpret:" >> "$logfile"
       echo -e "----------------------------" >> "$logfile"
