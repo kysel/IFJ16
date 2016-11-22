@@ -3,7 +3,7 @@ compiler: gcc
 
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get install -y gcc-4.8
+  - sudo apt-get install -y gcc
 
 before_script: cd src/
 script: make && make test
