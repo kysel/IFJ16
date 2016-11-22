@@ -55,7 +55,7 @@ int find(char* s, char* search) {
     }
     //printf("hledany delka = %d  i = %d, j = %d \n", lenSearch, i, j); //debug info
     if (j <= lenSearch)
-        position = i - j + 1;
+        position = i - j;
     else
         position = 0;
 
@@ -63,21 +63,22 @@ int find(char* s, char* search) {
     return position;
 }
 
-char* sort(char* s) { // razeni se snizujicim se prirustkem - Shell Sort
-    int n = strlen(s) - 1; // spocitani poctu prvku (bez koncoveho znaku "\0")
-    int step = n / 2; // jako prvni krok je bran pocet prvku lomen dvema (dle konvence)
-    int i; // pomocna promenna k prochazeni stringu od prvniho k poslednimu prvku
-    int j; // pomocna promenna k prochazeni paralelnich n-tic
-    char h; // pomocna promenna pro prohozeni dvou hodnot
+/**
+ * \brief Sort string value using ShellSort alghoritm.
+ * \param s Input string
+ * \return Ordinally sorted string
+ */
+char* sort(char* s) {
+    int n = strlen(s) - 1; 
+    int step = n / 2; // prvni krok polovina poctu prvku
+    int i; // iterator od prvniho k poslednimu prvku
+    int j; // prochazeni paralelnich n-tic
+    char h; // k prohozeni
 
-    while (step > 0) { // dokud je krok vetsi jako nula
+    while (step > 0) {
         for (i = 0; i < n; i++) { // cykly pro generovani paralelnich n-tic
-            //   printf("step=%d\n", step);
-            //   printf("i=%d\n", i);
-            j = i - step + 1;
-            //   printf("j1=%d\n", j);       
+            j = i - step + 1;      
             while (j >= 0 && s[j] > s[j + step]) { // prochazeni paralelnich n-tic
-                //      printf("j2=%d\n", j);
                 h = s[j];
                 s[j] = s[j + step];
                 s[j + step] = h; // prohozeni dvojic na indexech rozdilnych o krok
