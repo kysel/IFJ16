@@ -9,8 +9,6 @@ addons:
             - gcc-4.8
 
 before_script:
-  - alias gcc='gcc-4.8'
-  - alias cc='gcc-4.8'
   - cc --version
   - cd src/
 
