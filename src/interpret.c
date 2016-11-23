@@ -13,20 +13,19 @@
 #include "ast.h"
 #include "interpret.h"
 #include "gc.h"
+#include "return_codes.h"
 
-#define SEM_CHECK
-
-//TODO: replace exit codes 1337 with better ones
+//#define SEM_CHECK
 
 Value eval_expr(Inter_ctx* ctx, Expression* ex);
 Return_value eval_statement(Inter_ctx* ctx, Statement* st);
 Return_value eval_func(Inter_ctx* ctx, FunctionCall* fCall);
 Return_value eval_st_list(Inter_ctx* ctx, const Statement_collection* statements);
 
-Function* getFunc(Inter_ctx* ctx, char* fkName) {
-    for (int i = 0; i != ctx->s->functions.count; i++) {
-        if (strcmp(ctx->s->functions.items[i].name, fkName) == 0)
-            return &ctx->s->functions.items[i];
+Function* getFunc(Syntax_context* ctx, char* fkName) {
+    for (int i = 0; i != ctx->functions.count; i++) {
+        if (strcmp(ctx->functions.items[i].name, fkName) == 0)
+            return &ctx->functions.items[i];
     }
     return NULL;
 }
@@ -94,7 +93,7 @@ Value implicit_cast(Value val, Data_type to) {
     }
 
     fprintf(stderr, "Invalid cast from %d to %d. line %d in file %s.\n", val.type, to, __LINE__, __FILE__);
-    exit(1337);
+    exit(semantic_error_in_types);
 }
 
 Value* get_val(Inter_ctx* ctx, int id) {
@@ -108,11 +107,11 @@ Return_value eval_func(Inter_ctx* ctx, FunctionCall* fCall) {
 #ifdef SEM_CHECK
     if (f == NULL) {
         fprintf(stderr, "Function %s does not exist. line %d in file %s.\n", fCall->name, __LINE__, __FILE__);
-        exit(1337);
+        exit(semantic_error_in_code);
     }
     if (f->type == user && f->parameters.count != fCall->parameters.count) {
         fprintf(stderr, "Function %s was called with invalid params count. line %d in file %s.\n", fCall->name, __LINE__, __FILE__);
-        exit(1337);
+        exit(semantic_error_in_types);
     }
 #endif
 
@@ -124,7 +123,7 @@ Return_value eval_func(Inter_ctx* ctx, FunctionCall* fCall) {
         newStack = alloc_stack(fCall->parameters.count);
     else {
         fprintf(stderr, "Ouch this type of function i don't know. line %d in file %s.\n", __LINE__, __FILE__);
-        exit(1337);
+        exit(semantic_error_in_code);
     }
     for (int i = 0; i != fCall->parameters.count; i++)
         newStack->val[i] = eval_expr(ctx, &fCall->parameters.parameters[i].value);
@@ -139,13 +138,13 @@ Return_value eval_func(Inter_ctx* ctx, FunctionCall* fCall) {
 #ifdef SEM_CHECK
     if (ret.returned != true) {
         fprintf(stderr, "Error during execution of the '%s' method body. line %d in file %s.\n", fCall->name, __LINE__, __FILE__);
-        exit(1337);
-    }
-    if (f->return_type == string_t && ret.val.type != string_t) {
-        fprintf(stderr, "Invalid return in '%s'. line %d in file %s.\n", fCall->name, __LINE__, __FILE__);
-        exit(1337);
+        exit(syntactic_analysis_error);
     }
 #endif
+    if (f->return_type == string_t && ret.val.type != string_t) {
+        fprintf(stderr, "Invalid return in '%s'. line %d in file %s.\n", fCall->name, __LINE__, __FILE__);
+        exit(syntactic_analysis_error);
+    }
 
     ctx->loc_stack = oldStack;
     if (f->type == user)
@@ -219,6 +218,10 @@ Value eval_op_tree(Inter_ctx* ctx, BinOpTree* tree) {
                 Value l = implicit_cast(left, int_t);
                 Value r = implicit_cast(right, int_t);
                 ret.type = int_t;
+                if(r.i == 0) {
+                    fprintf(stderr, "Division by zero.\n");
+                    exit(runtime_zero_division);
+                }
                 ret.i = l.i / r.i;
                 break;
             }
@@ -226,6 +229,10 @@ Value eval_op_tree(Inter_ctx* ctx, BinOpTree* tree) {
                 Value l = implicit_cast(left, double_t);
                 Value r = implicit_cast(right, double_t);
                 ret.type = double_t;
+                if (r.i == 0) {
+                    fprintf(stderr, "Division by zero.\n");
+                    exit(runtime_zero_division);
+                }
                 ret.d = l.d / r.d;
             }
             break;
