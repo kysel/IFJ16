@@ -44,11 +44,11 @@ typedef struct {
 
 //Precedenčná tabuľka
 static const unsigned char precedence_tab[15][15] = {
-    // 'M' - more    'L' - less
-    // 'E' - equal   'O' - error
-    // 'F' - function call
-    //TODO nedokoncena bodka
-    //   +    -    *    /    <    >    <=   >=   ==   !=   (    )    .    id   $  
+// 'M' - more    'L' - less
+// 'E' - equal   'O' - error
+// 'F' - function call
+
+//    +    -    *    /    <    >    <=   >=   ==   !=   (    )    .    id   $  
     {'M', 'M', 'L', 'L', 'M', 'M', 'M', 'M', 'M', 'M', 'L', 'M', 'L', 'L', 'M'}, // +
     {'M', 'M', 'L', 'L', 'M', 'M', 'M', 'M', 'M', 'M', 'L', 'M', 'L', 'L', 'M'}, // -
     {'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'L', 'M', 'L', 'L', 'M'}, // *
@@ -59,9 +59,9 @@ static const unsigned char precedence_tab[15][15] = {
     {'L', 'L', 'L', 'L', 'M', 'M', 'M', 'M', 'M', 'M', 'L', 'M', 'L', 'L', 'M'}, // >=
     {'L', 'L', 'L', 'L', 'M', 'M', 'M', 'M', 'M', 'M', 'L', 'M', 'L', 'L', 'M'}, // ==
     {'L', 'L', 'L', 'L', 'M', 'M', 'M', 'M', 'M', 'M', 'L', 'M', 'L', 'L', 'M'}, // !=
-    {'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'E', ' ', 'L', 'O'}, // (
-    {'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'O', 'M', ' ', 'O', 'M'}, // )
-    {'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', ' ', ' ', 'M', 'E', 'M'}, // .
+    {'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'E', 'O', 'L', 'O'}, // (
+    {'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'O', 'M', 'O', 'O', 'M'}, // )
+    {'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'O', 'O', 'M', 'E', 'M'}, // .
     {'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M', 'F', 'M', 'E', 'O', 'M'}, // id
     {'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'L', 'O', 'L', 'L', 'O'} // $
 };
