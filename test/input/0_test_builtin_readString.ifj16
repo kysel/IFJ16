@@ -1,0 +1,11 @@
+/* readString */
+
+class Main 
+{
+   static void run() 
+   {
+    String str;
+    str = ifj16.readString();
+    ifj16.print("string je"+ str +"\n");
+   }
+}

@@ -1,0 +1,14 @@
+/* IFJ16 */
+
+class Main 
+{
+   static void run() 
+   {
+    return;
+    int a;
+    a = 10;
+    int b;
+    return;
+    ifj16.print("cislo je " + a + "\n");
+   }
+}
