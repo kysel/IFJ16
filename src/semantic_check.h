@@ -1,5 +1,5 @@
 ﻿/** Interpretr jazyka IFJ16
-* @file interpret.h
+* @file semantic_check.h
 * @author Kyzlink Jiří <xkyzli02@stud.fit.vutbr.cz>
 * @author Kubiš Juraj <xkubis15@stud.fit.vutbr.cz>
 * @author Korček Juraj <xkorce01@stud.fit.vutbr.cz>
@@ -7,17 +7,26 @@
 * @author Kovařík Viktor <xkovar77@stud.fit.vutbr.cz>
 */
 
-#ifndef INTERPRET_H_
-#define INTERPRET_H_
+#ifndef SEMANTIC_CHECK_H_
+#define SEMANTIC_CHECK_H_
 #include "syntax_analysis.h"
 
 typedef struct {
-    Syntax_context* s;
-    Value_list* loc_stack;
-    Value_list* globals;
-} Inter_ctx;
+    char* description;
+    int ret_code;
+}Error;
 
-Function* getFunc(Syntax_context* ctx, char* fkName);
-void execute(Syntax_context* ctx);
+typedef struct {
+    Error* err;
+    int size;
+    int count;
+} Err_list;
+
+typedef struct {
+    Syntax_context* s_ctx;
+    Err_list errs;
+}Sem_ctx;
+
+void check_semantic(Syntax_context* ctx);
 
 #endif

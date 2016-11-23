@@ -209,6 +209,7 @@
     <ClInclude Include="..\interpret.h" />
     <ClInclude Include="..\return_codes.h" />
     <ClInclude Include="..\scanner.h" />
+    <ClInclude Include="..\semantic_check.h" />
     <ClInclude Include="..\syntax_analysis.h" />
   </ItemGroup>
   <ItemGroup>
@@ -219,6 +220,7 @@
     <ClCompile Include="..\interpret.c" />
     <ClCompile Include="..\main.c" />
     <ClCompile Include="..\scanner.c" />
+    <ClCompile Include="..\semantic_check.c" />
     <ClCompile Include="..\syntax_analysis.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -12,6 +12,7 @@
 #include "gc.h"
 #include "syntax_analysis.h"
 #include "interpret.h"
+#include "semantic_check.h"
 
 #ifdef _MSC_VER 
 #define _CRT_SECURE_NO_WARNINGS
@@ -33,6 +34,7 @@ int main(int argc, char* argv[]) {
 
     Syntax_context* syntax = init_syntax(fp);
     parse_program(syntax);
+    check_semantic(syntax);
     execute(syntax);
 
     return 0;

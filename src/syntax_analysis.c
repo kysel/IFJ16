@@ -206,8 +206,8 @@ void parse_assigmnent(Syntax_context* ctx, Statement_collection* statements, Par
     Statement st = {
         .type = assigment,
         .assignment.target = symbol->id,
+        .assignment.source = *parseExpression(ctx->expCtx, ctx->s_ctx)
     };
-    st.assignment.source = *parseExpression(ctx->expCtx, ctx->s_ctx);
     add_statement(statements, st);
     check_and_get_token(ctx->s_ctx, T_SEMICOLON);
 }
@@ -217,7 +217,7 @@ void parse_definition(Syntax_context* ctx, Statement_collection* statements) {
     Parsed_id id = parse_id(ctx->s_ctx, ctx->current_class);
     if (id.fullQ) {
         fprintf(stderr, "Declaration of class variable inside method. line %d in file %s.\n", __LINE__, __FILE__);
-        exit(1337);
+        exit(syntactic_analysis_error);
     }
 
     Symbol_tree_leaf* symbol = add_symbol(&ctx->local_symbols, id.name);
@@ -226,8 +226,8 @@ void parse_definition(Syntax_context* ctx, Statement_collection* statements) {
     Statement st = {
         .type = declaration,
         .declaration.variable.id = symbol->id,
-        .declaration.variable.type = type,
-        .declaration.variable.init_expr = NULL
+        .declaration.variable.init_expr = NULL,
+        .declaration.variable.type = type
     };
 
     add_statement(statements, st);
