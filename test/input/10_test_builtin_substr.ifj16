@@ -1,0 +1,20 @@
+/* Substring test */
+
+class Main 
+{
+   static void run() 
+   {
+    String str = "123456789abcdefghijklmn";
+    String str2 = ifj16.substr(str, 10, 20);
+    ifj16.print("nasledujici string musi odpovidat '6789a'\n");
+    ifj16.print("str2 = " + str2 + "\n");
+    int i = ifj16.compare("6789a", str2);
+    if (i == 0) {
+    	ifj16.print("nasledujici stringy se shoduji\n");
+    }
+    else {
+    	ifj16.print("nasledujici string se neshoduji\n");
+    }
+
+   }
+}

@@ -1,0 +1,10 @@
+/* Mezera v plne kvalifikovanem identifikatoru */
+class Main
+{
+    static int x;
+    static void run()
+    {
+        Main . x = 42;
+
+    } // end of static void run()
+} // end of class Main
