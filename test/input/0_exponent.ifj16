@@ -1,0 +1,20 @@
+/* IFJ16 */
+
+class Main 
+{
+   static void run() 
+   {
+    double cislo = 2e2;
+    ifj16.print("cislo je " + cislo + "\n");
+    cislo = 2e+2;
+    ifj16.print("cislo je " + cislo + "\n");
+    cislo = 2e-2;
+    ifj16.print("cislo je " + cislo + "\n");
+    cislo = 2E2;
+    ifj16.print("cislo je " + cislo + "\n");
+    cislo = 2E+2;
+    ifj16.print("cislo je " + cislo + "\n");
+    cislo = 2E-2;
+    ifj16.print("cislo je " + cislo + "\n");
+   }
+}
