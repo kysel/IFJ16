@@ -1,0 +1,9 @@
+/* Substring test */
+
+class Main 
+{
+   static void run() 
+   {
+    String st.r = "abcde";
+   }
+}
