@@ -93,8 +93,6 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
 
     Ttoken* token = (Ttoken *)gc_alloc(sizeof(Ttoken));
 
-    token->whence = ftell(scanner_struct->f);
-
     do {
         c = fgetc(scanner_struct->f);
         switch (state) {
@@ -178,6 +176,12 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                     tmp_string = char_append(tmp_string, &alloc_len, c);
                     state = FSM_ID;
                 } else {
+                    if (c == 32) {
+                        scanner_struct->space_flag = 1;
+                    }
+                    else {
+                        scanner_struct->space_flag = 0;
+                    }
                     ungetc(c, scanner_struct->f);
                     kw_ptr = (is_keyword(tmp_string));
                     if (kw_ptr == NULL) {
@@ -327,6 +331,12 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                 break;
 
             case FSM_DOT:
+                if (scanner_struct->space_flag == 1 || c == 32) {
+                    token->space_flag = 1;
+                }
+                else {
+                    token->space_flag = 0;
+                }
                 ungetc(c, scanner_struct->f);
                 token->type = T_DOT;
                 token->tlen = strlen(tmp_string);
