@@ -1,0 +1,12 @@
+/* IFJ16 */
+
+class Main 
+{
+   static void run() 
+   {
+    int cislo_binary = 0b1010;
+    double cislo_hex = 0xFF.FFp-1;
+    
+    ifj16.print("cisla jsou " + cislo_binary + " a " + cislo_hex + "\n");
+   }
+}

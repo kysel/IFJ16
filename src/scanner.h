@@ -128,7 +128,7 @@ typedef struct {
     token_type type;
     size_t tlen; //lenght of token string
     long long line; //line number
-    long whence; //position within line
+    int space_flag;
     char* c; //token string literally
     union {
         Data_type dtype; //data types eg.double,int..
@@ -144,6 +144,7 @@ typedef struct {
 typedef struct {
     FILE* f;
     long long line; //save line number among calling get_token
+    int space_flag;
     Ttoken* token;
 } Tinit;
 
