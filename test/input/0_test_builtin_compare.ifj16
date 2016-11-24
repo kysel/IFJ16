@@ -8,7 +8,6 @@ class Main
     int cmp = ifj16.compare(str, "abcdefgh");
     if (cmp != 0) {
             ifj16.print("Neshoduji se");
-            return;
             }
     else {
     }

@@ -1,0 +1,10 @@
+/* deklarace promennych */
+class Main
+{
+    static int x;
+    static void run()
+    {
+        int y;
+
+    } // end of static void run()
+} // end of class Main
