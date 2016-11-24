@@ -1,9 +1,9 @@
-/* Mezera v plne kvalifikovanem identifikatoru v expressnu */
+/* Prace s neinicializovanou promennou */
 class Main
 {
     static void run()
     {
-    	int j = trida.x;
+    	int j = trida.x + 5;
 
     } // end of static void run()
 } // end of class Main
