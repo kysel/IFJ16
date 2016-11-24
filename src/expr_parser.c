@@ -154,6 +154,7 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init* symbol_tabs, long long line)
                     strcat(full_name, ".");
                     strcat(full_name, right_token->c);
 
+                    expression->type = variable;
                     if ((leaf = get_symbol_by_key(symbol_tabs->global_tab, full_name)))
                         expression->variable = leaf->id;
                     else {
