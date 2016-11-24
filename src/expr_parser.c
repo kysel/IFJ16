@@ -144,7 +144,7 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init* symbol_tabs, long long line)
                 Ttoken* middle_token = s->arr[s->top_element - 1].address;
                 Ttoken* right_token = s->arr[s->top_element].address;
 
-                if (left_token->type == T_ID && middle_token->type == T_DOT && right_token->type == T_ID) {
+                if (left_token->type == T_ID && middle_token->type == T_DOT && middle_token->space_flag == 0 && right_token->type == T_ID) {
                     Symbol_tree_leaf* leaf;
 
                     //Vytvorenie plne kvalifikovaného identifikátora
@@ -275,7 +275,7 @@ void processFunCall(t_Stack* s, Tinit* scanner, t_Expr_Parser_Init* symbol_tabs,
         Ttoken* middle_token = s->arr[s->top_element - 1].address;
         Ttoken* right_token = s->arr[s->top_element].address;
 
-        if (left_token->type == T_ID && middle_token->type == T_DOT && right_token->type == T_ID) {
+        if (left_token->type == T_ID && middle_token->type == T_DOT && middle_token->space_flag == 0 && right_token->type == T_ID) {
             //Vytvorenie plne kvalifikovaného identifikátora
             full_name = gc_alloc(sizeof(char) * (strlen(left_token->c) + strlen(right_token->c) + 2));
             full_name[0] = '\0';
