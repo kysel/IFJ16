@@ -1,0 +1,16 @@
+/* Volani funkce v expression s pridanymi opracemi 2 */
+class Main
+{
+    static void run()
+    {
+    	int x;
+    	x = (funkce(funkce(funkce(5))) + 1) / 2;
+    	ifj16.print(x - 1 + "\n");
+    }
+    static int funkce(int n) // Definice funkce
+    {
+        int a = n;
+        int b = a - 1;
+        return a * b;
+    }
+}
