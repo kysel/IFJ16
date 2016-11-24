@@ -1,4 +1,4 @@
-/* Mezera v plne kvalifikovanem identifikatoru v expressnu */
+/* Plne kvalifikovany identifikator v expressnu bez inicializace */
 class Main
 {
     static void run()
