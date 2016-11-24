@@ -110,10 +110,11 @@ do
          echo -e "----------------------------\n" >> "$logfile"
       fi
       echo "" #EMPTY LINE
+   else echo "" #EMPTY LINE
    fi
    echo -e "--------------------------------------------------------" >> "$logfile"
    echo "      End of log for file: $shortname" >> "$logfile"
 done;
-echo -e "\n--------------------------------------------------------\n" 
+echo -e "--------------------------------------------------------\n" 
 echo -e "$OK of $TESTS tests were ${GREEN}[ OK ]${NC}"
 echo -e "$FAIL of $TESTS tests ended with ${RED}[FAIL]${NC}"
