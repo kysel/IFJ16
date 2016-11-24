@@ -11,7 +11,9 @@
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
-
+FAIL=0
+OK=0
+FILES=0
 for filename in input/*.ifj16
 do
    shortname=$(basename "$filename") #java hates folders
@@ -79,8 +81,12 @@ do
    
    if [ "$returncode" != "$ifj16ret" ]; then
       echo -e "${RED}[FAIL]${NC} ... IFJ16 return code is $ifj16ret, but $returncode was expected, see $logfile."
+      FAIL=$((FAIL+1))
+      TESTS=$((TESTS+1))
    else
       echo -e "${GREEN}[ OK ]${NC} ... IFJ16 return code is $ifj16ret, and it was expected."
+      OK=$((OK+1))
+      TESTS=$((TESTS+1))
    fi
    #echo $ifj16out
    
@@ -89,12 +95,16 @@ do
       DIFF=$(diff <(echo $javaout) <(echo $ifj16out))
       if [ "$DIFF" != "" ]; then 
          echo -e "${RED}[FAIL]${NC} ... IFJ16 output of $shortname is different, see $logfile."
+         FAIL=$((FAIL+1))
+         TESTS=$((TESTS+1))
          echo "Output of diff:" >> "$logfile"
          echo -e "----------------------------" >> "$logfile"
          echo "$DIFF" >> "$logfile"
          echo -e "----------------------------\n" >> "$logfile"
       else
          echo -e "${GREEN}[ OK ]${NC} ... IFJ16 output of $shortname is correctly intepreted."
+         OK=$((OK+1))
+         TESTS=$((TESTS+1))
          echo -e "----------------------------" >> "$logfile"
          echo -e "Outputs are matching." >> "$logfile"
          echo -e "----------------------------\n" >> "$logfile"
@@ -104,3 +114,6 @@ do
    echo -e "--------------------------------------------------------" >> "$logfile"
    echo "      End of log for file: $shortname" >> "$logfile"
 done;
+echo -e "\n--------------------------------------------------------\n" 
+echo -e "$OK of $TESTS tests were ${GREEN}[ OK ]${NC}"
+echo -e "$FAIL of $TESTS tests ended with ${RED}[FAIL]${NC}"
