@@ -75,15 +75,19 @@ Parsed_id parse_id(Tinit* scanner, const char* currentClass) {
     ret.nameTok = nameTok;
     if (peek_token(scanner)->type == T_DOT) {
         get_token(scanner); //consume '.'
-        char* name2 = check_and_get_token(scanner, T_ID)->c;
-        char* FKname = gc_alloc(sizeof(char) * (strlen(nameTok->c) + strlen(name2)) + 2);
+        Ttoken* name2 = check_and_get_token(scanner, T_ID);
+        if(name2->space_flag == true) {
+            fprintf(stderr, "Invalid identifier\n");
+            exit(syntactic_analysis_error);
+        }
+        char* FKname = gc_alloc(sizeof(char) * (strlen(nameTok->c) + strlen(name2->c)) + 2);
         FKname[0] = 0;
         strcat(FKname, nameTok->c);
         strcat(FKname, ".");
-        strcat(FKname, name2);
+        strcat(FKname, name2->c);
         ret.fullQ = true;
         ret.class = nameTok->c;
-        ret.name = name2;
+        ret.name = name2->c;
         ret.full = FKname;
         return ret;
     }
@@ -109,12 +113,12 @@ void parse_class(Syntax_context* ctx) {
             Ttoken* type = check_and_get_token(ctx->s_ctx, T_TYPE);
             Parsed_id name = parse_id(ctx->s_ctx, ctx->current_class);
             if (name.fullQ) {
-                fprintf(stderr, "Fully qualified name not allowed here, line %lld", name.nameTok->line);
+                fprintf(stderr, "Fully qualified name not allowed here, line %lld\n", name.nameTok->line);
                 exit(1337);
             }
 
-            Ttoken* fnOrVar = check_and_peek_token(ctx->s_ctx, T_SEMICOLON | T_BRACKET_LROUND);
-            if (fnOrVar->type == T_SEMICOLON) {
+            Ttoken* fnOrVar = check_and_peek_token(ctx->s_ctx, T_SEMICOLON | T_ASSIGN | T_BRACKET_LROUND);
+            if (fnOrVar->type == T_SEMICOLON || fnOrVar->type == T_ASSIGN) {
                 Variable var = parse_global_variable(ctx, type->dtype);
                 Symbol_tree_leaf* varLeaf = add_symbol(&ctx->global_symbols, name.full);
                 varLeaf->type = var.type;
@@ -148,14 +152,16 @@ void add_parameter(Parameter_list* collection, Expression expr) {
 
 Variable parse_global_variable(Syntax_context* ctx, Data_type type) {
     if (type == void_t) {
-        fprintf(stderr, "Invalid variable type, type \'void\' cannot be used here, l. %%");
+        fprintf(stderr, "Invalid variable type, type \'void\' cannot be used here, l. %%\n");
         exit(semantic_error_in_types);
     }
     Variable ret = {.type = type};
     Ttoken* nextToken = check_and_get_token(ctx->s_ctx, T_ASSIGN | T_SEMICOLON);
 
-    if (nextToken->type == T_ASSIGN)
+    if (nextToken->type == T_ASSIGN) {
         ret.init_expr = parseExpression(ctx->expCtx, ctx->s_ctx);
+        check_and_get_token(ctx->s_ctx, T_SEMICOLON);
+    }
     else if (nextToken->type == T_SEMICOLON)
         ret.init_expr = NULL;
     return ret;
@@ -205,9 +211,10 @@ void parse_assigmnent(Syntax_context* ctx, Statement_collection* statements, Par
     check_and_get_token(ctx->s_ctx, T_ASSIGN);
     Statement st = {
         .type = assigment,
-        .assignment.target = symbol->id,
-        .assignment.source = *parseExpression(ctx->expCtx, ctx->s_ctx)
+        .assignment.target = symbol->id
     };
+    Expression* sourceExpr = parseExpression(ctx->expCtx, ctx->s_ctx);
+    st.assignment.source = *sourceExpr;
     add_statement(statements, st);
     check_and_get_token(ctx->s_ctx, T_SEMICOLON);
 }
@@ -334,7 +341,7 @@ void parse_statement(Syntax_context* ctx, Statement_collection* statements) {
                 parse_definition(ctx, statements);
             else {
                 //TODO engliš
-                fprintf(stderr, "Local variable cannot be defined inside fixme(SLOZENY VYRAZ).");
+                fprintf(stderr, "Local variable cannot be defined inside fixme(SLOZENY VYRAZ).\n");
                 exit(1337);
             }
             break;
@@ -350,7 +357,7 @@ void parse_statement(Syntax_context* ctx, Statement_collection* statements) {
             switch (check_and_peek_keyword(ctx->s_ctx, K_DO | K_FOR | K_IF | K_RETURN | K_WHILE)) {
                 case K_DO:
                 case K_FOR:
-                    fprintf(stderr, "Use of unsupported extension.");
+                    fprintf(stderr, "Use of unsupported extension.\n");
                     exit(98);
                 case K_IF:
                     parse_if(ctx, statements);

@@ -96,10 +96,30 @@ Value implicit_cast(Value val, Data_type to) {
     exit(semantic_error_in_types);
 }
 
-Value* get_val(Inter_ctx* ctx, int id) {
+void set_val(Inter_ctx* ctx, int id, Value val) {
+    if (val.init == false) {
+        fprintf(stderr, "Use of uninitialized variable\n");
+        exit(runtime_uninitialized_variable_access);
+    }
+    Value* ret;
     if (id >= 0)
-        return &ctx->loc_stack->val[id];
-    return &ctx->globals->val[-(id + 1)];
+        ret = &ctx->loc_stack->val[id];
+    else
+        ret = &ctx->globals->val[-(id + 1)];
+    *ret = val;
+}
+
+Value* get_val(Inter_ctx* ctx, int id) {
+    Value* ret;
+    if (id >= 0)
+        ret = &ctx->loc_stack->val[id];
+    else
+        ret = &ctx->globals->val[-(id + 1)];
+    if(ret->init == false) {
+        fprintf(stderr, "Use of uninitialized variable\n");
+        exit(runtime_uninitialized_variable_access);
+    }
+    return ret;
 }
 
 Return_value eval_func(Inter_ctx* ctx, FunctionCall* fCall) {
@@ -156,7 +176,12 @@ Value eval_op_tree(Inter_ctx* ctx, BinOpTree* tree) {
     Value left = eval_expr(ctx, tree->left_expr);
     Value right = eval_expr(ctx, tree->right_expr);
 
-    Value ret = {.init = tree,.type = void_t};
+    if(left.init == false || right.init == false) {
+        fprintf(stderr, "Use uf uninitialized variable.\n");
+        exit(runtime_uninitialized_variable_access);
+    }
+
+    Value ret = {.init = true, .type = void_t};
     switch (tree->BinOp) {
         case OP_ADD:
             if (left.type == string_t || right.type == string_t) {
@@ -331,7 +356,7 @@ Value eval_op_tree(Inter_ctx* ctx, BinOpTree* tree) {
 
     if (ret.type == void_t) {
         fprintf(stderr, "lolternal error. line %d in file %s.\n", __LINE__, __FILE__);
-        exit(1337);
+        exit(internal_error);
     }
     return ret;
 }
@@ -355,26 +380,22 @@ Value eval_expr(Inter_ctx* ctx, Expression* ex) {
                     exit(1337);
                 case string_t:
                     return (Value) {.type = string_t, .s = ex->constant.c, .init = true};
-                default: break;
+                default:
+                    fprintf(stderr, "Fuckuplo se to u expressionu. line %d in file %s.\n", __LINE__, __FILE__);
+                    exit(internal_error);
             }
         }
-            break;
         case bin_op_tree:
             return eval_op_tree(ctx, &ex->tree);
         default:
             fprintf(stderr, "Fuckuplo se to u expressionu. line %d in file %s.\n", __LINE__, __FILE__);
-            exit(1337);
+            exit(internal_error);
     }
-    return (Value) {.init = true};
 }
 
 void eval_declaration(Inter_ctx* ctx, Statement* st) {
     if (st->declaration.variable.init_expr != NULL)
-        *get_val(ctx, st->declaration.variable.id) = eval_expr(ctx, st->declaration.variable.init_expr);
-}
-
-void eval_assign(Inter_ctx* ctx, Statement* st) {
-    *get_val(ctx, st->assignment.target) = eval_expr(ctx, &st->assignment.source);
+        set_val(ctx, st->declaration.variable.id, eval_expr(ctx, st->declaration.variable.init_expr));
 }
 
 Return_value eval_cond(Inter_ctx* ctx, If_statement* ifSt) {
@@ -393,19 +414,20 @@ Return_value eval_while(Inter_ctx* ctx, While_statement* stWhile) {
 
 Return_value eval_statement(Inter_ctx* ctx, Statement* st) {
     switch (st->type) {
-        case declaration: eval_declaration(ctx, st);
-            break;
-        case expression:
-            return (Return_value) {.returned = false, .val = eval_expr(ctx, &st->expression)};
-        case condition: return eval_cond(ctx, &st->condition);
-        case assigment: eval_assign(ctx, st);
-            break;
-        case while_loop: return eval_while(ctx, &st->while_loop);
-        case Return:
-            return (Return_value) { .returned = true, .val = eval_expr(ctx, &st->ret) };
-        default: break;
+    case declaration: eval_declaration(ctx, st);
+        break;
+    case expression:
+        return (Return_value) { .returned = false, .val = eval_expr(ctx, &st->expression) };
+    case condition: return eval_cond(ctx, &st->condition);
+    case assigment:
+        set_val(ctx, st->assignment.target, eval_expr(ctx, &st->assignment.source));
+        break;
+    case while_loop: return eval_while(ctx, &st->while_loop);
+    case Return:
+        return (Return_value) { .returned = true, .val = eval_expr(ctx, &st->ret) };
+    default: break;
     }
-    return (Return_value) {.returned = false};
+    return (Return_value) { .returned = false };
 }
 
 Return_value eval_st_list(Inter_ctx* ctx, const Statement_collection* statements) {
@@ -415,6 +437,16 @@ Return_value eval_st_list(Inter_ctx* ctx, const Statement_collection* statements
             return ret;
     return (Return_value) {.returned = false, .val.type = void_t};
 }
+
+void init_globals_impl(Inter_ctx* ctx, Symbol_tree_leaf* leaf) {
+    if (leaf->init_expr != NULL)
+        set_val(ctx, leaf->id, eval_expr(ctx, leaf->init_expr));
+    if (leaf->left != NULL)
+        init_globals_impl(ctx, leaf->left);
+    if (leaf->right != NULL)
+        init_globals_impl(ctx, leaf->right);
+}
+
 
 void execute(Syntax_context* syntax) {
     Inter_ctx ctxNoPtr = {.s = syntax};
@@ -428,6 +460,7 @@ void execute(Syntax_context* syntax) {
 #endif
 
     ctx->globals = alloc_stack(ctx->s->globals);
+    init_globals_impl(ctx, ctx->s->global_symbols.root);
     FunctionCall runMain = {.name = "Main.run",.parameters.count = 0};
     eval_func(ctx, &runMain);
 }
