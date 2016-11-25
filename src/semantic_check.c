@@ -62,12 +62,6 @@ void check_func(Sem_ctx* ctx, const Function f) {
     for(int i=0; i!=f.statements.count; i++) {
         Statement st = f.statements.statements[i];
         switch (st.type) {
-            case Return:
-                if (!hasReturned)
-                    hasReturned = true;
-                else
-                    append_err(&ctx->errs, new_err(semantic_error_in_code, "Unreachable statement 'return'"));
-                break;
             default: break;
         }
     }
