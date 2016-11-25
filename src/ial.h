@@ -27,6 +27,7 @@ typedef struct Symbol_tree_leaf_s {
     int id;
     Data_type type;
     Expression* init_expr;
+    bool defined;
     struct Symbol_tree_leaf_s* left;
     struct Symbol_tree_leaf_s* right;
 } Symbol_tree_leaf;

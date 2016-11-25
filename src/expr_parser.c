@@ -159,6 +159,8 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init* symbol_tabs, long long line)
                         expression->variable = leaf->id;
                     else {
                         leaf = add_symbol(symbol_tabs->global_tab, full_name);
+                        leaf->defined = false;
+                        leaf->init_expr = NULL;
                         expression->variable = leaf->id;
                     }
 

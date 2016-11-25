@@ -449,6 +449,11 @@ void init_globals_impl(Inter_ctx* ctx, Symbol_tree_leaf* leaf) {
         init_globals_impl(ctx, leaf->right);
 }
 
+void init_globals(Inter_ctx* ctx, Symbol_tree* tree) {
+    for (int i=0; i!= ctx->globals->count; i++)
+        ctx->globals->val[i].init = false;
+    init_globals_impl(ctx, tree->root);
+}
 
 void execute(Syntax_context* syntax) {
     Inter_ctx ctxNoPtr = {.s = syntax};
@@ -462,7 +467,7 @@ void execute(Syntax_context* syntax) {
 #endif
 
     ctx->globals = alloc_stack(ctx->s->globals);
-    init_globals_impl(ctx, ctx->s->global_symbols.root);
+    init_globals(ctx, &ctx->s->global_symbols);
     FunctionCall runMain = {.name = "Main.run",.parameters.count = 0};
     eval_func(ctx, &runMain);
 }
