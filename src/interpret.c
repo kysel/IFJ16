@@ -439,6 +439,8 @@ Return_value eval_st_list(Inter_ctx* ctx, const Statement_collection* statements
 }
 
 void init_globals_impl(Inter_ctx* ctx, Symbol_tree_leaf* leaf) {
+    if(leaf == NULL)
+        return;
     if (leaf->init_expr != NULL)
         set_val(ctx, leaf->id, eval_expr(ctx, leaf->init_expr));
     if (leaf->left != NULL)
