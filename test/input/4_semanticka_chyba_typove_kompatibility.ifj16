@@ -1,0 +1,12 @@
+/* IFJ16 */
+
+class Main 
+{
+   static void run() 
+   {
+   ifj16.print("TEST\n");
+   return 5;
+   }
+}
+
+/* z diskuze https://wis.fit.vutbr.cz/FIT/st/phorum-msg-show.php?id=45670&mode=mthr */
