@@ -34,6 +34,7 @@ int main(int argc, char* argv[]) {
 
     Syntax_context* syntax = init_syntax(fp);
     parse_program(syntax);
+    fclose(fp);
     check_semantic(syntax);
     execute(syntax);
 
