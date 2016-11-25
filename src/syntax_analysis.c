@@ -74,20 +74,20 @@ Parsed_id parse_id(Tinit* scanner, const char* currentClass) {
     ret.name = nameTok->c;
     ret.nameTok = nameTok;
     if (peek_token(scanner)->type == T_DOT) {
-        get_token(scanner); //consume '.'
-        Ttoken* name2 = check_and_get_token(scanner, T_ID);
-        if(name2->space_flag == true) {
+        Ttoken* dot = get_token(scanner); //consume '.'
+        char* name2 = check_and_get_token(scanner, T_ID)->c;
+        if(dot->space_flag != 0) {
             fprintf(stderr, "Invalid identifier\n");
             exit(syntactic_analysis_error);
         }
-        char* FKname = gc_alloc(sizeof(char) * (strlen(nameTok->c) + strlen(name2->c)) + 2);
+        char* FKname = gc_alloc(sizeof(char) * (strlen(nameTok->c) + strlen(name2)) + 2);
         FKname[0] = 0;
         strcat(FKname, nameTok->c);
         strcat(FKname, ".");
-        strcat(FKname, name2->c);
+        strcat(FKname, name2);
         ret.fullQ = true;
         ret.class = nameTok->c;
-        ret.name = name2->c;
+        ret.name = name2;
         ret.full = FKname;
         return ret;
     }
@@ -120,6 +120,10 @@ void parse_class(Syntax_context* ctx) {
             Ttoken* fnOrVar = check_and_peek_token(ctx->s_ctx, T_SEMICOLON | T_ASSIGN | T_BRACKET_LROUND);
             if (fnOrVar->type == T_SEMICOLON || fnOrVar->type == T_ASSIGN) {
                 Variable var = parse_global_variable(ctx, type->dtype);
+                if(get_symbol_by_key(&ctx->global_symbols, name.full) != NULL) {
+                    fprintf(stderr, "Symbol %s was previously defined.\n", name.full);
+                    exit(semantic_error_in_code);
+                }
                 Symbol_tree_leaf* varLeaf = add_symbol(&ctx->global_symbols, name.full);
                 varLeaf->type = var.type;
                 varLeaf->init_expr = var.init_expr;
@@ -227,6 +231,10 @@ void parse_definition(Syntax_context* ctx, Statement_collection* statements) {
         exit(syntactic_analysis_error);
     }
 
+    if(get_symbol_by_key(&ctx->local_symbols, id.name)!=NULL) {
+        fprintf(stderr, "Symbol %s was previously defined.\n", id.name);
+        exit(semantic_error_in_code);
+    }
     Symbol_tree_leaf* symbol = add_symbol(&ctx->local_symbols, id.name);
     symbol->type = type;
     symbol->init_expr = NULL;
@@ -433,6 +441,14 @@ void parse_function(Syntax_context* ctx, Data_type return_type, char* name) {
         .statements.size = 0,
         .statements.count = 0,
         .statements.statements = NULL};
+
+    if(get_symbol_by_key(&ctx->global_symbols, name) != NULL) {
+        fprintf(stderr, "Symbol %s was previously defined.\n", name);
+        exit(semantic_error_in_code);
+    }
+    Symbol_tree_leaf* fSym = add_symbol(&ctx->global_symbols, name);
+    ctx->global_symbols.nextId -= 1;
+    fSym->init_expr = NULL;
 
     Symbol_tree oldSymbols = ctx->local_symbols;
     ctx->local_symbols = symbol_tree_new(true);
