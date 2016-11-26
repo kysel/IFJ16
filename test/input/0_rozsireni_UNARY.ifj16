@@ -1,0 +1,15 @@
+/* IFJ16 */
+
+class Main 
+{
+   static void run() 
+   {
+    int x=10; int y=42; int z=9;
+    x = x---3;
+    ifj16.print("cislo je " + x + "\n");
+    y = x++-3;
+    ifj16.print("cislo je " + y + "\n");
+    z = ++x - --y;
+    ifj16.print("cislo je " + x + "\n");
+   }
+}
