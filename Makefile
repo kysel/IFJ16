@@ -8,4 +8,5 @@ all:
 	cd odevzdat/ && tar -zcvf ../xkyzli02.tgz *
 
 clean:
-	rm -r odevzdat
+	rm -rf odevzdat
+	rm xkyzli02.tgz
