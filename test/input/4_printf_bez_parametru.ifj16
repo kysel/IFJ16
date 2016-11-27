@@ -1,0 +1,9 @@
+/* IFJ16 */
+
+class Main 
+{
+   static void run() 
+   {
+    ifj16.print();
+   }
+}

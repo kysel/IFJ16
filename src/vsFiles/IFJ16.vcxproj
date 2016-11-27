@@ -19,7 +19,6 @@
     <ApplicationTypeRevision>1.0</ApplicationTypeRevision>
     <TargetLinuxPlatform>Generic</TargetLinuxPlatform>
     <LinuxProjectType>{D51BCBC9-82E9-4017-911E-C93873C4EA2B}</LinuxProjectType>
-    <ConfigurationType>Application</ConfigurationType>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
@@ -41,13 +40,32 @@
     <RemoteCCompileToolExe>gcc</RemoteCCompileToolExe>
   </PropertyGroup>
   <ItemGroup>
+    <ClCompile Include="..\binaryTree-test.c" />
+    <ClCompile Include="..\build_in.c" />
+    <ClCompile Include="..\expr_parser.c" />
+    <ClCompile Include="..\expr_parser_test.c" />
+    <ClCompile Include="..\find-test.c" />
     <ClCompile Include="..\gc.c" />
+    <ClCompile Include="..\ial.c" />
+    <ClCompile Include="..\interpret.c" />
     <ClCompile Include="..\main.c" />
+    <ClCompile Include="..\scanner.c" />
+    <ClCompile Include="..\semantic_check.c" />
+    <ClCompile Include="..\shellSort-test.c" />
+    <ClCompile Include="..\syntax_analysis.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\build_in.h" />
+    <ClInclude Include="..\expr_parser.h" />
+    <ClInclude Include="..\ast.h" />
     <ClInclude Include="..\gc.h" />
+    <ClInclude Include="..\hacks.h" />
+    <ClInclude Include="..\ial.h" />
+    <ClInclude Include="..\interpret.h" />
     <ClInclude Include="..\return_codes.h" />
     <ClInclude Include="..\scanner.h" />
+    <ClInclude Include="..\semantic_check.h" />
+    <ClInclude Include="..\syntax_analysis.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Makefile">

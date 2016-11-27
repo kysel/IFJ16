@@ -1,0 +1,16 @@
+/* Hello World! program in Java 8 */
+
+class Main 
+{
+   static void run() 
+   {
+    String str = "123456789abcdefghijklmnabcd";
+    int cmp = ifj16.compare(str, "abcdefgh");
+    if (cmp != 0) {
+            ifj16.print("Neshoduji se");
+            }
+    else {
+    }
+    return;
+   }
+}

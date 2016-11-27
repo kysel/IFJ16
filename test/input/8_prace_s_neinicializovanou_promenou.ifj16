@@ -1,0 +1,14 @@
+/* Prace s neinicializovanou promennou */
+class Main
+{
+    static void run()
+    {
+    	int j = trida.x + 5;
+
+    } // end of static void run()
+} // end of class Main
+
+class trida
+{
+	static int x;
+}

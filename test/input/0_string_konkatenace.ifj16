@@ -1,0 +1,12 @@
+/* IFJ16 */
+
+class Main 
+{
+   static void run() 
+   {
+    String str1 = "abc";
+    String str2 = "123456789abcdefghijklmnabcd";
+    String str = str1 + str2;
+    ifj16.print("Vysledek je: " + str + "\n");
+   }
+}

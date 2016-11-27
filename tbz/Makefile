@@ -1,5 +1,5 @@
-CFLAGS=-std=c11 -Wall -Wextra -pedantic -g
-SHELL := /bin/bash
+#release build interpretu
+CFLAGS=-std=c11 -Wall -Wextra -pedantic -o3
 
 #source files
 TESTSOURCES=$(wildcard *test.c)
@@ -16,10 +16,10 @@ ifj16: $(OBJECTS)
 binaryTree-test: $(filter-out main.o,$(OBJECTS))
 	$(CC) $(CFLAGS) $^ $@.c -o $@
 	valgrind -q --leak-check=full ./$@
-	
+
 find-test: $(filter-out main.o,$(OBJECTS))
 	$(CC) $(CFLAGS) $^ $@.c -o $@
-	valgrind -q --leak-check=full ./$@	
+	valgrind -q --leak-check=full ./$@
 
 shellSort-test: $(filter-out main.o,$(OBJECTS))
 	$(CC) $(CFLAGS) $^ $@.c -o $@
@@ -28,11 +28,3 @@ shellSort-test: $(filter-out main.o,$(OBJECTS))
 	mkdir -p .depend
 	$(CC) -c $(CFLAGS) $< -o $@
 	$(CC) $(CFLAGS) -MF".depend/$@.d" -MG -MM -MP -MT"$@" "$<"
-
-clean:
-	rm -rf *.o *.d .depend ifj16 find-test shellSort-test binaryTree-test ../test/*.class ../test/logs/*.log
-
-ifj16-test: ifj16
-	cd ../test/; ./test; \
-
--include .depend/*.d

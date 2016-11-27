@@ -1,0 +1,12 @@
+/* deklarace promennych 2 s returnem */
+class Main
+{
+    static int x;
+    static void run()
+    {
+        int y = 5;
+        int y = 6;
+        ifj16.print(y + "\n");
+        return;
+    } // end of static void run()
+} // end of class Main

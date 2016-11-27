@@ -1,0 +1,9 @@
+/* Tecka v nazvu promenne 1 */
+
+class Main 
+{
+   static void run() 
+   {
+    String .str = "abcde";
+   }
+}

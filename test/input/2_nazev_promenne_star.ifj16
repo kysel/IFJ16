@@ -1,0 +1,9 @@
+/* Hvezdicka v nazvu promenne */
+
+class Main 
+{
+   static void run() 
+   {
+    String *str = "abcde";
+   }
+}

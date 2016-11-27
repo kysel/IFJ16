@@ -1,0 +1,13 @@
+/* readString */
+
+class Main 
+{
+   static void run() 
+   {
+   int a = 0;
+   while (a < 10) {
+       ifj16.print("a je " + a + "\n");
+       a=a+1;
+    }
+   }
+}

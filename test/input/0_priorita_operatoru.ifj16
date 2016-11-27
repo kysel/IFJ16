@@ -1,0 +1,10 @@
+/* IFJ16 */
+
+class Main 
+{
+   static void run() 
+   {
+    int cislo = 42+2*4-8;
+    ifj16.print("cislo je " + cislo + "\n");
+   }
+}
