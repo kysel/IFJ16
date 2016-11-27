@@ -1,5 +1,5 @@
 #release build interpretu
-CFLAGS=-std=c11 -Wall -Wextra -pedantic -o3
+CFLAGS=-std=c11 -Wall -Wextra -pedantic -O3
 
 #source files
 TESTSOURCES=$(wildcard *test.c)
@@ -8,18 +8,9 @@ OBJECTS=$(SOURCES:.c=.o)
 
 all: ifj16
 
-test: binaryTree-test find-test shellSort-test ifj16-test
-
 ifj16: $(OBJECTS)
 	$(CC) $(CFLAGS) $^ -o $@
-
-binaryTree-test: $(filter-out main.o,$(OBJECTS))
-	$(CC) $(CFLAGS) $^ $@.c -o $@
-	valgrind -q --leak-check=full ./$@
-
-find-test: $(filter-out main.o,$(OBJECTS))
-	$(CC) $(CFLAGS) $^ $@.c -o $@
-	valgrind -q --leak-check=full ./$@
+	rm -rf .depend
 
 shellSort-test: $(filter-out main.o,$(OBJECTS))
 	$(CC) $(CFLAGS) $^ $@.c -o $@
