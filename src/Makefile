@@ -1,4 +1,4 @@
-CFLAGS=-std=c11 -Wall -Wextra -pedantic -g
+CFLAGS=-std=c11 -Wall -Wextra -pedantic -O3 -g
 SHELL := /bin/bash
 
 #source files
