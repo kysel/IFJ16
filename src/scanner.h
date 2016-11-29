@@ -15,6 +15,10 @@
 
 
 #define FOREACH_TOKEN(TOKEN)                              \
+    TOKEN(T_LOGIC_OR,         "||",         0x40000000)   \
+    TOKEN(T_LOGIC_AND,        "&&",         0x20000000)   \
+    TOKEN(T_BOOL,             "true/false", 0x10000000)   \
+    TOKEN(T_NOT,              "'!'",         0x8000000)   \
     TOKEN(T_ADD,              "'+'",         0x4000000)   \
     TOKEN(T_SUB,              "'-'",         0x2000000)   \
     TOKEN(T_MUL,              "'*'",         0x1000000)   \
@@ -75,6 +79,8 @@ typedef enum {
     FSM_LOWER, // "<"
     FSM_GREATER, // ">"
     FSM_NOT, // "!"
+    FSM_AND,
+    FSM_OR,
     FSM_QUOTE, // """
     FSM_ESCAPE,
     FSM_ESCAPE_OCTAL_1,
@@ -146,6 +152,7 @@ typedef struct {
     union {
         long int li; //if string is num,int value of char*c
         double d; //if string is num,double value of char*c
+        int b;
     };
 } Ttoken;
 
