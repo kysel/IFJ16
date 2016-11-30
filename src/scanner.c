@@ -197,8 +197,14 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                     tmp_string = char_append(tmp_string, &alloc_len, c);
                     state = FSM_ID;
                 } else if (c == '.') {
-                	tmp_string = char_append(tmp_string, &alloc_len, c);
-                	state = FSM_FID;
+                    kw_ptr = (is_keyword(tmp_string));
+                    if (kw_ptr == NULL) {
+                        tmp_string = char_append(tmp_string, &alloc_len, c);
+                        state = FSM_FID;   
+                    } else {
+                        fprintf(stderr, "SCANNER ERROR: ID error on line %lld!\n", scanner_struct->line);
+                        exit(lexical_analysis_error); 
+                    }                	
                 } else {
                     ungetc(c, scanner_struct->f);
                     kw_ptr = (is_keyword(tmp_string));
@@ -356,6 +362,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                 	fprintf(stderr, "SCANNER ERROR: ID error on line %lld!\n", scanner_struct->line);
                     exit(lexical_analysis_error);  
                 }
+                break;
 
             case FSM_FID1:
             	if (isalpha(c) || isdigit(c) || c == '_' || c == '$') {
@@ -369,6 +376,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
             		token->c = tmp_string;
             		return token;
             	}
+                break;
 
             case FSM_INT:
                 if (isdigit(c) || c == '_') {
