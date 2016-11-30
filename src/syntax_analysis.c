@@ -208,7 +208,7 @@ void parse_assigmnent(Syntax_context* ctx, Statement_collection* statements, Par
     if (id.fullQ == false)
     //definitely local symbol
         symbol = get_symbol(ctx, id.name);
-    if (symbol == NULL && id.fullQ == true) {
+    if (symbol == NULL /*&& id.fullQ == true*/) {
         symbol = get_symbol(ctx, id.full);
         if (symbol == NULL)
             symbol = add_symbol(&ctx->global_symbols, id.full);
