@@ -282,12 +282,16 @@ void processFunCall(t_Stack* s, Tinit* scanner, t_Expr_Parser_Init* symbol_tabs,
             strcat(full_name, token->c);
 
             stackPop(s);
+        } else if (token->type == T_FULL_ID) {
+            full_name = token->c;
+            
+            stackPop(s);
         } else {
             fprintf(stderr, "Syntax error on line %lld.\n", line);
             exit(syntactic_analysis_error);
         }
 
-    } else if (rule_lenght == 3 && s->arr[s->top_element - 2].type == TOKEN && s->arr[s->top_element - 1].type == TOKEN && s->arr[s->top_element].type == TOKEN) {
+    } /*else if (rule_lenght == 3 && s->arr[s->top_element - 2].type == TOKEN && s->arr[s->top_element - 1].type == TOKEN && s->arr[s->top_element].type == TOKEN) {
         Ttoken* left_token = s->arr[s->top_element - 2].address;
         Ttoken* middle_token = s->arr[s->top_element - 1].address;
         Ttoken* right_token = s->arr[s->top_element].address;
@@ -307,7 +311,7 @@ void processFunCall(t_Stack* s, Tinit* scanner, t_Expr_Parser_Init* symbol_tabs,
             fprintf(stderr, "Syntax error on line %lld.\n", line);
             exit(syntactic_analysis_error);
         }
-    } else {
+    }*/ else {
         fprintf(stderr, "Syntax error on line %lld.\n", line);
         exit(syntactic_analysis_error);
     }
