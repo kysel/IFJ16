@@ -1,0 +1,42 @@
+// Testovanie nacitania desatinych
+// cisel, zaklad - desatina cast - exponent
+
+class Main
+{
+	static void run()
+	{
+		// Cela cast
+		double aa = 0;
+		double ab = 2;
+		// Cela + desatina
+		double ba = 2.589;
+		
+		// Cela + exponent
+		double ca = 2e+5;
+		double cb = 2e-5;
+		double cc = 2E+5;
+		double cd = 2E-5;
+
+		// Cela + desatina + exponent
+		double da = 2.589e+5;
+		double db = 2.589e-5;
+		double dc = 2.589E+5;
+		double dd = 2.589E-5;
+
+		//Vypis cisel
+		ifj16.print(aa + "\n");
+		ifj16.print(ab+ "\n");
+
+		ifj16.print(ba + "\n");
+
+		ifj16.print(ca + "\n");
+		ifj16.print(cb + "\n");
+		ifj16.print(cc + "\n");
+		ifj16.print(cd + "\n");
+
+		ifj16.print(da + "\n");
+		ifj16.print(db + "\n");
+		ifj16.print(dc + "\n");
+		ifj16.print(dd + "\n");
+	}
+}

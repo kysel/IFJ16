@@ -1,0 +1,11 @@
+// Testy retazovych literalov
+// Chyba 1, \ddd <001, 377>
+
+class Main
+{
+	static void run()
+	{
+		String a = "Ahoj\nSve'te\\\042 \378";
+		ifj16.print(a);
+	}
+}

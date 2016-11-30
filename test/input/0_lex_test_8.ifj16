@@ -1,0 +1,12 @@
+// Testy retazovych literalov
+
+class Main
+{
+	static void run()
+	{
+		String a = "Ahoj\nSve'te\\\042" + "\n";
+		ifj16.print(a);
+
+		ifj16.print("Ahoj\nSve'te\\\042" + "\n");
+	}
+}

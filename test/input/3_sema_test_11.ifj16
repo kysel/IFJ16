@@ -1,0 +1,17 @@
+// Definovanie ifj16 triedy
+
+class Main
+{
+    static void run()
+    {
+        // Komentar
+    }
+}
+
+class ifj16
+{
+    static void test()
+    {
+    	// Komentar 2
+    }
+}

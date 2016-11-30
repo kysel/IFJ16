@@ -1,0 +1,16 @@
+// Vyraz v condition
+
+class Main
+{
+	static void run()
+	{
+		if ((2 + 5) > (10*2 - 200))
+		{
+			ifj16.print("Spravne" + "\n");
+		}
+		else
+		{
+			ifj16.print("Nespravne" + "\n");
+		}
+	}
+}
