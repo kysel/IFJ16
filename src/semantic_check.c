@@ -63,7 +63,7 @@ void check_func(Sem_ctx* ctx, const Function f) {
         Statement st = f.statements.statements[i];
         switch (st.type) {
         case Return:
-            if (f.return_type == void_t && st.ret.type != constant || st.ret.constant.type != void_t)
+            if (f.return_type == void_t && (st.ret.type != constant || st.ret.constant.type != void_t))
                 append_err(&ctx->errs, new_err(semantic_error_in_types, "Return contain expression in void function."));
             break;
         case expression:
