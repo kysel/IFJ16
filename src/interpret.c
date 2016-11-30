@@ -75,9 +75,21 @@ Value implicit_cast(Value val, Data_type to) {
                 snprintf(ret.s, strLength + 1, "%d", val.i);
             }
             else if (val.type == double_t) {
+#ifdef JAVA_SUCK
+                if (((long)val.d - val.d) == 0)
+                    strLength = snprintf(NULL, 0, "%.1f", val.d);
+                else
+                    strLength = snprintf(NULL, 0, "%g", val.d);
+                ret.s = gc_alloc(sizeof(char) * (strLength + 1));
+                if (((long)val.d - val.d) == 0)
+                    snprintf(ret.s, strLength + 1, "%.1f", val.d);
+                else
+                    snprintf(ret.s, strLength + 1, "%g", val.d);
+#else
                 strLength = snprintf(NULL, 0, "%g", val.d);
                 ret.s = gc_alloc(sizeof(char) * (strLength + 1));
                 snprintf(ret.s, strLength + 1, "%g", val.d);
+#endif
             }
             else
                 break;
