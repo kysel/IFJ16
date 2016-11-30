@@ -284,7 +284,7 @@ void processFunCall(t_Stack* s, Tinit* scanner, t_Expr_Parser_Init* symbol_tabs,
             stackPop(s);
         } else if (token->type == T_FULL_ID) {
             full_name = token->c;
-            
+
             stackPop(s);
         } else {
             fprintf(stderr, "Syntax error on line %lld.\n", line);
@@ -342,7 +342,7 @@ int terminal2TabIndex(void* terminal, long long line) {
         case T_NOT_EQUAL: return 9;
         case T_BRACKET_LROUND: return 10;
         case T_BRACKET_RROUND: return 11;
-        case T_DOT: return 12;
+        //case T_DOT: return 12;
         case T_ID: case T_FULL_ID: case T_INT: case T_DOUBLE: case T_STRING: return 13;
         case T_COMMA: case T_SEMICOLON: return 14;
         default:
