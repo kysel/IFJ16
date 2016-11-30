@@ -1,0 +1,10 @@
+/* nedefinovan static */
+class Main
+{
+	static int a = 42;
+    static int run()
+    {
+        ifj16.print(a);
+        return 0;
+    }
+}

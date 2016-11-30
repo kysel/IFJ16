@@ -1,0 +1,21 @@
+/* nedefinovan static */
+class Main
+{
+	static int a = 21;
+    static void run()
+    {
+    	if (int a = 1) {
+			ifj16.print("Chyba\n");    	
+    	}
+    	else {
+    		int i = funkce(a);
+    		ifj.print(a);
+    	}
+
+    }
+    static int funkce(int n) // Definice funkce
+    {
+        a = n - 1;
+        return a;
+    }
+}
