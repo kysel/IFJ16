@@ -8,7 +8,10 @@ OBJECTS=$(SOURCES:.c=.o)
 
 all: ifj16
 
-test: ifj16 binaryTree-test find-test shellSort-test ifj16-test
+test: clean binaryTree-test find-test shellSort-test ifj16-test
+	make -C . clean
+	make -C . ifj16-test
+	cd ../test/; ./test; \
 
 ifj16: $(OBJECTS)
 	$(CC) $(CFLAGS) $^ -o $@
@@ -34,6 +37,5 @@ clean:
 
 ifj16-test: CFLAGS=-std=c11 -Wall -Wextra -pedantic -O3 -g -DJAVA_SUCK
 ifj16-test: clean ifj16
-	cd ../test/; ./test; \
 
 -include .depend/*.d
