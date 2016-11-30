@@ -161,7 +161,15 @@ Value print(Value_list vals) {
         printf("%d", arg.i);
         break;
     case double_t:
+#ifdef JAVA_SUCK
+        if (((long)arg.d - arg.d) == 0)
+            printf("%.1f", arg.d);
+        else
+            printf("%g", arg.d);
+#else
         printf("%g", arg.d);
+#endif
+
         break;
     case string_t:
         printf("%s", arg.s);
