@@ -61,12 +61,6 @@ Value implicit_cast(Value val, Data_type to) {
             else
                 break;
             return ret;
-        case int_t:
-            if (val.type == double_t) {
-                ret.i = (int)val.d;
-                return ret;
-            }
-            break;
         case double_t:
             if (val.type == int_t) {
                 ret.d = (double)val.i;

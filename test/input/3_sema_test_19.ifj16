@@ -1,0 +1,21 @@
+// Definovanie 2 funkcii rovnakeho
+// mena v jednej triede
+// 3
+
+class Main
+{
+	static void run()
+	{
+		
+	}
+
+	static int test()
+	{
+
+	}
+
+	static int test()
+	{
+
+	}
+}

@@ -1,0 +1,21 @@
+// Priradenie hodnoty do premennej
+// v inej triede bez plneho identifikatora
+// 3
+
+class Main
+{
+	static double a = 5.0;
+	static void run()
+	{
+		
+	}
+}
+
+class Test
+{
+	static double b = a;
+	static void func()
+	{
+
+	}
+}
