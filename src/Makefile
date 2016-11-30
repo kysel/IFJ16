@@ -8,7 +8,7 @@ OBJECTS=$(SOURCES:.c=.o)
 
 all: ifj16
 
-test: binaryTree-test find-test shellSort-test ifj16-test
+test: ifj16 binaryTree-test find-test shellSort-test ifj16-test
 
 ifj16: $(OBJECTS)
 	$(CC) $(CFLAGS) $^ -o $@
