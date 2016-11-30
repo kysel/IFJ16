@@ -161,6 +161,26 @@ Symbol_tree_leaf* add_symbol(Symbol_tree* tree, const char* key) {
     return add_symbol_impl(tree, tree->root, key, 0);
 }
 
+void remove_symbol(Symbol_tree* tree, const char* key) {
+    Symbol_tree_leaf* node = tree->root;
+    Symbol_tree_leaf** ptrFromPrnt = &tree->root;
+    while(true) {
+        int balance = strcmp(node->key, key);
+        if (balance == 0) {
+            *ptrFromPrnt = NULL;
+            return;
+        }
+        if(balance < 0) {
+            ptrFromPrnt = &node->left;
+            node = node->left;
+        } else if(balance > 0) {
+            ptrFromPrnt = &node->right;
+            node = node->right;
+        }
+        if (node == NULL)
+            return;
+    }
+}
 
 Symbol_tree_leaf* get_symbol_by_key_impl(Symbol_tree_leaf* node, const char* key) {
     assert(node);

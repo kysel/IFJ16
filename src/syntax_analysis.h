@@ -32,6 +32,11 @@ typedef struct {
     Ttoken* nameTok;
 } Parsed_id;
 
+typedef struct {
+    Parsed_id id;
+    Statement declaration_st;
+}Parsed_declaration;
+
 Expression* parse_f_call(t_Expr_Parser_Init* exprCtx, Tinit* scanner, char* id);
 Syntax_context* init_syntax(FILE* input_file);
 void parse_program(Syntax_context* ctx);

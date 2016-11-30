@@ -158,9 +158,19 @@ typedef struct {
 } Assign_statement;
 
 typedef struct {
+    enum {
+        do_loop,
+        while_loop
+    }type;
     Expression condition;
     Statement_block statements;
-} While_statement;
+} Dw_loop;
+
+typedef struct {
+    Dw_loop loop;
+    Statement_block init;
+    Statement_block increment;
+}For_loop;
 
 typedef struct {
     Variable variable;
@@ -172,7 +182,8 @@ typedef struct Statement_s {
         expression,
         condition,
         assigment,
-        while_loop,
+        dw_loop,
+        for_loop,
         Return
     } type;
     union {
@@ -180,7 +191,8 @@ typedef struct Statement_s {
         Expression expression;
         If_statement condition;
         Assign_statement assignment;
-        While_statement while_loop;
+        Dw_loop dw_loop;
+        For_loop for_loop;
         Return_statement ret;
     };
 } Statement;

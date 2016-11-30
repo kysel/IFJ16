@@ -146,6 +146,12 @@ void add_statement(Statement_collection* collection, Statement statement) {
     collection->statements[collection->count++] = statement;
 }
 
+void init_statements(Statement_collection* collection) {
+    collection->count = 0;
+    collection->size = 0;
+    collection->statements = NULL;
+}
+
 void add_parameter(Parameter_list* collection, Expression expr) {
     if (collection->size == collection->count) {
         collection->size += 10;
@@ -203,12 +209,12 @@ Symbol_tree_leaf* get_symbol(Syntax_context* ctx, char* key) {
     return leaf;
 }
 
-void parse_assigmnent(Syntax_context* ctx, Statement_collection* statements, Parsed_id id) {
+void parse_assigmnent(Syntax_context* ctx, Statement_collection* statements, Parsed_id id, bool getSemicolon) {
     Symbol_tree_leaf* symbol = NULL;
     if (id.fullQ == false)
     //definitely local symbol
         symbol = get_symbol(ctx, id.name);
-    if (symbol == NULL && id.fullQ == true) {
+    if (symbol == NULL /*&& id.fullQ == true*/) {
         symbol = get_symbol(ctx, id.full);
         if (symbol == NULL)
             symbol = add_symbol(&ctx->global_symbols, id.full);
@@ -222,10 +228,11 @@ void parse_assigmnent(Syntax_context* ctx, Statement_collection* statements, Par
     Expression* sourceExpr = parseExpression(ctx->expCtx, ctx->s_ctx);
     st.assignment.source = *sourceExpr;
     add_statement(statements, st);
-    check_and_get_token(ctx->s_ctx, T_SEMICOLON);
+    if (getSemicolon)
+        check_and_get_token(ctx->s_ctx, T_SEMICOLON);
 }
 
-void parse_definition(Syntax_context* ctx, Statement_collection* statements) {
+Parsed_id parse_definition(Syntax_context* ctx, Statement_collection* statements) {
     Data_type type = check_and_get_token(ctx->s_ctx, T_TYPE)->dtype;
     Parsed_id id = parse_id(ctx->s_ctx, ctx->current_class);
     if (id.fullQ) {
@@ -253,7 +260,8 @@ void parse_definition(Syntax_context* ctx, Statement_collection* statements) {
     if (peek_token(ctx->s_ctx)->type == T_SEMICOLON)
         get_token(ctx->s_ctx);
     else if (check_and_peek_token(ctx->s_ctx, T_ASSIGN))
-        parse_assigmnent(ctx, statements, id);
+        parse_assigmnent(ctx, statements, id, true);
+    return id;
 }
 
 void parse_if(Syntax_context* ctx, Statement_collection* statements) {
@@ -315,18 +323,55 @@ void parse_function_call(Syntax_context* ctx, Statement_collection* statements, 
     add_statement(statements, *st);
 }
 
-void parse_while(Syntax_context* ctx, Statement_collection* statements) {
-    Statement st = {
-        .type = while_loop
-    };
-    check_and_get_keyword(ctx->s_ctx, K_WHILE);
-    check_and_get_token(ctx->s_ctx, T_BRACKET_LROUND);
-    st.while_loop.condition = *parseExpression(ctx->expCtx, ctx->s_ctx);
-    check_and_get_token(ctx->s_ctx, T_BRACKET_RROUND);
-    if (peek_token(ctx->s_ctx)->type != T_BRACKET_LCURLY)
-        parse_statement(ctx, &st.while_loop.statements);
-    else
-        parse_block(ctx, &st.while_loop.statements);
+void parse_cycle(Syntax_context* ctx, Statement_collection* statements) {
+    Statement st;
+    switch (check_and_get_keyword(ctx->s_ctx, K_FOR | K_DO | K_WHILE)) {
+    case K_FOR:
+        st.type = for_loop;
+        st.for_loop.loop.type = while_loop;
+        init_statements(&st.for_loop.init);
+        init_statements(&st.for_loop.increment);
+        init_statements(&st.for_loop.loop.statements);
+        check_and_get_token(ctx->s_ctx, T_BRACKET_LROUND);
+        Parsed_id iterVar = parse_definition(ctx, &st.for_loop.init);
+        st.for_loop.loop.condition = *parseExpression(ctx->expCtx, ctx->s_ctx);
+        check_and_get_token(ctx->s_ctx, T_SEMICOLON);
+        parse_assigmnent(ctx, &st.for_loop.increment, parse_id(ctx->s_ctx, ctx->current_class), false);
+        check_and_get_token(ctx->s_ctx, T_BRACKET_RROUND);
+        if (peek_token(ctx->s_ctx)->type == T_BRACKET_LCURLY)
+            parse_block(ctx, &st.for_loop.loop.statements);
+        else
+            parse_statement(ctx, &st.for_loop.loop.statements);
+        remove_symbol(&ctx->local_symbols, iterVar.name);
+        break;
+    case K_DO:
+        st.type = dw_loop;
+        st.dw_loop.type = do_loop;
+        init_statements(&st.dw_loop.statements);
+        if (peek_token(ctx->s_ctx)->type == T_BRACKET_LCURLY)
+            parse_block(ctx, &st.dw_loop.statements);
+        else
+            parse_statement(ctx, &st.dw_loop.statements);
+        check_and_get_keyword(ctx->s_ctx, K_WHILE);
+        check_and_get_token(ctx->s_ctx, T_BRACKET_LROUND);
+        st.dw_loop.condition = *parseExpression(ctx->expCtx, ctx->s_ctx);
+        check_and_get_token(ctx->s_ctx, T_BRACKET_RROUND);
+        check_and_get_token(ctx->s_ctx, T_SEMICOLON);
+        break;
+    case K_WHILE:
+        st.type = dw_loop;
+        st.dw_loop.type = while_loop;
+        init_statements(&st.dw_loop.statements);
+        check_and_get_token(ctx->s_ctx, T_BRACKET_LROUND);
+        st.dw_loop.condition = *parseExpression(ctx->expCtx, ctx->s_ctx);
+        check_and_get_token(ctx->s_ctx, T_BRACKET_RROUND);
+        if (peek_token(ctx->s_ctx)->type == T_BRACKET_LCURLY)
+            parse_block(ctx, &st.dw_loop.statements);
+        else
+            parse_statement(ctx, &st.dw_loop.statements);
+        break;
+    default: break;
+    }
     add_statement(statements, st);
 }
 
@@ -360,22 +405,20 @@ void parse_statement(Syntax_context* ctx, Statement_collection* statements) {
         case T_ID: {
             Parsed_id id = parse_id(ctx->s_ctx, ctx->current_class);
             if (check_and_peek_token(ctx->s_ctx, T_ASSIGN | T_BRACKET_LROUND)->type == T_ASSIGN)
-                parse_assigmnent(ctx, statements, id);
+                parse_assigmnent(ctx, statements, id, true);
             else
                 parse_function_call(ctx, statements, id.full);
             break;
         }
         case T_KEYWORD:
-            switch (check_and_peek_keyword(ctx->s_ctx, K_DO | K_FOR | K_IF | K_RETURN | K_WHILE)) {
+            switch (check_and_peek_keyword(ctx->s_ctx, K_DO | K_FOR | K_WHILE | K_IF | K_RETURN )) {
                 case K_DO:
                 case K_FOR:
-                    fprintf(stderr, "Use of unsupported extension.\n");
-                    exit(98);
+                case K_WHILE:
+                    parse_cycle(ctx, statements);
+                    break;
                 case K_IF:
                     parse_if(ctx, statements);
-                    break;
-                case K_WHILE:
-                    parse_while(ctx, statements);
                     break;
                 case K_RETURN:
                     parse_return(ctx, statements);
@@ -423,7 +466,7 @@ void printStList(Statement_collection stc) {
             case assigment:
                 printf("assignment\n");
                 break;
-            case while_loop:
+            case dw_loop:
                 printf("while-loop\n");
                 break;
             case Return:

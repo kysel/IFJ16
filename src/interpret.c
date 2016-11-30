@@ -404,7 +404,7 @@ Return_value eval_cond(Inter_ctx* ctx, If_statement* ifSt) {
     return  eval_st_list(ctx, &ifSt->caseFalse);
 }
 
-Return_value eval_while(Inter_ctx* ctx, While_statement* stWhile) {
+Return_value eval_while(Inter_ctx* ctx, Dw_loop* stWhile) {
     Return_value ret;
     while (eval_expr(ctx, &stWhile->condition).b)
         if ((ret = eval_st_list(ctx, &stWhile->statements)).returned)
@@ -422,7 +422,8 @@ Return_value eval_statement(Inter_ctx* ctx, Statement* st) {
     case assigment:
         set_val(ctx, st->assignment.target, eval_expr(ctx, &st->assignment.source));
         break;
-    case while_loop: return eval_while(ctx, &st->while_loop);
+        //TODO: FOR lůp
+    case dw_loop: return eval_while(ctx, &st->dw_loop);
     case Return:
         return (Return_value) { .returned = true, .val = eval_expr(ctx, &st->ret) };
     default: break;
