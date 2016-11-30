@@ -362,7 +362,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
             		tmp_string = char_append(tmp_string, &alloc_len, c);
                     state = FSM_FID1;
             	} else {
-            		ungetc(scanner_struct->f);
+            		ungetc(c,scanner_struct->f);
             		token->type = T_FULL_ID;
             		token->tlen = strlen(tmp_string);
             		token->line = scanner_struct->line;
@@ -928,7 +928,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                     state = FSM_ESCAPE;
                 } else if (c == '"') {
                     state = FSM_STRING;
-                } else if (!isprint(c)) {
+                } else if (c <= 31) {
                     fprintf(stderr, "SCANNER ERROR: Unidentified token on line %lld!\n", scanner_struct->line);
                     exit(lexical_analysis_error);
                 } else {
