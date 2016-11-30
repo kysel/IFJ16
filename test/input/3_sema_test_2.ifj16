@@ -1,0 +1,14 @@
+// Definovanie premennej a funkcie s rovnakym menom
+
+class Main
+{
+    static void run()
+    {
+        int redefine = 2;
+    }
+
+    static void redefine(int a)
+    {
+    	// prazdna
+    }
+}

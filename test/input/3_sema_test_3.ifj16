@@ -1,0 +1,14 @@
+// Praca s nedefinovanou premennou
+
+class Main
+{
+	static void notdefine(int a)
+    {
+    	
+    }
+
+    static void run()
+    {
+        notdefine(nd);
+    }
+}
