@@ -62,6 +62,28 @@ void check_func(Sem_ctx* ctx, const Function f) {
     for(int i=0; i!=f.statements.count; i++) {
         Statement st = f.statements.statements[i];
         switch (st.type) {
+        case Return:
+            if (f.return_type == void_t && st.ret.type != constant || st.ret.constant.type != void_t)
+                append_err(&ctx->errs, new_err(semantic_error_in_types, "Return contain expression in void function."));
+            break;
+        case expression:
+            switch (st.expression.type) {
+            case function_call: {
+                FunctionCall fcall = st.expression.fCall;
+                Function* func = getFunc(ctx->s_ctx, fcall.name);
+                if(func == NULL) {
+                    append_err(&ctx->errs, new_err(semantic_error_in_code, "Function '%s' does not exist.", fcall.name));
+                    break;
+                }
+                if (func->type == build_in)
+                    break;
+                if(fcall.parameters.count != func->parameters.count)
+                    append_err(&ctx->errs, new_err(semantic_error_in_types, "Invalid number of arguments in call '%s'.", fcall.name));
+            }
+                break;
+                default: break;
+            }
+            break;
             default: break;
         }
     }
@@ -73,11 +95,18 @@ void check_semantic(Syntax_context* ctx) {
     Sem_ctx* sem = &ctxVal;
     check_main(sem);
 
-    for(int i = 0; i!=sem->s_ctx->functions.count; i++) {
-        Function f = sem->s_ctx->functions.items[i];
-        if (f.type == build_in)
-            continue;
-        check_func(sem, f);
+    Function* mainFunc = getFunc(ctx, "Main.run");
+    if(mainFunc == NULL)
+        append_err(&sem->errs, new_err(98, "Function 'Main.run' does not exist."));
+    else if(mainFunc->parameters.count != 0)
+        append_err(&sem->errs, new_err(98, "Function 'Main.run' have invalid number of arguments."));
+    else {
+        for (int i = 0; i != sem->s_ctx->functions.count; i++) {
+            Function f = sem->s_ctx->functions.items[i];
+            if (f.type == build_in)
+                continue;
+            check_func(sem, f);
+        }
     }
 
     if (sem->errs.count != 0) {
