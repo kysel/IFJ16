@@ -113,7 +113,7 @@ void set_val(Inter_ctx* ctx, int id, Value val) {
     else
         ret = &ctx->globals->val[-(id + 1)];
     if(ret->init == false) {
-        Symbol_tree_leaf* symbol = get_symbol_by_id(id >= 0 ? ctx->current_func->local_symbols : &ctx->s->global_symbols, id);
+        Symbol_tree_leaf* symbol = get_symbol_by_id(id >= 0 ? &ctx->current_func->local_symbols : &ctx->s->global_symbols, id);
         ret->type = symbol->type;
     }
     Data_type resType = resulting_type(ret->type, val.type);
