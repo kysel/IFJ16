@@ -149,11 +149,17 @@ typedef struct {
     };
 } Ttoken;
 
+typedef struct {
+	Ttoken** tok;
+	int first;
+	int last;
+	int count;
+}TokenQueue;
 
 typedef struct {
     FILE* f;
     long long line; //save line number among calling get_token
-    Ttoken* token;
+	TokenQueue tQueue;
 } Tinit;
 
 /**
@@ -194,6 +200,15 @@ Ttoken* check_and_get_token(Tinit* scanner_struct, token_type type);
 Ttoken* check_and_peek_token(Tinit* scanner_struct, token_type type);
 
 /**
+* \brief Check if next token match type and returns it, otherwise exit with error. Does <b>NOT</b> consume token.
+* \param scanner_struct scanner context
+* \param n Lookahead factor
+* \param type Desired type of next token
+* \return next token
+*/
+Ttoken* check_and_peek_n_token(Tinit* scanner_struct, int n, token_type type);
+
+/**
 * \brief Check if next token keyword match type, consume and returns it, otherwise exit with error.
 * \param scanner_struct scanner context
 * \param type Desired type of next keyword
@@ -208,4 +223,13 @@ Keyword check_and_get_keyword(Tinit* scanner_struct, Keyword type);
 * \return next token
 */
 Keyword check_and_peek_keyword(Tinit* scanner_struct, Keyword type);
+
+/**
+* \brief Check if next token keyword match type and returns it, otherwise exit with error. Does <b>NOT</b> consume token.
+* \param scanner_struct scanner context
+* \param n Lookahead factor
+* \param keyword Desired type of next keyword
+* \return next token
+*/
+Keyword check_and_peek_n_keyword(Tinit* scanner_struct, int n, Keyword keyword);
 #endif

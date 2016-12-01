@@ -15,6 +15,10 @@
 #include "gc.h"
 #include "return_codes.h"
 
+#ifndef TOKEN_QUEUE_SIZE
+#define TOKEN_QUEUE_SIZE 20
+#endif
+
 char* keywords[17] = {"boolean", "break", "class", "continue","do",
     "double", "else", "false", "for", "if", "int",
     "return", "String", "static", "true", "void", "while"
@@ -25,8 +29,32 @@ Tinit* init_scanner(FILE* fp) {
     Tinit* scanner_struct = gc_alloc(sizeof(Tinit));
     scanner_struct->f = fp;
     scanner_struct->line = n;
-    scanner_struct->token = NULL;
+	scanner_struct->tQueue.tok = gc_alloc(sizeof(Ttoken*) * (TOKEN_QUEUE_SIZE + 1));
+	scanner_struct->tQueue.first = 0;
+	scanner_struct->tQueue.last = TOKEN_QUEUE_SIZE - 1;
+	scanner_struct->tQueue.count = 0;
     return scanner_struct;
+}
+
+void enqueue_tQueue(TokenQueue* queue, Ttoken* token) {
+	if(queue->count >= TOKEN_QUEUE_SIZE) {
+		fprintf(stderr, "Token queue overflow. Build with -DTOKEN_QUEUE_SIZE more than 20\n");
+		exit(internal_error);
+	}
+	queue->last = (queue->last + 1) % TOKEN_QUEUE_SIZE;
+	queue->tok[queue->last] = token;
+	queue->count++;
+}
+
+Ttoken* dequeue_tQueue(TokenQueue* queue) {
+	if (queue->count <= 0) {
+		fprintf(stderr, "Token queue underflow.\n");
+		exit(internal_error);
+	}
+	Ttoken* tok = queue->tok[queue->first];
+	queue->first = (queue->first + 1) % TOKEN_QUEUE_SIZE;
+	queue->count--;
+	return tok;
 }
 
 char* octal_append(char* octal_string, unsigned char c) {
@@ -73,22 +101,23 @@ char* is_keyword(char* tmp_string) {
     return NULL;
 }
 
-Ttoken* peek_token(Tinit* scanner_struct) {
-    if (scanner_struct->token == NULL)
-        scanner_struct->token = get_token(scanner_struct);
-    return scanner_struct->token;
+Ttoken* get_token_internal(Tinit* scanner_struct);
+
+Ttoken* peek_n_token(Tinit* ctx, int n) {
+	while (ctx->tQueue.count <= n)
+		enqueue_tQueue(&ctx->tQueue, get_token_internal(ctx));
+	return ctx->tQueue.tok[(ctx->tQueue.first + n) % TOKEN_QUEUE_SIZE];
 }
 
-Ttoken* get_token_internal(Tinit* scanner_struct);
+Ttoken* peek_token(Tinit* scanner_struct) {
+	return peek_n_token(scanner_struct, 0);
+}
 
 Ttoken* get_token(Tinit* scanner_struct) {
     Ttoken* ret;
-    if (scanner_struct->token != NULL) {
-        ret = scanner_struct->token;
-        scanner_struct->token = NULL;
-    } else
-        ret = get_token_internal(scanner_struct);
-    return ret;
+    if (scanner_struct->tQueue.count > 0)
+	    return dequeue_tQueue(&scanner_struct->tQueue);
+	return get_token_internal(scanner_struct);
 }
 
 Ttoken* get_token_internal(Tinit* scanner_struct) {
@@ -1095,13 +1124,17 @@ Ttoken* check_and_get_token(Tinit* scanner_struct, token_type type) {
     return tok;
 }
 
+Ttoken* check_and_peek_n_token(Tinit* scanner_struct, int n, token_type type) {
+	Ttoken* tok = peek_n_token(scanner_struct, n);
+	if (((int)tok->type & type) == 0) {
+		fprintf(stderr, "Expected %s got '%s', on line %lld\n", tokens_to_string(type), tok->c, tok->line);
+		exit(syntactic_analysis_error);
+	}
+	return tok;
+}
+
 Ttoken* check_and_peek_token(Tinit* scanner_struct, token_type type) {
-    Ttoken* tok = peek_token(scanner_struct);
-    if (((int)tok->type & type) == 0) {
-        fprintf(stderr, "Expected %s got '%s', on line %lld\n", tokens_to_string(type), tok->c, tok->line);
-        exit(syntactic_analysis_error);
-    }
-    return tok;
+	return check_and_peek_n_token(scanner_struct, 0, type);
 }
 
 Keyword check_and_get_keyword(Tinit* scanner_struct, Keyword keyword) {
@@ -1110,11 +1143,15 @@ Keyword check_and_get_keyword(Tinit* scanner_struct, Keyword keyword) {
     return kw;
 }
 
+Keyword check_and_peek_n_keyword(Tinit* scanner_struct, int n, Keyword keyword) {
+	Ttoken* tok = check_and_peek_n_token(scanner_struct, n, T_KEYWORD);
+	if (((int)tok->kw & keyword) == 0) {
+		fprintf(stderr, "Expected %s got '%s', on line %lld\n", keywords_to_string(keyword), tok->c, tok->line);
+		exit(syntactic_analysis_error);
+	}
+	return tok->kw;
+}
+
 Keyword check_and_peek_keyword(Tinit* scanner_struct, Keyword keyword) {
-    Ttoken* tok = check_and_peek_token(scanner_struct, T_KEYWORD);
-    if (((int)tok->kw & keyword) == 0) {
-        fprintf(stderr, "Expected %s got '%s', on line %lld\n", keywords_to_string(keyword), tok->c, tok->line);
-        exit(syntactic_analysis_error);
-    }
-    return tok->kw;
+	return check_and_peek_n_keyword(scanner_struct, 0, keyword);
 }
