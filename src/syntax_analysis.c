@@ -33,16 +33,28 @@ void add_functionToList(Function_list* list, Function f) {
     list->items[list->count++] = f;
 }
 
-void add_buildIn(Syntax_context* ctx) {
-    add_functionToList(&ctx->functions, (Function) {.type = build_in, .name = "ifj16.readInt", .build_in = readInt});
-    add_functionToList(&ctx->functions, (Function) {.type = build_in, .name = "ifj16.readDouble", .build_in = readDouble});
-    add_functionToList(&ctx->functions, (Function) {.type = build_in, .name = "ifj16.readString", .build_in = readString});
-    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.print", .build_in = print });
-    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.length", .build_in = length });
-    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.substr", .build_in = substr });
-    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.compare", .build_in = compare });
-    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.find", .build_in = findBI });
-    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.sort", .build_in = sortBI });
+void add_buildIn(Syntax_context* ctx, Function f) {
+    Symbol_tree_leaf* fSym = get_symbol_by_key(&ctx->global_symbols, f.name);
+    if (fSym != NULL && fSym->defined == true) {
+        fprintf(stderr, "Symbol %s was previously defined.\n", f.name);
+        exit(semantic_error_in_code);
+    }
+    fSym = add_symbol_woId(&ctx->global_symbols, f.name);
+    fSym->init_expr = NULL;
+    fSym->defined = true;
+    add_functionToList(&ctx->functions, f);
+}
+
+void add_buildInsToCtx(Syntax_context* ctx) {
+    add_buildIn(ctx, (Function) {.type = build_in, .name = "ifj16.readInt", .build_in = readInt});
+    add_buildIn(ctx, (Function) {.type = build_in, .name = "ifj16.readDouble", .build_in = readDouble});
+    add_buildIn(ctx, (Function) {.type = build_in, .name = "ifj16.readString", .build_in = readString});
+    add_buildIn(ctx, (Function) { .type = build_in, .name = "ifj16.print", .build_in = print });
+    add_buildIn(ctx, (Function) { .type = build_in, .name = "ifj16.length", .build_in = length });
+    add_buildIn(ctx, (Function) { .type = build_in, .name = "ifj16.substr", .build_in = substr });
+    add_buildIn(ctx, (Function) { .type = build_in, .name = "ifj16.compare", .build_in = compare });
+    add_buildIn(ctx, (Function) { .type = build_in, .name = "ifj16.find", .build_in = findBI });
+    add_buildIn(ctx, (Function) { .type = build_in, .name = "ifj16.sort", .build_in = sortBI });
 }
 
 Syntax_context* init_syntax(FILE* input_file) {
@@ -55,7 +67,7 @@ Syntax_context* init_syntax(FILE* input_file) {
     ret->functions.items = 0;
     ret->depth = 0;
     ret->expCtx = ExprParserInit(&ret->global_symbols, &ret->local_symbols, "");
-    add_buildIn(ret);
+    add_buildInsToCtx(ret);
     return ret;
 }
 
@@ -449,8 +461,7 @@ void parse_function(Syntax_context* ctx, Data_type return_type, char* name) {
         fprintf(stderr, "Symbol %s was previously defined.\n", name);
         exit(semantic_error_in_code);
     }
-    fSym = add_symbol(&ctx->global_symbols, name);
-    ctx->global_symbols.nextId += 1;
+    fSym = add_symbol_woId(&ctx->global_symbols, name);
     fSym->init_expr = NULL;
     fSym->defined = true;
 
@@ -470,6 +481,7 @@ void parse_function(Syntax_context* ctx, Data_type return_type, char* name) {
         add_statement(&f.statements, (Statement) { .type = Return, .ret.type = constant, .ret.constant.type = void_t });
     add_functionToList(&ctx->functions, f);
 
+    f.local_symbols = &ctx->local_symbols;
     ctx->local_symbols = oldSymbols;
     ctx->expCtx->local_tab = &ctx->local_symbols;
 }

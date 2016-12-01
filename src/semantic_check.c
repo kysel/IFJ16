@@ -50,11 +50,13 @@ int get_exit_code(const Err_list errs) {
 void check_main(Sem_ctx* ctx) {
     Function* main = getFunc(ctx->s_ctx, "Main.run");
     if (main == NULL) {
-        append_err(&ctx->errs, new_err(254, "Function Main.run does not exist."));
+        append_err(&ctx->errs, new_err(semantic_error_in_code, "Function Main.run does not exist."));
         return;
     }
     if(main->return_type != void_t)
         append_err(&ctx->errs, new_err(semantic_error_in_code, "Function Main.run does not return void."));
+    if (main->parameters.count != 0)
+        append_err(&ctx->errs, new_err(98, "Function 'Main.run' have invalid number of arguments."));
 }
 
 void check_func(Sem_ctx* ctx, const Function f) {
@@ -95,19 +97,12 @@ void check_semantic(Syntax_context* ctx) {
     Sem_ctx* sem = &ctxVal;
     check_main(sem);
 
-    Function* mainFunc = getFunc(ctx, "Main.run");
-    if(mainFunc == NULL)
-        append_err(&sem->errs, new_err(98, "Function 'Main.run' does not exist."));
-    else if(mainFunc->parameters.count != 0)
-        append_err(&sem->errs, new_err(98, "Function 'Main.run' have invalid number of arguments."));
-    else {
-        for (int i = 0; i != sem->s_ctx->functions.count; i++) {
-            Function f = sem->s_ctx->functions.items[i];
-            if (f.type == build_in)
-                continue;
-            check_func(sem, f);
-        }
-    }
+    /*for (int i = 0; i != sem->s_ctx->functions.count; i++) {
+        Function f = sem->s_ctx->functions.items[i];
+        if (f.type == build_in)
+            continue;
+        check_func(sem, f);
+    }*/
 
     if (sem->errs.count != 0) {
         print_errs(sem->errs);
