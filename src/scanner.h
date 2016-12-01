@@ -177,6 +177,14 @@ Tinit* init_scanner(FILE* fp);
 Ttoken* peek_token(Tinit* scanner_struct);
 
 /**
+* \brief Return next token from input file. <B>It does NOT consume the token</B>
+* \param ctx scanner context
+* \param n lokahead factor
+* \return next available token
+*/
+Ttoken* peek_n_token(Tinit* ctx, int n);
+
+/**
  * \brief Consume next token from input file
  * \param scanner_struct scanner context
  * \return next available token
