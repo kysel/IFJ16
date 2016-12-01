@@ -416,15 +416,19 @@ void eval_declaration(Inter_ctx* ctx, Statement* st) {
         set_val(ctx, st->declaration.variable.id, eval_expr(ctx, st->declaration.variable.init_expr));
 }
 
-Return_value eval_cond(Inter_ctx* ctx, If_statement* ifSt) {
-    if (eval_expr(ctx, &ifSt->condition).b)
+bool eval_condition(Inter_ctx* ctx, Expression* cond) {
+	return implicit_cast(eval_expr(ctx, cond), bool_t).b;
+}
+
+Return_value eval_if(Inter_ctx* ctx, If_statement* ifSt) {
+    if (eval_condition(ctx, &ifSt->condition))
         return eval_st_list(ctx, &ifSt->caseTrue);
     return  eval_st_list(ctx, &ifSt->caseFalse);
 }
 
 Return_value eval_while(Inter_ctx* ctx, While_statement* stWhile) {
     Return_value ret;
-    while (eval_expr(ctx, &stWhile->condition).b)
+    while (eval_condition(ctx, &stWhile->condition))
         if ((ret = eval_st_list(ctx, &stWhile->statements)).returned)
             return ret;
     return (Return_value) { .returned = false };
@@ -436,7 +440,7 @@ Return_value eval_statement(Inter_ctx* ctx, Statement* st) {
         break;
     case expression:
         return (Return_value) { .returned = false, .val = eval_expr(ctx, &st->expression) };
-    case condition: return eval_cond(ctx, &st->condition);
+    case condition: return eval_if(ctx, &st->condition);
     case assigment:
         set_val(ctx, st->assignment.target, eval_expr(ctx, &st->assignment.source));
         break;
