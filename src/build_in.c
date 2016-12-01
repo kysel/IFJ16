@@ -54,9 +54,10 @@ Value readInt(Value_list vals) {
     if (c != '\n' && c != EOF) // pokud byl zaznamenan jiny nepripustny znak
         err = 1;
     if (err == 0)
-        return (Value) {.type = int_t, .init = true, .i = i};
-
-    fprintf(stderr, "Input error\n");
+        if (i > 0) {
+            return (Value) {.type = int_t, .init = true, .i = i};
+        }
+    fprintf(stderr, "Input range error\n");
     exit(runtime_input_error);
 }
 
@@ -109,7 +110,12 @@ Value readDouble(Value_list vals) {
             exit(runtime_input_error);
         }
     }
-    return (Value) {.type = double_t, .init = true, .d = d};
+    if (d > 0.0) {
+        return (Value) {.type = double_t, .init = true, .d = d};
+    }
+
+    fprintf(stderr, "Input range error\n");
+    exit(runtime_input_error);
 }
 
 // String readString ();
