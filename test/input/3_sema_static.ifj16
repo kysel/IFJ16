@@ -1,0 +1,14 @@
+/* nedefinovan static */
+class Main
+{
+	static int a = 21;
+    static void run()
+    {
+        a = funkce(a);
+    }
+    int funkce(int n) // Definice funkce
+    {
+        a = n - 1;
+        return a;
+    }
+}

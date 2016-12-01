@@ -21,6 +21,7 @@ typedef struct Expression_s Expression;
 typedef Expression Return_statement;
 typedef struct Variable_s Variable;
 typedef struct Func_parameter_s Func_parameter;
+typedef struct Symbol_tree_s Symbol_tree;
 
 
 typedef struct {
@@ -59,6 +60,22 @@ typedef struct {
     int size;
 } Parameter_list;
 
+typedef struct Symbol_tree_leaf_s {
+    const char* key;
+    int id;
+    Data_type type;
+    Expression* init_expr;
+    bool defined;
+    struct Symbol_tree_leaf_s* left;
+    struct Symbol_tree_leaf_s* right;
+} Symbol_tree_leaf;
+
+struct Symbol_tree_s {
+    Symbol_tree_leaf* root;
+    int nextId;
+    bool inc;
+};
+
 typedef struct Function_s {
     char* name;
     enum {
@@ -69,6 +86,7 @@ typedef struct Function_s {
         struct {
             Statement_collection statements;
             Parameter_list parameters;
+            Symbol_tree local_symbols;
             int stack_size;
         };
         BuildInPtr build_in;

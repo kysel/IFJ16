@@ -33,16 +33,28 @@ void add_functionToList(Function_list* list, Function f) {
     list->items[list->count++] = f;
 }
 
-void add_buildIn(Syntax_context* ctx) {
-    add_functionToList(&ctx->functions, (Function) {.type = build_in, .name = "ifj16.readInt", .build_in = readInt});
-    add_functionToList(&ctx->functions, (Function) {.type = build_in, .name = "ifj16.readDouble", .build_in = readDouble});
-    add_functionToList(&ctx->functions, (Function) {.type = build_in, .name = "ifj16.readString", .build_in = readString});
-    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.print", .build_in = print });
-    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.length", .build_in = length });
-    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.substr", .build_in = substr });
-    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.compare", .build_in = compare });
-    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.find", .build_in = findBI });
-    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.sort", .build_in = sortBI });
+void add_buildIn(Syntax_context* ctx, Function f) {
+    Symbol_tree_leaf* fSym = get_symbol_by_key(&ctx->global_symbols, f.name);
+    if (fSym != NULL && fSym->defined == true) {
+        fprintf(stderr, "Symbol %s was previously defined.\n", f.name);
+        exit(semantic_error_in_code);
+    }
+    fSym = add_symbol_woId(&ctx->global_symbols, f.name);
+    fSym->init_expr = NULL;
+    fSym->defined = true;
+    add_functionToList(&ctx->functions, f);
+}
+
+void add_buildInsToCtx(Syntax_context* ctx) {
+    add_buildIn(ctx, (Function) {.type = build_in, .name = "ifj16.readInt", .build_in = readInt});
+    add_buildIn(ctx, (Function) {.type = build_in, .name = "ifj16.readDouble", .build_in = readDouble});
+    add_buildIn(ctx, (Function) {.type = build_in, .name = "ifj16.readString", .build_in = readString});
+    add_buildIn(ctx, (Function) { .type = build_in, .name = "ifj16.print", .build_in = print });
+    add_buildIn(ctx, (Function) { .type = build_in, .name = "ifj16.length", .build_in = length });
+    add_buildIn(ctx, (Function) { .type = build_in, .name = "ifj16.substr", .build_in = substr });
+    add_buildIn(ctx, (Function) { .type = build_in, .name = "ifj16.compare", .build_in = compare });
+    add_buildIn(ctx, (Function) { .type = build_in, .name = "ifj16.find", .build_in = findBI });
+    add_buildIn(ctx, (Function) { .type = build_in, .name = "ifj16.sort", .build_in = sortBI });
 }
 
 Syntax_context* init_syntax(FILE* input_file) {
@@ -55,7 +67,7 @@ Syntax_context* init_syntax(FILE* input_file) {
     ret->functions.items = 0;
     ret->depth = 0;
     ret->expCtx = ExprParserInit(&ret->global_symbols, &ret->local_symbols, "");
-    add_buildIn(ret);
+    add_buildInsToCtx(ret);
     return ret;
 }
 
@@ -68,33 +80,30 @@ void parse_program(Syntax_context* ctx) {
 
 Parsed_id parse_id(Tinit* scanner, const char* currentClass) {
     Parsed_id ret = {.fullQ = false};
-    Ttoken* nameTok = check_and_get_token(scanner, T_ID);
-    ret.class = gc_alloc(sizeof(char) * strlen(currentClass) + 1);
-    strcpy(ret.class, currentClass);
-    ret.name = nameTok->c;
+    Ttoken* nameTok = check_and_get_token(scanner, T_ID | T_FULL_ID);
     ret.nameTok = nameTok;
-    if (peek_token(scanner)->type == T_DOT) {
-        Ttoken* dot = get_token(scanner); //consume '.'
-        char* name2 = check_and_get_token(scanner, T_ID)->c;
-        if(dot->space_flag != 0) {
-            fprintf(stderr, "Invalid identifier\n");
-            exit(syntactic_analysis_error);
-        }
-        char* FKname = gc_alloc(sizeof(char) * (strlen(nameTok->c) + strlen(name2)) + 2);
-        FKname[0] = 0;
-        strcat(FKname, nameTok->c);
-        strcat(FKname, ".");
-        strcat(FKname, name2);
+    if (nameTok->type == T_FULL_ID) {
         ret.fullQ = true;
-        ret.class = nameTok->c;
-        ret.name = name2;
-        ret.full = FKname;
-        return ret;
+        ret.full = nameTok->c;
+        char* e = strchr(ret.full, '.');
+        int idx = (int)(e - ret.full);
+        ret.class = gc_alloc(sizeof(char)*(idx + 1));
+        strncpy(ret.class, nameTok->c, idx);
+        ret.class[idx] = 0;
+
+        int varNameLen = strlen(nameTok->c - idx - 1);
+        ret.name = gc_alloc(sizeof(char)*(varNameLen+1));
+        strncpy(ret.name, nameTok->c + idx + 1, varNameLen);
+        ret.name[varNameLen] = 0;
     }
-    ret.full = gc_alloc(sizeof(char) * (strlen(currentClass) + strlen(nameTok->c)) + 2);
-    strcpy(ret.full, currentClass);
-    strcat(ret.full, ".");
-    strcat(ret.full, nameTok->c);
+    else {
+        ret.class = (char*)currentClass;
+        ret.name = nameTok->c;
+        ret.full = gc_alloc(sizeof(char) * (strlen(currentClass) + strlen(nameTok->c)) + 2);
+        strcpy(ret.full, currentClass);
+        strcat(ret.full, ".");
+        strcat(ret.full, nameTok->c);
+    }
     return ret;
 }
 
@@ -208,7 +217,7 @@ void parse_assigmnent(Syntax_context* ctx, Statement_collection* statements, Par
     if (id.fullQ == false)
     //definitely local symbol
         symbol = get_symbol(ctx, id.name);
-    if (symbol == NULL && id.fullQ == true) {
+    if (symbol == NULL /*&& id.fullQ == true*/) {
         symbol = get_symbol(ctx, id.full);
         if (symbol == NULL)
             symbol = add_symbol(&ctx->global_symbols, id.full);
@@ -347,7 +356,7 @@ void parse_return(Syntax_context* ctx, Statement_collection* statements) {
 
 void parse_statement(Syntax_context* ctx, Statement_collection* statements) {
     Ttoken* tok;
-    switch ((tok = check_and_peek_token(ctx->s_ctx, T_ID | T_KEYWORD | T_TYPE))->type) {
+    switch ((tok = check_and_peek_token(ctx->s_ctx, T_ID | T_FULL_ID | T_KEYWORD | T_TYPE))->type) {
         case T_TYPE:
             if (ctx->depth <= 1)
                 parse_definition(ctx, statements);
@@ -357,6 +366,7 @@ void parse_statement(Syntax_context* ctx, Statement_collection* statements) {
                 exit(1337);
             }
             break;
+        case T_FULL_ID:
         case T_ID: {
             Parsed_id id = parse_id(ctx->s_ctx, ctx->current_class);
             if (check_and_peek_token(ctx->s_ctx, T_ASSIGN | T_BRACKET_LROUND)->type == T_ASSIGN)
@@ -451,8 +461,7 @@ void parse_function(Syntax_context* ctx, Data_type return_type, char* name) {
         fprintf(stderr, "Symbol %s was previously defined.\n", name);
         exit(semantic_error_in_code);
     }
-    fSym = add_symbol(&ctx->global_symbols, name);
-    ctx->global_symbols.nextId += 1;
+    fSym = add_symbol_woId(&ctx->global_symbols, name);
     fSym->init_expr = NULL;
     fSym->defined = true;
 
@@ -465,6 +474,7 @@ void parse_function(Syntax_context* ctx, Data_type return_type, char* name) {
 
     parse_block(ctx, &f.statements);
     f.stack_size = count_leafs(&ctx->local_symbols);
+    f.local_symbols = ctx->local_symbols;
 #ifdef DEBUG
     printStList(f.statements);
 #endif

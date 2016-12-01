@@ -75,9 +75,21 @@ Value implicit_cast(Value val, Data_type to) {
                 snprintf(ret.s, strLength + 1, "%d", val.i);
             }
             else if (val.type == double_t) {
+#ifdef JAVA_SUCK
+                if (((long)val.d - val.d) == 0)
+                    strLength = snprintf(NULL, 0, "%.1f", val.d);
+                else
+                    strLength = snprintf(NULL, 0, "%g", val.d);
+                ret.s = gc_alloc(sizeof(char) * (strLength + 1));
+                if (((long)val.d - val.d) == 0)
+                    snprintf(ret.s, strLength + 1, "%.1f", val.d);
+                else
+                    snprintf(ret.s, strLength + 1, "%g", val.d);
+#else
                 strLength = snprintf(NULL, 0, "%g", val.d);
                 ret.s = gc_alloc(sizeof(char) * (strLength + 1));
                 snprintf(ret.s, strLength + 1, "%g", val.d);
+#endif
             }
             else
                 break;
@@ -100,7 +112,12 @@ void set_val(Inter_ctx* ctx, int id, Value val) {
         ret = &ctx->loc_stack->val[id];
     else
         ret = &ctx->globals->val[-(id + 1)];
-    *ret = val;
+    if(ret->init == false) {
+        Symbol_tree_leaf* symbol = get_symbol_by_id(id >= 0 ? &ctx->current_func->local_symbols : &ctx->s->global_symbols, id);
+        ret->type = symbol->type;
+    }
+    Data_type resType = resulting_type(ret->type, val.type);
+    *ret = implicit_cast(val, resType);
 }
 
 Value* get_val(Inter_ctx* ctx, int id) {
@@ -123,12 +140,13 @@ Return_value eval_func(Inter_ctx* ctx, FunctionCall* fCall) {
         fprintf(stderr, "Function %s does not exist. line %d in file %s.\n", fCall->name, __LINE__, __FILE__);
         exit(semantic_error_in_code);
     }
+#endif
     if (f->type == user && f->parameters.count != fCall->parameters.count) {
         fprintf(stderr, "Function %s was called with invalid params count. line %d in file %s.\n", fCall->name, __LINE__, __FILE__);
         exit(semantic_error_in_types);
     }
-#endif
 
+    Function* oldFunc = ctx->current_func;
     Value_list* oldStack = ctx->loc_stack;
     Value_list* newStack;
     if (f->type == user)
@@ -142,6 +160,7 @@ Return_value eval_func(Inter_ctx* ctx, FunctionCall* fCall) {
     for (int i = 0; i != fCall->parameters.count; i++)
         newStack->val[i] = eval_expr(ctx, &fCall->parameters.parameters[i].value);
     ctx->loc_stack = newStack;
+    ctx->current_func = f;
 
     Return_value ret = {.returned = false};
     if (f->type == user)
@@ -160,6 +179,7 @@ Return_value eval_func(Inter_ctx* ctx, FunctionCall* fCall) {
         exit(syntactic_analysis_error);
     }
 
+    ctx->current_func = oldFunc;
     ctx->loc_stack = oldStack;
     if (f->type == user)
         return (Return_value) { .val = implicit_cast(ret.val, f->return_type), .returned = true };
@@ -450,7 +470,7 @@ void init_globals(Inter_ctx* ctx, Symbol_tree* tree) {
 }
 
 void execute(Syntax_context* syntax) {
-    Inter_ctx ctxNoPtr = {.s = syntax};
+    Inter_ctx ctxNoPtr = { .s = syntax,.current_func = NULL };
     Inter_ctx* ctx = &ctxNoPtr;
 
 #ifdef SEM_CHECK

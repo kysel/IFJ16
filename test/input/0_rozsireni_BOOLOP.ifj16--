@@ -1,0 +1,13 @@
+/* readString */
+
+class Main 
+{
+   static void run() 
+   {
+   boolean a=true;
+   boolean b=false;
+   if((a==true)&&(b==false)) {
+       ifj16.print("a je " + a + "\n");
+    }
+   }
+}
