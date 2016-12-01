@@ -157,8 +157,10 @@ Return_value eval_func(Inter_ctx* ctx, FunctionCall* fCall) {
         fprintf(stderr, "Ouch this type of function i don't know. line %d in file %s.\n", __LINE__, __FILE__);
         exit(semantic_error_in_code);
     }
-    for (int i = 0; i != fCall->parameters.count; i++)
-        newStack->val[i] = eval_expr(ctx, &fCall->parameters.parameters[i].value);
+    for (int i = 0; i != fCall->parameters.count; i++) {
+        Value evald = eval_expr(ctx, &fCall->parameters.parameters[i].value);
+        newStack->val[i] = implicit_cast(evald, f->parameters.parameters[i].type);
+    }
     ctx->loc_stack = newStack;
     ctx->current_func = f;
 
@@ -268,7 +270,7 @@ Value eval_op_tree(Inter_ctx* ctx, BinOpTree* tree) {
                 Value l = implicit_cast(left, double_t);
                 Value r = implicit_cast(right, double_t);
                 ret.type = double_t;
-                if (r.i == 0) {
+                if (r.d == 0) {
                     fprintf(stderr, "Division by zero.\n");
                     exit(runtime_zero_division);
                 }
