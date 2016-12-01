@@ -373,8 +373,8 @@ Value eval_op_tree(Inter_ctx* ctx, BinOpTree* tree) {
     }
 
     if (ret.type == void_t) {
-        fprintf(stderr, "lolternal error. line %d in file %s.\n", __LINE__, __FILE__);
-        exit(internal_error);
+        fprintf(stderr, "Invalid cast.\n");
+        exit(semantic_error_in_types);
     }
     return ret;
 }
