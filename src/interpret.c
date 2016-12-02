@@ -278,7 +278,7 @@ Value eval_op_tree(Inter_ctx* ctx, BinOpTree* tree) {
                 Value l = implicit_cast(left, double_t);
                 Value r = implicit_cast(right, double_t);
                 ret.type = double_t;
-                if (r.i == 0) {
+                if (r.d == 0) {
                     fprintf(stderr, "Division by zero.\n");
                     exit(runtime_zero_division);
                 }
