@@ -127,7 +127,11 @@ Value* get_val(Inter_ctx* ctx, int id) {
         ret = &ctx->loc_stack->val[id];
     else
         ret = &ctx->globals->val[-(id + 1)];
-    if(ret->init == false) {
+    if (ret->init == false) {
+        if (get_symbol_by_id(id >= 0 ? &ctx->current_func->local_symbols : &ctx->s->global_symbols, id >= 0 ? id : -(id + 1))->defined == false) {
+            fprintf(stderr, "Use of undefined variable.\n");
+            exit(semantic_error_in_code);
+        }
         fprintf(stderr, "Use of uninitialized variable\n");
         exit(runtime_uninitialized_variable_access);
     }
