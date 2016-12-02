@@ -48,7 +48,7 @@ Data_type resulting_type(Data_type t1, Data_type t2) {
     return t1;
 }
 
-Value implicit_cast(Value val, Data_type to) {
+Value cast(Value val, Data_type to, bool expCast) {
     if (val.type == to)
         return val;
     Value ret = {.type = to,.init = true};
@@ -68,6 +68,8 @@ Value implicit_cast(Value val, Data_type to) {
             }
             break;
         case string_t: {
+            if (expCast == false)
+                break;
             int strLength;
             if (val.type == int_t) {
                 strLength = snprintf(NULL, 0, "%d", val.i);
@@ -117,7 +119,7 @@ void set_val(Inter_ctx* ctx, int id, Value val) {
         ret->type = symbol->type;
     }
     Data_type resType = resulting_type(ret->type, val.type);
-    *ret = implicit_cast(val, resType);
+    *ret = cast(val, resType, false);
 }
 
 Value* get_val(Inter_ctx* ctx, int id) {
@@ -153,7 +155,7 @@ Return_value eval_func(Inter_ctx* ctx, FunctionCall* fCall) {
         newStack = alloc_stack(f->stack_size);
         for (int i = 0; i != fCall->parameters.count; i++) {
             Value evald = eval_expr(ctx, &fCall->parameters.parameters[i].value);
-            newStack->val[i] = implicit_cast(evald, f->parameters.parameters[i].type);
+            newStack->val[i] = cast(evald, f->parameters.parameters[i].type, false);
         }
     }
     else if (f->type == build_in) {
@@ -192,7 +194,7 @@ Return_value eval_func(Inter_ctx* ctx, FunctionCall* fCall) {
     ctx->current_func = oldFunc;
     ctx->loc_stack = oldStack;
     if (f->type == user)
-        return (Return_value) { .val = implicit_cast(ret.val, f->return_type), .returned = true };
+        return (Return_value) { .val = cast(ret.val, f->return_type, false), .returned = true };
     return (Return_value) { .val = ret.val, .returned = true };
 }
 
@@ -209,8 +211,8 @@ Value eval_op_tree(Inter_ctx* ctx, BinOpTree* tree) {
     switch (tree->BinOp) {
         case OP_ADD:
             if (left.type == string_t || right.type == string_t) {
-                Value lStr = implicit_cast(left, string_t);
-                Value rStr = implicit_cast(right, string_t);
+                Value lStr = cast(left, string_t, true);
+                Value rStr = cast(right, string_t, true);
                 ret.type = string_t;
                 ret.s = gc_alloc(sizeof(char) * (strlen(lStr.s) + strlen(rStr.s) + 1));
                 ret.s[0] = 0;
@@ -219,53 +221,53 @@ Value eval_op_tree(Inter_ctx* ctx, BinOpTree* tree) {
                 break;
             }
             if (resulting_type(left.type, right.type) == int_t) {
-                Value l = implicit_cast(left, int_t);
-                Value r = implicit_cast(right, int_t);
+                Value l = cast(left, int_t, false);
+                Value r = cast(right, int_t, false);
                 ret.type = int_t;
                 ret.i = l.i + r.i;
                 break;
             }
             if (resulting_type(left.type, right.type) == double_t) {
-                Value l = implicit_cast(left, double_t);
-                Value r = implicit_cast(right, double_t);
+                Value l = cast(left, double_t, false);
+                Value r = cast(right, double_t, false);
                 ret.type = double_t;
                 ret.d = l.d + r.d;
             }
             break;
         case OP_SUB:
             if (resulting_type(left.type, right.type) == int_t) {
-                Value l = implicit_cast(left, int_t);
-                Value r = implicit_cast(right, int_t);
+                Value l = cast(left, int_t, false);
+                Value r = cast(right, int_t, false);
                 ret.type = int_t;
                 ret.i = l.i - r.i;
                 break;
             }
             if (resulting_type(left.type, right.type) == double_t) {
-                Value l = implicit_cast(left, double_t);
-                Value r = implicit_cast(right, double_t);
+                Value l = cast(left, double_t, false);
+                Value r = cast(right, double_t, false);
                 ret.type = double_t;
                 ret.d = l.d - r.d;
             }
             break;
         case OP_MUL:
             if (resulting_type(left.type, right.type) == int_t) {
-                Value l = implicit_cast(left, int_t);
-                Value r = implicit_cast(right, int_t);
+                Value l = cast(left, int_t, false);
+                Value r = cast(right, int_t, false);
                 ret.type = int_t;
                 ret.i = l.i * r.i;
                 break;
             }
             if (resulting_type(left.type, right.type) == double_t) {
-                Value l = implicit_cast(left, double_t);
-                Value r = implicit_cast(right, double_t);
+                Value l = cast(left, double_t, false);
+                Value r = cast(right, double_t, false);
                 ret.type = double_t;
                 ret.d = l.d * r.d;
             }
             break;
         case OP_DIV:
             if (resulting_type(left.type, right.type) == int_t) {
-                Value l = implicit_cast(left, int_t);
-                Value r = implicit_cast(right, int_t);
+                Value l = cast(left, int_t, false);
+                Value r = cast(right, int_t, false);
                 ret.type = int_t;
                 if(r.i == 0) {
                     fprintf(stderr, "Division by zero.\n");
@@ -275,8 +277,8 @@ Value eval_op_tree(Inter_ctx* ctx, BinOpTree* tree) {
                 break;
             }
             if (resulting_type(left.type, right.type) == double_t) {
-                Value l = implicit_cast(left, double_t);
-                Value r = implicit_cast(right, double_t);
+                Value l = cast(left, double_t, false);
+                Value r = cast(right, double_t, false);
                 ret.type = double_t;
                 if (r.d == 0) {
                     fprintf(stderr, "Division by zero.\n");
@@ -287,90 +289,90 @@ Value eval_op_tree(Inter_ctx* ctx, BinOpTree* tree) {
             break;
         case OP_LOWER:
             if (resulting_type(left.type, right.type) == int_t) {
-                Value l = implicit_cast(left, int_t);
-                Value r = implicit_cast(right, int_t);
+                Value l = cast(left, int_t, false);
+                Value r = cast(right, int_t, false);
                 ret.type = bool_t;
                 ret.b = l.i < r.i;
                 break;
             }
             if (resulting_type(left.type, right.type) == double_t) {
-                Value l = implicit_cast(left, double_t);
-                Value r = implicit_cast(right, double_t);
+                Value l = cast(left, double_t, false);
+                Value r = cast(right, double_t, false);
                 ret.type = bool_t;
                 ret.b = l.d < r.d;
             }
             break;
         case OP_GREATER:
             if (resulting_type(left.type, right.type) == int_t) {
-                Value l = implicit_cast(left, int_t);
-                Value r = implicit_cast(right, int_t);
+                Value l = cast(left, int_t, false);
+                Value r = cast(right, int_t, false);
                 ret.type = bool_t;
                 ret.b = l.i > r.i;
                 break;
             }
             if (resulting_type(left.type, right.type) == double_t) {
-                Value l = implicit_cast(left, double_t);
-                Value r = implicit_cast(right, double_t);
+                Value l = cast(left, double_t, false);
+                Value r = cast(right, double_t, false);
                 ret.type = bool_t;
                 ret.b = l.d > r.d;
             }
             break;
         case OP_LOWER_EQUAL:
             if (resulting_type(left.type, right.type) == int_t) {
-                Value l = implicit_cast(left, int_t);
-                Value r = implicit_cast(right, int_t);
+                Value l = cast(left, int_t, false);
+                Value r = cast(right, int_t, false);
                 ret.type = bool_t;
                 ret.b = l.i <= r.i;
                 break;
             }
             if (resulting_type(left.type, right.type) == double_t) {
-                Value l = implicit_cast(left, double_t);
-                Value r = implicit_cast(right, double_t);
+                Value l = cast(left, double_t, false);
+                Value r = cast(right, double_t, false);
                 ret.type = bool_t;
                 ret.b = l.d <= r.d;
             }
             break;
         case OP_GREATER_EQUAL:
             if (resulting_type(left.type, right.type) == int_t) {
-                Value l = implicit_cast(left, int_t);
-                Value r = implicit_cast(right, int_t);
+                Value l = cast(left, int_t, false);
+                Value r = cast(right, int_t, false);
                 ret.type = bool_t;
                 ret.b = l.i >= r.i;
                 break;
             }
             if (resulting_type(left.type, right.type) == double_t) {
-                Value l = implicit_cast(left, double_t);
-                Value r = implicit_cast(right, double_t);
+                Value l = cast(left, double_t, false);
+                Value r = cast(right, double_t, false);
                 ret.type = bool_t;
                 ret.b = l.d >= r.d;
             }
             break;
         case OP_BOOL_EQUAL:
             if (resulting_type(left.type, right.type) == int_t) {
-                Value l = implicit_cast(left, int_t);
-                Value r = implicit_cast(right, int_t);
+                Value l = cast(left, int_t, false);
+                Value r = cast(right, int_t, false);
                 ret.type = bool_t;
                 ret.b = l.i == r.i;
                 break;
             }
             if (resulting_type(left.type, right.type) == double_t) {
-                Value l = implicit_cast(left, double_t);
-                Value r = implicit_cast(right, double_t);
+                Value l = cast(left, double_t, false);
+                Value r = cast(right, double_t, false);
                 ret.type = bool_t;
                 ret.b = l.d == r.d;
             }
             break;
         case OP_NOT_EQUAL:
             if (resulting_type(left.type, right.type) == int_t) {
-                Value l = implicit_cast(left, int_t);
-                Value r = implicit_cast(right, int_t);
+                Value l = cast(left, int_t, false);
+                Value r = cast(right, int_t, false);
                 ret.type = bool_t;
                 ret.b = l.i != r.i;
                 break;
             }
             if (resulting_type(left.type, right.type) == double_t) {
-                Value l = implicit_cast(left, double_t);
-                Value r = implicit_cast(right, double_t);
+                Value l = cast(left, double_t, false);
+                Value r = cast(right, double_t, false);
                 ret.type = bool_t;
                 ret.b = l.d != r.d;
             }
@@ -423,7 +425,7 @@ void eval_declaration(Inter_ctx* ctx, Statement* st) {
 }
 
 bool eval_condition(Inter_ctx* ctx, Expression* cond) {
-	return implicit_cast(eval_expr(ctx, cond), bool_t).b;
+	return cast(eval_expr(ctx, cond), bool_t, false).b;
 }
 
 Return_value eval_if(Inter_ctx* ctx, If_statement* ifSt) {
