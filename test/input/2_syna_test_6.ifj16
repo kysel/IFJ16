@@ -1,0 +1,10 @@
+class Main
+{
+
+    static void run()
+    {
+        int a = 5 = 7; // syntax error
+
+    }
+
+}
