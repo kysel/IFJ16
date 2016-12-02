@@ -46,6 +46,7 @@ void add_buildIn(Syntax_context* ctx, Function f) {
 }
 
 void add_buildInsToCtx(Syntax_context* ctx) {
+    add_symbol(&ctx->classes, "ifj16");
     add_buildIn(ctx, (Function) {.type = build_in, .name = "ifj16.readInt", .build_in = readInt});
     add_buildIn(ctx, (Function) {.type = build_in, .name = "ifj16.readDouble", .build_in = readDouble});
     add_buildIn(ctx, (Function) {.type = build_in, .name = "ifj16.readString", .build_in = readString});
@@ -62,6 +63,7 @@ Syntax_context* init_syntax(FILE* input_file) {
     ret->s_ctx = init_scanner(input_file);
     ret->global_symbols = symbol_tree_new(false);
     ret->local_symbols = symbol_tree_new(true);
+    ret->classes = symbol_tree_new(true);
     ret->functions.count = 0;
     ret->functions.size = 0;
     ret->functions.items = 0;
@@ -112,6 +114,13 @@ void parse_class(Syntax_context* ctx) {
     get_token(ctx->s_ctx); //consume class token
 
     Ttoken* classId = check_and_get_token(ctx->s_ctx, T_ID);
+
+    if(get_symbol_by_key(&ctx->classes, classId->c) != NULL) {
+        fprintf(stderr, "Redefinion of class '%s' on line '%lld'\n", classId->c, classId->line);
+        exit(semantic_error_in_code);
+    }
+    add_symbol(&ctx->classes, classId->c);
+
     ctx->current_class = classId->c;
     check_and_get_token(ctx->s_ctx, T_BRACKET_LCURLY);
     ctx->expCtx->class_name = ctx->current_class;
