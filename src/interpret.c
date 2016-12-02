@@ -53,14 +53,14 @@ Value cast(Value val, Data_type to, bool expCast) {
         return val;
     Value ret = {.type = to,.init = true};
     switch (to) {
-        case bool_t:
+        /*case bool_t:
             if (val.type == int_t)
                 ret.b = val.i != 0;
             else if (val.type == double_t)
                 ret.b = val.d != 0;
             else
                 break;
-            return ret;
+            return ret;*/
         case double_t:
             if (val.type == int_t) {
                 ret.d = (double)val.i;
