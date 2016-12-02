@@ -69,7 +69,6 @@ Value readDouble(Value_list vals) {
     }
 
     Tstring* r_dbl;
-    int i = 0; // delka
     double d = 0; // vysledne desetinne cislo
     char* ptr; // prebytkovy retezec
     int err = 0; // detekce erroru (podminky retezce)
@@ -77,7 +76,7 @@ Value readDouble(Value_list vals) {
 
     r_dbl = gc_alloc(sizeof(struct Tstring)); 
     r_dbl->str = gc_alloc(sizeof(char) * INC_STRLEN);
-
+	r_dbl->str[0] = 0;
     r_dbl->size = INC_STRLEN;
     r_dbl->len = 0;
 
@@ -94,9 +93,8 @@ Value readDouble(Value_list vals) {
             r_dbl->str = gc_realloc(r_dbl->str, r_dbl->size + (sizeof(char) * INC_STRLEN));
             r_dbl->size += INC_STRLEN;
         }
-        r_dbl->str[i] = c;
-        i++;
-        r_dbl->len = i;
+		strncat(r_dbl->str, &c, 1);
+		r_dbl->len++;
         c = getchar();
     }
     while (c != '\n' && c != EOF) { // pokud byl zaznamenan jiny nepripustny znak
