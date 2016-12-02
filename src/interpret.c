@@ -149,17 +149,21 @@ Return_value eval_func(Inter_ctx* ctx, FunctionCall* fCall) {
     Function* oldFunc = ctx->current_func;
     Value_list* oldStack = ctx->loc_stack;
     Value_list* newStack;
-    if (f->type == user)
+    if (f->type == user) {
         newStack = alloc_stack(f->stack_size);
-    else if (f->type == build_in)
+        for (int i = 0; i != fCall->parameters.count; i++) {
+            Value evald = eval_expr(ctx, &fCall->parameters.parameters[i].value);
+            newStack->val[i] = implicit_cast(evald, f->parameters.parameters[i].type);
+        }
+    }
+    else if (f->type == build_in) {
         newStack = alloc_stack(fCall->parameters.count);
+        for (int i = 0; i != fCall->parameters.count; i++)
+            newStack->val[i] = eval_expr(ctx, &fCall->parameters.parameters[i].value);
+    }
     else {
         fprintf(stderr, "Ouch this type of function i don't know. line %d in file %s.\n", __LINE__, __FILE__);
         exit(semantic_error_in_code);
-    }
-    for (int i = 0; i != fCall->parameters.count; i++) {
-        Value evald = eval_expr(ctx, &fCall->parameters.parameters[i].value);
-        newStack->val[i] = implicit_cast(evald, f->parameters.parameters[i].type);
     }
     ctx->loc_stack = newStack;
     ctx->current_func = f;
