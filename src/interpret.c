@@ -122,12 +122,12 @@ void set_val(Inter_ctx* ctx, int id, Value val) {
 }
 
 Value* get_val(Inter_ctx* ctx, int id) {
-    Value* ret;
-    if (id >= 0)
+    Value* ret = NULL;
+    if (id >= 0 && ctx->loc_stack != NULL)
         ret = &ctx->loc_stack->val[id];
-    else
+    else if (id < 0)
         ret = &ctx->globals->val[-(id + 1)];
-    if (ret->init == false) {
+    if (ret != NULL || ret->init == false) {
         if (get_symbol_by_id(id >= 0 ? &ctx->current_func->local_symbols : &ctx->s->global_symbols, id >= 0 ? id : id)->defined == false) {
             fprintf(stderr, "Use of undefined variable.\n");
             exit(semantic_error_in_code);
@@ -474,6 +474,10 @@ Return_value eval_st_list(Inter_ctx* ctx, const Statement_collection* statements
 void init_globals_impl(Inter_ctx* ctx, Symbol_tree_leaf* leaf) {
     if(leaf == NULL)
         return;
+    if(!leaf->defined) {
+        fprintf(stderr, "Use of undefined variable '%s'.\n", leaf->key);
+        exit(semantic_error_in_code);
+    }
     if (leaf->init_expr != NULL)
         set_val(ctx, leaf->id, eval_expr(ctx, leaf->init_expr));
     if (leaf->left != NULL)

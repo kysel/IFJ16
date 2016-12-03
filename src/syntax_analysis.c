@@ -474,9 +474,11 @@ void parse_function(Syntax_context* ctx, Data_type return_type, char* name) {
     fSym->init_expr = NULL;
     fSym->defined = true;
 
+    //Setup context for function
     Symbol_tree oldSymbols = ctx->local_symbols;
     ctx->local_symbols = symbol_tree_new(true);
     ctx->expCtx->local_tab = &ctx->local_symbols;
+    ctx->expCtx->inside_func = true;
 
     check_and_get_token(ctx->s_ctx, T_BRACKET_LROUND);
     parse_parameters(ctx, &f.parameters);
@@ -491,6 +493,8 @@ void parse_function(Syntax_context* ctx, Data_type return_type, char* name) {
         add_statement(&f.statements, (Statement) { .type = Return, .ret.type = constant, .ret.constant.type = void_t });
     add_functionToList(&ctx->functions, f);
 
+
+    ctx->expCtx->inside_func = false;
     ctx->local_symbols = oldSymbols;
     ctx->expCtx->local_tab = &ctx->local_symbols;
 }
