@@ -140,12 +140,10 @@ Value* get_val(Inter_ctx* ctx, int id) {
 
 Return_value eval_func(Inter_ctx* ctx, FunctionCall* fCall) {
     Function* f = getFunc(ctx->s, fCall->name);
-#ifdef SEM_CHECK
     if (f == NULL) {
         fprintf(stderr, "Function %s does not exist. line %d in file %s.\n", fCall->name, __LINE__, __FILE__);
         exit(semantic_error_in_code);
     }
-#endif
     if (f->type == user && f->parameters.count != fCall->parameters.count) {
         fprintf(stderr, "Function %s was called with invalid params count. line %d in file %s.\n", fCall->name, __LINE__, __FILE__);
         exit(semantic_error_in_types);

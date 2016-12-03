@@ -371,8 +371,8 @@ void parse_statement(Syntax_context* ctx, Statement_collection* statements) {
                 parse_definition(ctx, statements);
             else {
                 //TODO engliš
-                fprintf(stderr, "Local variable cannot be defined inside fixme(SLOZENY VYRAZ).\n");
-                exit(1337);
+                fprintf(stderr, "Local variable cannot be defined inside a compound statements line %lld.\n", tok->line);
+                exit(semantic_error_in_code);
             }
             break;
         case T_FULL_ID:
