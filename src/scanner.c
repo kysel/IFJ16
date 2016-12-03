@@ -732,15 +732,21 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                 break;
 
             case FSM_HEX_D:
+                if (isdigit(c) || (c >= 65 && c <= 70) || (c >= 97 && c <= 102)) {
+                    tmp_string = char_append(tmp_string, &alloc_len, c);
+                    num_string = num_append(num_string, &alloc_num_len, c);
+                    state = FSM_HEX_D_1;
+                }
+                else {
+                    fprintf(stderr, "SCANNER ERROR: HEX number error on line %lld!\n", scanner_struct->line);
+                    exit(lexical_analysis_error);   
+                }
+
+            case FSM_HEX_D_1:
                 if (isdigit(c) || (c >= 65 && c <= 70) || (c >= 97 && c <= 102) || (c == '_')) {
-                    if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '.' && c == '_'){
-                        fprintf(stderr, "SCANNER ERROR: Double underscore error on line %lld!\n", scanner_struct->line);
-                        exit(lexical_analysis_error);  
-                    } else {
                         tmp_string = char_append(tmp_string, &alloc_len, c);
                         num_string = num_append(num_string, &alloc_num_len, c);
-                        state = FSM_HEX_D;
-                    }
+                        state = FSM_HEX_D_1;
                 } else if (c == 'p' || c == 'P') {
                     if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
                         fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);

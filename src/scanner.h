@@ -96,6 +96,7 @@ typedef enum {
     FSM_BIN,
     FSM_NUM1,
     FSM_HEX_D,
+    FSM_HEX_D_1,
     FSM_HEX_P,
     FSM_STRING,
     FSM_COMMENT_LINE,
