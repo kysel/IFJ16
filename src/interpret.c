@@ -127,7 +127,7 @@ Value* get_val(Inter_ctx* ctx, int id) {
         ret = &ctx->loc_stack->val[id];
     else if (id < 0)
         ret = &ctx->globals->val[-(id + 1)];
-    if (ret != NULL || ret->init == false) {
+    if (ret != NULL && ret->init == false) {
         if (get_symbol_by_id(id >= 0 ? &ctx->current_func->local_symbols : &ctx->s->global_symbols, id >= 0 ? id : id)->defined == false) {
             fprintf(stderr, "Use of undefined variable.\n");
             exit(semantic_error_in_code);
