@@ -1,15 +1,42 @@
+CFLAGS=-std=c11 -Wall -Wextra -pedantic -O3 -g
 SHELL := /bin/bash
-all:
-	make -C docs
-	rm -rf odevzdat || true
-	mkdir odevzdat/
-	cp -a tbz/. odevzdat/ 
-	cp docs/dokumentace.pdf odevzdat/
-	find src -name '*.c' -and ! -name '*test.c' -or -name '*.h' | xargs cp -t odevzdat/
-	cd src/ && make clean && cd .. #smazat logy testu
-	cp -r test/ odevzdat/test && ./removator.sh
-	cd odevzdat/ && tar -zcvf ../xkyzli02.tgz *
+
+#source files
+TESTSOURCES=$(wildcard *test.c)
+SOURCES=$(filter-out $(TESTSOURCES),$(wildcard *.c))
+OBJECTS=$(SOURCES:.c=.o)
+
+all: ifj16
+
+test: clean ifj16-test
+	make -C . clean
+	make -C . ifj16-test
+	chmod +x ../test/test
+	cd ../test/; ./test; \
+
+ifj16: $(OBJECTS)
+	$(CC) $(CFLAGS) $^ -o $@
+
+binaryTree-test: $(filter-out main.o,$(OBJECTS))
+	$(CC) $(CFLAGS) $^ $@.c -o $@
+	valgrind -q --leak-check=full ./$@
+
+find-test: $(filter-out main.o,$(OBJECTS))
+	$(CC) $(CFLAGS) $^ $@.c -o $@
+	valgrind -q --leak-check=full ./$@  
+
+shellSort-test: $(filter-out main.o,$(OBJECTS))
+	$(CC) $(CFLAGS) $^ $@.c -o $@
+
+%.o: %.c
+	mkdir -p .depend
+	$(CC) -c $(CFLAGS) $< -o $@
+	$(CC) $(CFLAGS) -MF".depend/$@.d" -MG -MM -MP -MT"$@" "$<"
 
 clean:
-	rm -rf odevzdat
-	rm xkyzli02.tgz
+	rm -rf *.o *.d .depend ifj16 find-test shellSort-test binaryTree-test ../test/*.class ../test/logs/*.log
+
+ifj16-test: CFLAGS=-std=c11 -Wall -Wextra -pedantic -O3 -g -DJAVA_SUCK
+ifj16-test: clean ifj16
+
+-include .depend/*.d
