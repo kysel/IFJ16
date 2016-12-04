@@ -73,6 +73,15 @@ char* is_keyword(char* tmp_string) {
     return NULL;
 }
 
+int is_keyword_fid(char* tmp_string) {
+    for (int i = 0; i <= 16; i++) {
+        if (strstr(tmp_string, keywords[i])) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 Ttoken* peek_token(Tinit* scanner_struct) {
     if (scanner_struct->token == NULL)
         scanner_struct->token = get_token(scanner_struct);
@@ -369,12 +378,18 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
             		tmp_string = char_append(tmp_string, &alloc_len, c);
                     state = FSM_FID1;
             	} else {
-            		ungetc(c,scanner_struct->f);
-            		token->type = T_FULL_ID;
-            		token->tlen = strlen(tmp_string);
-            		token->line = scanner_struct->line;
-            		token->c = tmp_string;
-            		return token;
+            		if (is_keyword_fid(tmp_string) == 0) {
+	            		ungetc(c,scanner_struct->f);
+	            		token->type = T_FULL_ID;
+	            		token->tlen = strlen(tmp_string);
+	            		token->line = scanner_struct->line;
+	            		token->c = tmp_string;
+	            		return token;	
+            		} else {
+            			fprintf(stderr, "SCANNER ERROR: ID error on line %lld!\n", scanner_struct->line);
+                    	exit(lexical_analysis_error);
+            		}
+            		
             	}
                 break;
 
