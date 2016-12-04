@@ -12,4 +12,4 @@ all:
 
 clean:
 	rm -rf odevzdat
-	rm xkyzli02.tgz
+	rm -f xkyzli02.tgz
