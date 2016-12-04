@@ -1,0 +1,6 @@
+class Fail
+{
+	static void fail()
+	{
+	}
+}
