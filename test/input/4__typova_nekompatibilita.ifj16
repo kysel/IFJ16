@@ -1,8 +1,0 @@
-class Main
-{
-    static void run()
-    {
-         String a = "abcdef";
-         String b = a - 42 * 2.58;
-    }
-}
