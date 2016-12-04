@@ -16,6 +16,7 @@ test: clean ifj16-test
 
 ifj16: $(OBJECTS)
 	$(CC) $(CFLAGS) $^ -o $@
+	rm -rf .depend
 
 binaryTree-test: $(filter-out main.o,$(OBJECTS))
 	$(CC) $(CFLAGS) $^ $@.c -o $@
