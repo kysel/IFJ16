@@ -14,6 +14,9 @@ NC='\033[0m' # No Color
 FAIL=0
 OK=0
 FILES=0
+
+SOURCE_FILE=../src/ifj16
+
 for filename in input/*.ifj16
 do
    shortname=$(basename "$filename") #java hates folders
@@ -60,7 +63,7 @@ do
    
    if [ ! -f "${filename%.*}.in" ]; then
       echo -e "File ${filename%.*}.in not present, no input will be entered.\n" >> "$logfile"
-      ifj16out=$(../src/ifj16 "$filename" 2>&1 )   
+      ifj16out=$("$SOURCE_FILE" "$filename" 2>&1 )   
       ifj16ret="$?"
       echo "Output of IFJ16 interpret:" >> "$logfile"
       echo -e "----------------------------" >> "$logfile"
@@ -69,7 +72,7 @@ do
       echo -e "IFJ16 returned $ifj16ret.\n" >> "$logfile"
    else
       echo -e "There is ${filename%.*}.in, we will use it as input for program\n" >> "$logfile"
-      ifj16out=$(cat "${filename%.*}.in" | ../src/ifj16 "$filename" 2>&1)
+      ifj16out=$(cat "${filename%.*}.in" | "$SOURCE_FILE" "$filename" 2>&1)
       ifj16ret="$?"
       echo "Output of IFJ16 interpret:" >> "$logfile"
       echo -e "----------------------------" >> "$logfile"
