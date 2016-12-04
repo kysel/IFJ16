@@ -13,3 +13,5 @@ all:
 clean:
 	rm -rf odevzdat
 	rm -f xkyzli02.tgz
+	cd docs/ && make clean && cd ..
+	cd src/ && make clean && cd ..

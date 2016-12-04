@@ -11,8 +11,8 @@ all: ifj16
 test: clean ifj16-test
 	make -C . clean
 	make -C . ifj16-test
-	chmod +x ../test/test
-	cd ../test/; ./test; \
+	chmod +x test/test
+	cd test/; ./test; \
 
 ifj16: $(OBJECTS)
 	$(CC) $(CFLAGS) $^ -o $@
