@@ -1,0 +1,10 @@
+class Main {
+    static void run() {
+         //int a = test();
+         test();
+    }
+
+    static int test() {
+        int a = 4;
+    }
+}

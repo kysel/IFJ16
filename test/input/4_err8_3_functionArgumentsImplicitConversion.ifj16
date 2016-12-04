@@ -1,0 +1,10 @@
+class Main {
+    static void run() {
+         int a = 10;
+         double b = 0.5 / a;
+         test(b);
+    }
+    
+    static void test(int a){
+    }
+}
