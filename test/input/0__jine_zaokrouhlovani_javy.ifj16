@@ -1,0 +1,10 @@
+class Main
+{
+	static double b;
+	static void run()
+	{
+		double a = 0.158;
+		Main.b = 5 / a;
+		ifj16.print("" + Main.b+"\n");
+	}
+}
