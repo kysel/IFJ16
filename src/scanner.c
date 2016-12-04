@@ -73,15 +73,6 @@ char* is_keyword(char* tmp_string) {
     return NULL;
 }
 
-int is_keyword_fid(char* tmp_string) {
-    for (int i = 0; i <= 16; i++) {
-        if (strstr(tmp_string, keywords[i])) {
-            return 1;
-        }
-    }
-    return 0;
-}
-
 Ttoken* peek_token(Tinit* scanner_struct) {
     if (scanner_struct->token == NULL)
         scanner_struct->token = get_token(scanner_struct);
@@ -103,11 +94,14 @@ Ttoken* get_token(Tinit* scanner_struct) {
 Ttoken* get_token_internal(Tinit* scanner_struct) {
     char* kw_ptr;
     char* endptr;
+    char* tmp_string_fid ;
     char c;
     int read_file = 1;
     unsigned int alloc_len = 2;
     unsigned int alloc_num_len = 6;
+    unsigned int alloc_len_fid = 2;
     states state = FSM_INIT;
+	tmp_string_fid = NULL;			
 
     char* tmp_string = (char *)gc_alloc(sizeof(char) * alloc_len);
     tmp_string[0] = 0;
@@ -365,6 +359,10 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
 
             case FSM_FID:
             	if (isalpha(c) || c == '_' || c == '$') {
+            		tmp_string_fid = (char *)gc_alloc(sizeof(char) * alloc_len_fid);
+    				tmp_string_fid[0] = 0;
+            		
+    				tmp_string_fid = char_append(tmp_string_fid, &alloc_len_fid, c);
                     tmp_string = char_append(tmp_string, &alloc_len, c);
                     state = FSM_FID1;
                 } else {
@@ -375,11 +373,12 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
 
             case FSM_FID1:
             	if (isalpha(c) || isdigit(c) || c == '_' || c == '$') {
+            		tmp_string_fid = char_append(tmp_string_fid, &alloc_len_fid, c);
             		tmp_string = char_append(tmp_string, &alloc_len, c);
                     state = FSM_FID1;
             	} else {
-            		if (is_keyword_fid(tmp_string) == 0) {
-	            		ungetc(c,scanner_struct->f);
+            		if (is_keyword(tmp_string_fid) == NULL) {
+            			ungetc(c,scanner_struct->f);
 	            		token->type = T_FULL_ID;
 	            		token->tlen = strlen(tmp_string);
 	            		token->line = scanner_struct->line;
@@ -387,9 +386,8 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
 	            		return token;	
             		} else {
             			fprintf(stderr, "SCANNER ERROR: ID error on line %lld!\n", scanner_struct->line);
-                    	exit(lexical_analysis_error);
-            		}
-            		
+                    	exit(lexical_analysis_error); 
+            		}            		
             	}
                 break;
 
