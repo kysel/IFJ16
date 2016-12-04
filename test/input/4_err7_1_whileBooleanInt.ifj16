@@ -1,0 +1,8 @@
+class Main {
+    static void run() {
+         int a = 42;
+         while(a){
+            a = 0;
+         }
+    }
+}
