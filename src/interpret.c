@@ -183,10 +183,14 @@ Return_value eval_func(Inter_ctx* ctx, FunctionCall* fCall) {
         exit(syntactic_analysis_error);
     }
 #endif
-	if(ret.returned == false && f->return_type != void_t) {
-		fprintf(stderr, "Missing 'return' statement in function '%s'.", f->name);
-		exit(runtime_uninitialized_variable_access);
-	}
+    if(ret.returned == true && ret.val.type != void_t && f->return_type == void_t) {
+        fprintf(stderr, "Unexpected 'return expression;' statement in void-function '%s'.\n", f->name);
+        exit(runtime_uninitialized_variable_access);
+    }
+    if (ret.returned == false && f->return_type != void_t) {
+        fprintf(stderr, "Missing 'return' statement in function '%s'.\n", f->name);
+        exit(runtime_uninitialized_variable_access);
+    }
     if (f->return_type == string_t && ret.val.type != string_t) {
         fprintf(stderr, "Invalid return in '%s'. line %d in file %s.\n", fCall->name, __LINE__, __FILE__);
         exit(syntactic_analysis_error);
