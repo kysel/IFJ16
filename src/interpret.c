@@ -183,7 +183,7 @@ Return_value eval_func(Inter_ctx* ctx, FunctionCall* fCall) {
         exit(syntactic_analysis_error);
     }
 #endif
-    if(ret.returned == true && ret.val.type != void_t && f->return_type == void_t) {
+    if(f->type==user && ret.returned == true && ret.val.type != void_t && f->return_type == void_t) {
         fprintf(stderr, "Unexpected 'return expression;' statement in void-function '%s'.\n", f->name);
         exit(runtime_uninitialized_variable_access);
     }
