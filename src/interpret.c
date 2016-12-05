@@ -109,6 +109,10 @@ void set_val(Inter_ctx* ctx, int id, Value val) {
         fprintf(stderr, "Use of uninitialized variable\n");
         exit(runtime_uninitialized_variable_access);
     }
+    if(val.type == void_t) {
+        fprintf(stderr, "Viktor neumi cist\n");
+        exit(runtime_uninitialized_variable_access);
+    }
     Value* ret;
     if (id >= 0)
         ret = &ctx->loc_stack->val[id];
@@ -183,10 +187,6 @@ Return_value eval_func(Inter_ctx* ctx, FunctionCall* fCall) {
         exit(syntactic_analysis_error);
     }
 #endif
-    if(f->type==user && ret.returned == true && ret.val.type != void_t && f->return_type == void_t) {
-        fprintf(stderr, "Unexpected 'return expression;' statement in void-function '%s'.\n", f->name);
-        exit(runtime_uninitialized_variable_access);
-    }
     if (ret.returned == false && f->return_type != void_t) {
         fprintf(stderr, "Missing 'return' statement in function '%s'.\n", f->name);
         exit(runtime_uninitialized_variable_access);
@@ -198,8 +198,13 @@ Return_value eval_func(Inter_ctx* ctx, FunctionCall* fCall) {
 
     ctx->current_func = oldFunc;
     ctx->loc_stack = oldStack;
-    if (f->type == user)
+    if (f->type == user) {
+        if (f->return_type == void_t) {
+            ret.val.type = void_t;
+            return (Return_value) { .val = ret.val, .returned = true };
+        }
         return (Return_value) { .val = cast(ret.val, f->return_type, false), .returned = true };
+    }
     return (Return_value) { .val = ret.val, .returned = true };
 }
 
