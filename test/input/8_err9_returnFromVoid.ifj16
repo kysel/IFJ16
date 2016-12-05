@@ -4,6 +4,6 @@ class Main {
     }
 
     static void test(int a){
-        return 42;
+        return;
     }
 }
