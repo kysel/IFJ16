@@ -1,6 +1,6 @@
 class Main {
     static void run() {
-         test(42);
+        int viktorNeumiCist = test(42);
     }
 
     static void test(int a){
