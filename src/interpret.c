@@ -199,10 +199,8 @@ Return_value eval_func(Inter_ctx* ctx, FunctionCall* fCall) {
     ctx->current_func = oldFunc;
     ctx->loc_stack = oldStack;
     if (f->type == user) {
-        if (f->return_type == void_t) {
+        if (f->return_type == void_t)
             ret.val.init = false;
-            return (Return_value) { .val = ret.val, .returned = true };
-        }
         return (Return_value) { .val = cast(ret.val, f->return_type, false), .returned = true };
     }
     return (Return_value) { .val = ret.val, .returned = true };
