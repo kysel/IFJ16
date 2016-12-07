@@ -109,6 +109,10 @@ void set_val(Inter_ctx* ctx, int id, Value val) {
         fprintf(stderr, "Use of uninitialized variable\n");
         exit(runtime_uninitialized_variable_access);
     }
+    if(val.type == void_t) {
+        fprintf(stderr, "Viktor neumi cist\n");
+        exit(runtime_uninitialized_variable_access);
+    }
     Value* ret;
     if (id >= 0)
         ret = &ctx->loc_stack->val[id];
@@ -183,10 +187,10 @@ Return_value eval_func(Inter_ctx* ctx, FunctionCall* fCall) {
         exit(syntactic_analysis_error);
     }
 #endif
-	if(ret.returned == false && f->return_type != void_t) {
-		fprintf(stderr, "Missing 'return' statement in function '%s'.", f->name);
-		exit(runtime_uninitialized_variable_access);
-	}
+    if (ret.returned == false && f->return_type != void_t) {
+        fprintf(stderr, "Missing 'return' statement in function '%s'.\n", f->name);
+        exit(runtime_uninitialized_variable_access);
+    }
     if (f->return_type == string_t && ret.val.type != string_t) {
         fprintf(stderr, "Invalid return in '%s'. line %d in file %s.\n", fCall->name, __LINE__, __FILE__);
         exit(syntactic_analysis_error);
@@ -194,8 +198,11 @@ Return_value eval_func(Inter_ctx* ctx, FunctionCall* fCall) {
 
     ctx->current_func = oldFunc;
     ctx->loc_stack = oldStack;
-    if (f->type == user)
+    if (f->type == user) {
+        if (f->return_type == void_t)
+            ret.val.init = false;
         return (Return_value) { .val = cast(ret.val, f->return_type, false), .returned = true };
+    }
     return (Return_value) { .val = ret.val, .returned = true };
 }
 
