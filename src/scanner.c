@@ -20,12 +20,13 @@ char* keywords[17] = {"boolean", "break", "class", "continue","do",
     "return", "String", "static", "true", "void", "while"
 };
 
-Tinit* init_scanner(FILE* fp) {
+Tinit* init_scanner(FILE* fp, int buildin_readflag) {
     long long n = 1;
     Tinit* scanner_struct = gc_alloc(sizeof(Tinit));
     scanner_struct->f = fp;
     scanner_struct->line = n;
     scanner_struct->token = NULL;
+    scanner_struct->buildin_readflag = buildin_readflag;
     return scanner_struct;
 }
 
@@ -191,7 +192,8 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                     continue;
                 } else {
                     fprintf(stderr, "Unidentified lexem on line %lld!\n", scanner_struct->line);
-                    exit(lexical_analysis_error);
+                    //(scanner_struct->buildin_readflag == 0) ? exit(lexical_analysis_error) : exit(runtime_input_error);
+                    exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);
                 }
                 break;
 
@@ -206,7 +208,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                         state = FSM_FID;   
                     } else {
                         fprintf(stderr, "SCANNER ERROR: ID error on line %lld!\n", scanner_struct->line);
-                        exit(lexical_analysis_error); 
+                        exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error); 
                     }                	
                 } else {
                     ungetc(c, scanner_struct->f);
@@ -367,7 +369,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                     state = FSM_FID1;
                 } else {
                 	fprintf(stderr, "SCANNER ERROR: ID error on line %lld!\n", scanner_struct->line);
-                    exit(lexical_analysis_error);  
+                    exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);  
                 }
                 break;
 
@@ -386,7 +388,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
 	            		return token;	
             		} else {
             			fprintf(stderr, "SCANNER ERROR: ID error on line %lld!\n", scanner_struct->line);
-                    	exit(lexical_analysis_error); 
+                    	exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error); 
             		}            		
             	}
                 break;
@@ -399,7 +401,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                 } else if (c == '.') {
                     if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
                         fprintf(stderr, "SCANNER ERROR: INT underscore error on line %lld!\n", scanner_struct->line);
-                        exit(lexical_analysis_error);  
+                        exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);  
                     } else {
                     tmp_string = char_append(tmp_string, &alloc_len, c);
                     num_string = num_append(num_string, &alloc_num_len, c);
@@ -408,7 +410,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                 } else if (c == 'E' || c == 'e') {
                     if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
                         fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
-                        exit(lexical_analysis_error);  
+                        exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);  
                     } else {
                     state = FSM_EXPONENT;
                     tmp_string = char_append(tmp_string, &alloc_len, c);
@@ -417,7 +419,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                 } else {
                     if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
                         fprintf(stderr, "SCANNER ERROR: INT underscore error on line %lld!\n", scanner_struct->line);
-                        exit(lexical_analysis_error);  
+                        exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);  
                     } else {
                     ungetc(c, scanner_struct->f);
                     token->type = T_INT;
@@ -437,7 +439,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                         num_string = num_append(num_string, &alloc_num_len, c);
                 } else {
                         fprintf(stderr, "SCANNER ERROR: Double number error on line %lld!\n", scanner_struct->line);
-                        exit(lexical_analysis_error);  
+                        exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);  
                 }
                 break;
 
@@ -450,7 +452,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                 } else if (c == 'E' || c == 'e') {
                     if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
                         fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
-                        exit(lexical_analysis_error);  
+                        exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);  
                     } else {
                     state = FSM_EXPONENT;
                     tmp_string = char_append(tmp_string, &alloc_len, c);
@@ -459,7 +461,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                 } else {
                     if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
                         fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
-                        exit(lexical_analysis_error);  
+                        exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);  
                     } else {
                     ungetc(c, scanner_struct->f);
                     token->type = T_DOUBLE;
@@ -484,7 +486,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                     num_string = num_append(num_string, &alloc_num_len, c);
                 } else {
                     fprintf(stderr, "SCANNER ERROR: Exponent error on line %lld!\n", scanner_struct->line);
-                    exit(lexical_analysis_error);
+                    exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);
                 }
                 break;
 
@@ -495,7 +497,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                     num_string = num_append(num_string, &alloc_num_len, c);
                 } else {
                     fprintf(stderr, "SCANNER ERROR: Exponent sign error on line %lld!\n", scanner_struct->line);
-                    exit(lexical_analysis_error);
+                    exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);
                 }
                 break;
 
@@ -507,7 +509,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                 } else {
                     if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
                         fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
-                        exit(lexical_analysis_error);  
+                        exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);  
                     } else {
                     ungetc(c, scanner_struct->f);
                     token->type = T_DOUBLE;
@@ -528,7 +530,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                 else if (c == 'x') {
                     if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
                         fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
-                        exit(lexical_analysis_error);  
+                        exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);  
                     } else {
                         tmp_string = char_append(tmp_string, &alloc_len, c);
                         num_string = num_append(num_string, &alloc_num_len, c);
@@ -537,7 +539,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                 } else if (c == 'b') {
                     if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
                         fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
-                        exit(lexical_analysis_error);  
+                        exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);  
                     } else {
                      tmp_string = char_append(tmp_string, &alloc_len, c);
                      state = FSM_BIN;
@@ -553,7 +555,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                 } else if (c == '.') {
                     if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
                         fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
-                        exit(lexical_analysis_error);  
+                        exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);  
                     } else {
                      tmp_string = char_append(tmp_string, &alloc_len, c);
                      num_string = num_append(num_string, &alloc_num_len, c);
@@ -562,7 +564,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                 } else if (c == 'e' || c == 'E') {
                     if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
                         fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
-                        exit(lexical_analysis_error);  
+                        exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);  
                     } else {
                      tmp_string = char_append(tmp_string, &alloc_len, c);
                      num_string = num_append(num_string, &alloc_num_len, c);
@@ -571,7 +573,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                 } else {
                     if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
                         fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
-                        exit(lexical_analysis_error);  
+                        exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);  
                     } else {
                     ungetc(c, scanner_struct->f);
                        token->type = T_INT;
@@ -596,7 +598,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                 } else if (c == '.') {
                     if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
                         fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
-                        exit(lexical_analysis_error);  
+                        exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);  
                     } else {
                     tmp_string = char_append(tmp_string, &alloc_len, c);
                     num_string = num_append(num_string, &alloc_num_len, c);
@@ -605,7 +607,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                 } else if (c == 'e' || c == 'E') {
                     if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
                         fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
-                        exit(lexical_analysis_error);  
+                        exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);  
                     } else {
                     tmp_string = char_append(tmp_string, &alloc_len, c);
                     num_string = num_append(num_string, &alloc_num_len, c);
@@ -617,7 +619,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                 } else {
                     if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
                         fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
-                        exit(lexical_analysis_error);  
+                        exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);  
                     } else {
                     ungetc(c, scanner_struct->f);
                     token->type = T_INT;
@@ -638,7 +640,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                 } else if (c == '.') {
                     if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
                         fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
-                        exit(lexical_analysis_error);  
+                        exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);  
                     } else {
                      tmp_string = char_append(tmp_string, &alloc_len, c);
                      num_string = num_append(num_string, &alloc_num_len, c);
@@ -647,7 +649,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                 } else if (c == 'e' || c == 'E') {
                     if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
                         fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
-                        exit(lexical_analysis_error);  
+                        exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);  
                     } else {
                      tmp_string = char_append(tmp_string, &alloc_len, c);
                      num_string = num_append(num_string, &alloc_num_len, c);
@@ -655,7 +657,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                      } 
                 } else {
                     fprintf(stderr, "SCANNER ERROR: Unidentified lexem on line %lld!\n", scanner_struct->line);
-                    exit(lexical_analysis_error);
+                    exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);
                 }
                 break;
 
@@ -666,7 +668,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                     state = FSM_BIN_1;
                 } else {
                     fprintf(stderr, "SCANNER ERROR: Unidentified lexem on line %lld!\n", scanner_struct->line);
-                    exit(lexical_analysis_error);
+                    exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);
                 }
                 break;
 
@@ -681,7 +683,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                     ungetc(c,scanner_struct->f);
                     if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
                         fprintf(stderr, "SCANNER ERROR: Binary underscore error on line %lld!\n", scanner_struct->line);
-                        exit(lexical_analysis_error);
+                        exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);
                     } else {
                         token->type = T_INT;
                         token->tlen = strlen(tmp_string);
@@ -700,7 +702,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                     state = FSM_HEX_1;
                 } else {
                     fprintf(stderr, "SCANNER ERROR: Unidentified lexem on line %lld!\n", scanner_struct->line);
-                    exit(lexical_analysis_error);
+                    exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);
                 }
                 break;
 
@@ -713,7 +715,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                 } else if (c == '.') {
                     if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
                         fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
-                        exit(lexical_analysis_error);  
+                        exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);  
                     } else {
                     tmp_string = char_append(tmp_string, &alloc_len, c);
                     num_string = num_append(num_string, &alloc_num_len, c);
@@ -722,7 +724,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                 } else if (c == 'p' || c == 'P') {
                     if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
                         fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
-                        exit(lexical_analysis_error);  
+                        exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);  
                     } else {
                     tmp_string = char_append(tmp_string, &alloc_len, c);
                     num_string = num_append(num_string, &alloc_num_len, c);
@@ -731,7 +733,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                 } else {
                     if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
                         fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
-                        exit(lexical_analysis_error);  
+                        exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);  
                     } else {
                     ungetc(c, scanner_struct->f);
                     token->type = T_INT;
@@ -752,7 +754,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                 }
                 else {
                     fprintf(stderr, "SCANNER ERROR: HEX number error on line %lld!\n", scanner_struct->line);
-                    exit(lexical_analysis_error);   
+                    exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);   
                 }
 
             case FSM_HEX_D_1:
@@ -763,7 +765,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                 } else if (c == 'p' || c == 'P') {
                     if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
                         fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
-                        exit(lexical_analysis_error);  
+                        exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);  
                     } else {
                     tmp_string = char_append(tmp_string, &alloc_len, c);
                     num_string = num_append(num_string, &alloc_num_len, c);
@@ -771,7 +773,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                     } 
                 } else {
                     fprintf(stderr, "SCANNER ERROR: HEX number error on line %lld!\n", scanner_struct->line);
-                    exit(lexical_analysis_error);       
+                    exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);       
                 }
                 break;
 
@@ -786,7 +788,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                     num_string = num_append(num_string, &alloc_num_len, c);
                 } else {
                     fprintf(stderr, "SCANNER ERROR: Exponent error on line %lld!\n", scanner_struct->line);
-                    exit(lexical_analysis_error);
+                    exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);
                 }
                 break;
 
@@ -921,7 +923,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                     return token;
                 }
                 fprintf(stderr, "SCANNER ERROR: Unidentified lexem on line %lld!\n", scanner_struct->line);
-                exit(lexical_analysis_error);
+                exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);
             }
 
             case FSM_LOWER: {
@@ -965,7 +967,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                     state = FSM_STRING;
                 } else if (c <= 31) {
                     fprintf(stderr, "SCANNER ERROR: Unidentified token on line %lld!\n", scanner_struct->line);
-                    exit(lexical_analysis_error);
+                    exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);
                 } else {
                     state = FSM_QUOTE;
                     tmp_string = char_append(tmp_string, &alloc_len, c);
@@ -993,7 +995,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                     octal_string = (octal_append(octal_string, c));
                 } else {
                     fprintf(stderr, "SCANNER ERROR: String escape sequence error on line %lld!\n", scanner_struct->line);
-                    exit(lexical_analysis_error);
+                    exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);
                 }
                 break;
 
@@ -1012,7 +1014,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                     octal_string = (octal_append(octal_string, c));
                 } else {
                     fprintf(stderr, "SCANNER ERROR: String escape sequence error on line %lld!\n", scanner_struct->line);
-                    exit(lexical_analysis_error);
+                    exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);
                 }
                 break;
 
@@ -1024,7 +1026,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                     tmp_string = (char_append(tmp_string, &alloc_len, ascii_c));
                 } else {
                     fprintf(stderr, "SCANNER ERROR: String escape sequence error on line %lld!\n", scanner_struct->line);
-                    exit(lexical_analysis_error);
+                    exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);
                 }
                 break;
 
@@ -1037,7 +1039,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                     octal_string = (octal_append(octal_string, c));
                 } else {
                     fprintf(stderr, "SCANNER ERROR: String escape sequence error on line %lld!\n", scanner_struct->line);
-                    exit(lexical_analysis_error);
+                    exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);
                 }
                 break;
 
@@ -1049,7 +1051,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                     tmp_string = (char_append(tmp_string, &alloc_len, ascii_c));
                 } else {
                     fprintf(stderr, "SCANNER ERROR: String escape sequence error on line %lld!\n", scanner_struct->line);
-                    exit(lexical_analysis_error);
+                    exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);
                 }
                 break;
                 // end of auxiliary states for string escape octal
@@ -1074,7 +1076,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                     state = FSM_COMMENT_BLOCK_FIN;
                 } else if (c == EOF) {
                     fprintf(stderr, "Unterminated comment on line %lld!\n", scanner_struct->line);
-                    exit(lexical_analysis_error);
+                    exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);
                 } else {
                     if (c == '\n') {
                         scanner_struct->line++;
@@ -1091,7 +1093,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                     state = FSM_COMMENT_BLOCK_FIN;
                 } else if (c == EOF) {
                     fprintf(stderr, "Unterminated comment on line %lld!\n", scanner_struct->line);
-                    exit(lexical_analysis_error);
+                    exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);
                 } else {
                     if (c == '\n') {
                         scanner_struct->line++;

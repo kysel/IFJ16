@@ -157,6 +157,7 @@ typedef struct {
 typedef struct {
     FILE* f;
     long long line; //save line number among calling get_token
+    int buildin_readflag;
     Ttoken* token;
 } Tinit;
 
@@ -165,7 +166,7 @@ typedef struct {
  * \param fp File handle of the source
  * \return scanner context
  */
-Tinit* init_scanner(FILE* fp);
+Tinit* init_scanner(FILE* fp, int buildin_readflag);
 
 /**
  * \brief Return next token from input file. <B>It does NOT consume the token</B>
