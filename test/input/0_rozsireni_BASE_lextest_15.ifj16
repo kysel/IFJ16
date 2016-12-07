@@ -1,0 +1,13 @@
+/* IFJ16 */
+
+class Main 
+{
+   static void run() 
+   {
+    double cislo2 = 0x0001c.0ap+0;
+        
+    ifj16.print("cislo je " + cislo2 + "\n");
+    
+
+   }
+}
