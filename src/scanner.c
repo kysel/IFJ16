@@ -758,6 +758,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                     fprintf(stderr, "SCANNER ERROR: HEX number error on line %lld!\n", scanner_struct->line);
                     exit((scanner_struct->buildin_readflag) ? runtime_input_error : lexical_analysis_error);   
                 }
+                break;
 
             case FSM_HEX_D_1:
                 if (isdigit(c) || (c >= 65 && c <= 70) || (c >= 97 && c <= 102) || (c == '_')) {
