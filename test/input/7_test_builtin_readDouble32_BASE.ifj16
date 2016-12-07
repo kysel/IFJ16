@@ -1,0 +1,9 @@
+/* Test na mezeru v zadani doublu */
+
+class Main 
+{
+    static int x;
+    static void run() {
+    Main.x = ifj16.readDouble();
+   }
+}
