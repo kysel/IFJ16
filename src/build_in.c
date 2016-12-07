@@ -6,14 +6,16 @@
 * @author Kubica Jan <xkubic39@stud.fit.vutbr.cz>
 * @author Kovařík Viktor <xkovar77@stud.fit.vutbr.cz>
 */
-
+    
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "gc.h"
 #include "return_codes.h"
 #include "build_in.h"
 #include "ial.h"
+
 
 // int readInt ();
 Value readInt(Value_list vals) {
@@ -21,19 +23,58 @@ Value readInt(Value_list vals) {
         fprintf(stderr, "Invalid arguments\n");
         exit(semantic_error_in_types);
     }
-
+/*
     Tstring* r_int;
     int i = 0; // delka, nasledne vysledne cislo
     int err = 0; // detekce erroru (podminky retezce)
+*/
     char c;
-
+/*
     r_int = gc_alloc(sizeof(struct Tstring));
     r_int->str = gc_alloc(sizeof(char) * INC_STRLEN);
 
     r_int->size = INC_STRLEN;
     r_int->len = 0;
-
+*/
     c = getchar(); // cteni prvniho znaku
+
+/*    while (c != '\n' && c != EOF) {
+        if (r_int->len == r_int->size) { // pokud je zaplnen alokovany prostor
+            r_int->str = gc_realloc(r_int->str, r_int->size + (sizeof(char) * INC_STRLEN));
+            r_int->size += INC_STRLEN;
+        }
+        r_int->str[i] = c;
+        i++;
+        r_int->len = i;
+        if (isspace(c)) {
+            fprintf(stderr, "Input whitespace error\n");
+            exit(runtime_input_error);
+        }
+        c = getchar();
+    }
+*/
+    while ((c = getchar()) != EOF)
+        if (isspace(c)) {
+            fprintf(stderr, "Input whitespace error\n");
+            exit(runtime_input_error);
+        }
+
+    rewind(stdin);
+    Tinit* scanner = init_scanner(stdin, 1);
+    Ttoken* scanner_token = get_token(scanner);
+
+    if (scanner_token->type != T_INT) {
+        fprintf(stderr, "Input datatype error\n");
+        exit(runtime_input_error);
+    }
+    if (get_token(scanner)->type != T_EOF) {
+        fprintf(stderr, "Input error\n");
+        exit(runtime_input_error);
+    } else {
+        return (Value) {.type = int_t, .init = true, .i = scanner_token -> li};
+    }
+
+/* 
     while (c >= '0' && c <= '9') {
         if (r_int->len == r_int->size) { // pokud je zaplnen alokovany prostor
             r_int->str = gc_realloc(r_int->str, r_int->size + (sizeof(char) * INC_STRLEN));
@@ -57,8 +98,10 @@ Value readInt(Value_list vals) {
         if (i > 0) {
             return (Value) {.type = int_t, .init = true, .i = i};
         }
+
     fprintf(stderr, "Input range error\n");
     exit(runtime_input_error);
+*/
 }
 
 // double readDouble ();
@@ -67,21 +110,44 @@ Value readDouble(Value_list vals) {
         fprintf(stderr, "Invalid arguments\n");
         exit(semantic_error_in_types);
     }
-
+/*
     Tstring* r_dbl;
     double d = 0; // vysledne desetinne cislo
     char* ptr; // prebytkovy retezec
     int err = 0; // detekce erroru (podminky retezce)
+*/
     char c; // nacteny znak
-
+/*
     r_dbl = gc_alloc(sizeof(struct Tstring)); 
     r_dbl->str = gc_alloc(sizeof(char) * INC_STRLEN);
 	r_dbl->str[0] = 0;
     r_dbl->size = INC_STRLEN;
     r_dbl->len = 0;
-
+*/
     c = getchar(); // cteni prvniho znaku
-    if (c == '\n' || c == EOF) { // pokud je vstupem prazdny retezec
+
+    while ((c = getchar()) != EOF)
+        if (isspace(c)) {
+            fprintf(stderr, "Input whitespace error\n");
+            exit(runtime_input_error);
+        }
+
+    rewind(stdin);
+    Tinit* scanner = init_scanner(stdin, 1);
+    Ttoken* scanner_token = get_token(scanner);
+
+    if (scanner_token->type != T_DOUBLE) {
+        fprintf(stderr, "Input datatype error\n");
+        exit(runtime_input_error);
+    }
+    if (get_token(scanner)->type != T_EOF) {
+        fprintf(stderr, "Input error\n");
+        exit(runtime_input_error);
+    } else {
+        return (Value) {.type = int_t, .init = true, .i = scanner_token -> d};
+    }
+
+/*    if (c == '\n' || c == EOF) { // pokud je vstupem prazdny retezec
         fprintf(stderr, "Empty input\n");
         exit(runtime_input_error);
     }
@@ -114,6 +180,7 @@ Value readDouble(Value_list vals) {
 
     fprintf(stderr, "Input range error\n");
     exit(runtime_input_error);
+*/
 }
 
 // String readString ();
@@ -149,7 +216,7 @@ Value readString(Value_list vals) {
         r_str->size += 1;
     }
     r_str->str[i] = '\0';
-    return (Value) {.type = string_t, .init = true, .s = r_str->str};
+    return (Value) {.type = string_t, .init = true, .s = r_str -> str};
 }
 
 // void print ( term_nebo_konkatenace );
