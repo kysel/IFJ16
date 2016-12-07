@@ -1,0 +1,9 @@
+/* Test na unsigned int */
+
+class Main 
+{
+    static int x;
+    static void run() {
+    Main.x = ifj16.readInt();
+   }
+}
