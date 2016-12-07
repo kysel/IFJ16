@@ -60,7 +60,7 @@ void add_buildInsToCtx(Syntax_context* ctx) {
 
 Syntax_context* init_syntax(FILE* input_file) {
     Syntax_context* ret = gc_alloc(sizeof(Syntax_context));
-    ret->s_ctx = init_scanner(input_file);
+    ret->s_ctx = init_scanner(input_file,0);
     ret->global_symbols = symbol_tree_new(false);
     ret->local_symbols = symbol_tree_new(true);
     ret->classes = symbol_tree_new(true);
