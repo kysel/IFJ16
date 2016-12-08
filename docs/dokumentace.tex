@@ -1,10 +1,32 @@
 \documentclass[a4paper,11pt]{article}
-
 \usepackage[left=2cm,text={17cm, 24cm},top=3cm]{geometry}
 \usepackage[utf8]{inputenc}
-\usepackage{times}
 \usepackage[czech]{babel}
-\usepackage{graphics}
+\usepackage{times}
+\usepackage[hidelinks]{hyperref}
+\usepackage{graphicx}
+\usepackage{epstopdf}
+\usepackage{fancyvrb}
+\fvset{frame=single,framesep=1mm,fontfamily=courier,fontsize=\scriptsize,numbers=left,framerule=.3mm,numbersep=1mm,commandchars=\\\{\}}
+\usepackage[usenames,dvipsnames]{xcolor}
+\graphicspath{{./images/}}
+\usepackage{listings}
+\lstdefinestyle{customc}{
+	abovecaptionskip=0\baselineskip,
+	breaklines=true,
+	frame=L,
+	xleftmargin=\parindent,
+	language=C,
+	showstringspaces=false,
+	basicstyle=\footnotesize\ttfamily,
+	keywordstyle=\bfseries\color{green!40!black},
+	commentstyle=\itshape\color{purple!40!black},
+	identifierstyle=\color{blue},
+	stringstyle=\color{orange},
+	captionpos=b
+}
+\renewcommand{\lstlistingname}{Kód}
+\lstset{escapechar=@,style=customc}
 
 \begin{document}
 \begin{center}
@@ -35,15 +57,32 @@ Brno}
 
 \newpage
 \section{Úvod}
-V této dokumentaci naleznete popis a návrh interpretu jazyka IFJ16, který je velmi zjednodušenou podmnožinou jazyka Java SE 8, což je staticky typovaný objektově orientovaný jazyk. Vybrali jsme si variantu varianta a/3/I, kde jsme měli za úkol přidat do interpretu vestavěnou funkci find, která využívala Knuth-Morris-Prattův algoritmus a funkci sort, kterou jsme měli implementovat tak, aby využívala shell sort.
+V této dokumentaci naleznete popis návrhu a implementace interpretu jazyka IFJ16, který je velmi zjednodušenou podmnožinou jazyka Java SE 8, což je staticky typovaný objektově orientovaný jazyk. Vybrali jsme si variantu varianta a/3/I, kde jsme měli za úkol přidat do interpretu vestavěnou funkci find, která využívala Knuth-Morris-Prattův algoritmus a funkci sort, kterou jsme měli implementovat tak, aby využívala shell sort.
 
 --bude ještě doplněno-
 
+\section{Lexikální analyzátor}
+dělá toukny a sype je do SA
+
 \section{Syntaktický analyzátor}
+Syntaktický analyzátor (dále jen \textit{SA}) slouží k vyhodnocování správnosti syntaxe a v našem případě i ke generování abstraktního syntaktického stromu (dále jen \textit{AST}). Vstupen SA je proud tokenů z LA, výstupem je \hyperref[lst:saOut]{struktura} na listingu níže. Struktura obsahuje tybulku globálních symbolů, pro případ kontroly typů, seznam definovaných funkcí, kde každá obsahuje vlastní AST a v posledním prvku je uložen počet globální proměnných pro potřeby alokace paměti.
+
+\begin{lstlisting}[caption={Výstupní struktura SA}, label={lst:saOut}]
+typedef struct {
+	Symbo_tree global_symbols;
+	Function_list functions;
+	int globals;
+} Syntax_context;
+\end{lstlisting}
+
+\subsection{Syntaktická analýza kódu}
+Syntaktická analýza kódu je implementovaná pomocí rekurzivního sestupu
+
+\subsection{Syntaktická analýza výrazů}
+\textbf{Doplní Juraj}
 
 \section{Sémantický analyzátor}
 
-\section{Lexikální analyzátor}
 
 \section{Interpret}
 
@@ -56,8 +95,25 @@ V této dokumentaci naleznete popis a návrh interpretu jazyka IFJ16, který je 
 \section{Testy}
 Testovali jsme buď součásti - \textit{unit testy}, kde jsme zkoušeli, zda daná funkce správně reaguje na vstupy. Unit testy si dělal každý sám a podle potřeby. Bylo zvykem v Makefile pro unit test udělat zvláštní target, kde se kromě samotné kompilace ještě prováděl \textit{valgrind} test pro ověření možných \textit{memory leaků}. 
 
-Dále jsme dělali ještě systémové testy. To byly vlastně testy samotného interpretu a porovnávání jeho výstupu s výstupem Javy SE 8 s přidanou kompatibilitou s jazykem IFJ16. Test byl vytvořen jako samostatný bash script, který se volal z Makefile. Ve složce test/input/ byly růžné programy v jazyce IFJ16 ve formátu \textit{navratovykod\_nazevprogramu.ifj16} s možností přidání ještě souboru se stejným formátem, ale koncovkou .in, kde byla možnost dát vstup na \textit{stdin}. Daný skript pak prošel složku, zjistil, zda jsou v ní obsaženy i soubory typu .in pro právě intepretovaný kód. Pokud byla předpokládaná návratová hodnota 0 (chyby ifj16 interpretu nemělo smysl překládat v javě a porovnávat), došlo k interpretaci kódu v javě i ifj16 interpretu s následným porovnání návratových kódů a výstupů. Vše se zapisovalo do logu, který se nacházel ve stejné složce \textit{input} jako interpretovaný kód. Obrázek níže zobrazuje výsledky testování v průběhu raných fází interpretu.\\
+Dále jsme dělali ještě systémové testy. To byly vlastně testy samotného interpretu a porovnávání jeho výstupu s výstupem Javy SE 8 s přidanou kompatibilitou s jazykem IFJ16. Test byl vytvořen jako samostatný bash script, který se volal z Makefile. Ve složce test/input/ byly různé programy v jazyce IFJ16 ve formátu \textit{návratovýKód\_názevProgramu.ifj16} s možností přidání ještě souboru se stejným formátem, ale koncovkou .in, kde byla možnost dát vstup na \textit{stdin}. Daný skript pak prošel složku, zjistil, zda jsou v ní obsaženy i soubory typu .in pro právě interpretovaný kód. Pokud byla předpokládaná návratová hodnota 0 (chyby IFJ16 interpretu nemělo smysl překládat v Javě a porovnávat), došlo k interpretaci kódu v Javě i ifj16 interpretu s následným porovnání návratových kódů a výstupů. Vše se zapisovalo do logu, který se nacházel ve stejné složce \textit{input} jako interpretovaný kód. Obrázek níže zobrazuje výsledky testování v průběhu raných fází interpretu.\\
 
-\scalebox{0.77}{\includegraphics{testy-interpretu.eps}}
+
+%\begin{figure}
+%	\centering
+%	\includegraphics[width=0.7\linewidth]{testy-interpretu.eps}
+%	\caption{}
+%	\label{fig:testy-interpretu}
+%\end{figure}
+
+\begin{Verbatim}
+ciUser@travis: ./test
+Currently working on 0_ahojsvete.ifj16:
+\textbf{\color{green}[ OK ]} ... IFJ16 return code is 0, and it was expected.
+\textbf{\color{green}[ OK ]} ... IFJ16 output of 0_ahojsvete.ifj16 is correctly intepreted.
+
+Currently working on 0_arithmetic_test_9_UNARY.ifj16:
+\textbf{\color{red}[FAIL]} ... IFJ16 return code is 2, but 0 was expected, see logs/0_fooTest.log.
+\textbf{\color{red}[FAIL]} ... IFJ16 output of 0_fooTest.ifj16 is different, see logs/0_fooTest.log.
+\end{Verbatim}
 
 \end{document}
