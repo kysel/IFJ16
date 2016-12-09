@@ -89,9 +89,9 @@ Syntaktická analýza kódu je implementovaná pomocí rekurzivního sestupu
 \section{Vestavěné funkce}
 \subsection {vestavěné funkce v IAL.c}
 --nevím jestli rozdělovat na podsekce ještě měnší nebo ne--
-\subsubsection {find}
-
-\subsubsection {sort}
+\subsubsection {\texttt{int find(String s, String search)}}
+Funkce \texttt{int find(String s, String search)} hledá první výskyt zadaného podřetězce (v parametru \texttt{search}) a vrátí jeho pozici (počítanou od nuly). V naší variantě a/3/I jsme měli za úkol implementovat tuto funkci pomocí \texttt{Knuth-Morris-Prattova algorytmu}. Tato implementace spočívala v ... doplním.
+\subsubsection {\texttt{String sort(String s)}}
 \section{Testy}
 Testovali jsme buď součásti - \textit{unit testy}, kde jsme zkoušeli, zda daná funkce správně reaguje na vstupy. Unit testy si dělal každý sám a podle potřeby. Bylo zvykem v Makefile pro unit test udělat zvláštní target, kde se kromě samotné kompilace ještě prováděl \textit{valgrind} test pro ověření možných \textit{memory leaků}. 
 
