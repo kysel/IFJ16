@@ -1,6 +1,6 @@
 class Main {
     static void run() {
         String a = "42";
-        String b = ifj16.substr(a, 1, -1);
+        String b = ifj16.substr(a, 1, 1);
     }
 }
