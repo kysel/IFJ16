@@ -8,6 +8,7 @@
 \usepackage{booktabs}
 \usepackage{epstopdf}
 \usepackage{fancyvrb}
+\usepackage{float}
 \fvset{frame=single,framesep=1mm,fontfamily=courier,fontsize=\scriptsize,numbers=left,framerule=.3mm,numbersep=1mm,commandchars=\\\{\}}
 \usepackage[usenames,dvipsnames]{xcolor}
 \graphicspath{{./images/}}
@@ -63,7 +64,50 @@ V této dokumentaci naleznete popis návrhu a implementace interpretu jazyka IFJ
 --bude ještě doplněno-
 
 \section{Lexikální analyzátor}
-dělá toukny a sype je do SA
+Lexikální analyza je založena na deterministickém konečném automatu(dále jen \textit{KA}), jehož vstupem je zdrojový kód programu. Lexikální analyzátor na základě předem definovaných pravidel rozdělí jednotlivé posloupnosti znaků na lexémy, které jsou poslány syntaktickému analyzátoru ve formě tokenu. V tokenu jsou obsaženy informace o typu rozpoznaného lexému, jeho délce, pozici v zdrojovém kódu a odpovídájícimu řetězci ze zdrojového kódu. Vedlejším úkolem lexikální analýzy je odstraňování bílých znaků, ale i řádkových a blokových komentářů. Lexikální analýza je řízena syntaktickou analýzou, která postupně žadá o tokeny. Naše implementace obsahuje funkci \texttt{peek\_token}, která usnadňuje práci syntaktické analýze, protože umožňuje se podívat o jeden token napřed. Klíčové slova, která jse nemůžou vyskytovat v jménech identifikátorů jsou realizovana jako pole řetezců.
+
+Pokud lexikalní analýza narazí na nerozpoznatelný lexém, tak na chybový výstup vypíše hlášení o chybě a řádku na kterém k ní přišlo.
+\newpage
+\subsection{Diagram konečného automatu lexikální analýzy}
+\textbf{KA hlavní schéma:} % bold
+\begin{figure}[H]
+\centering
+\includegraphics[scale=.31]{FSM_MAIN.eps}
+\caption{KA hlavní schéma}
+\end{figure}
+
+\newpage
+\textbf{KA chyba:} % bold
+\begin{figure}[H]
+\centering
+\includegraphics[scale=.31]{FSM_ERR.eps}
+\caption{KA chyba}
+\end{figure}
+
+\textbf{KA číslicový literál:} % bold
+\begin{figure}[H]
+\centering
+\includegraphics[scale=.31]{FSM_NUM.eps}
+\caption{KA číslicový literál}
+\end{figure}
+
+
+\textbf{KA identifikátor:} % bold
+\begin{figure}[H]
+\centering
+\includegraphics[scale=.31]{FSM_ID.eps}
+\caption{KA identifikátor}
+\end{figure}
+
+\newpage
+\textbf{KA řetězec:} % bold
+\begin{figure}[H]
+\centering
+\includegraphics[scale=.31]{FSM_STRING.eps}
+\caption{KA řetězec}
+\end{figure}
+
+
 
 \section{Syntaktický analyzátor}
 Syntaktický analyzátor (dále jen \textit{SA}) slouží k vyhodnocování správnosti syntaxe a v našem případě i ke generování abstraktního syntaktického stromu (dále jen \textit{AST}). Vstupen SA je proud tokenů z LA, výstupem je \hyperref[lst:saOut]{struktura} na listingu níže. Struktura obsahuje tybulku globálních symbolů, pro případ kontroly typů, seznam definovaných funkcí, kde každá obsahuje vlastní AST a v posledním prvku je uložen počet globální proměnných pro potřeby alokace paměti.
