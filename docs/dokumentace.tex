@@ -8,6 +8,7 @@
 \usepackage{booktabs}
 \usepackage{epstopdf}
 \usepackage{fancyvrb}
+\usepackage{amsmath}
 \usepackage{float}
 \fvset{frame=single,framesep=1mm,fontfamily=courier,fontsize=\scriptsize,numbers=left,framerule=.3mm,numbersep=1mm,commandchars=\\\{\}}
 \usepackage[usenames,dvipsnames]{xcolor}
@@ -86,27 +87,58 @@ typedef struct {
 Syntaktická analýza kódu je implementovaná pomocí rekurzivního sestupu
 
 \subsection{Syntaktická analýza výrazů}
-Úlohou syntaktichého analyzátoru výrazov je správne transformovať výraz na vstupe do podoby AST. Musí pri tom brať na zreteľ prioritu jedtnotlivých operátorov a ich asociativitu.
+Úkolem syntaktickýho analyzátoru výrazů je správně trasformovat výraz na vstupe z formy sledu tokenů do formy AST. Při této trasformaci se musí řídit prioritou a asociatovitou jednotlivých operátorů.
 
-Zakladom celého analyzátoru je množina pravidiel, precedenčná tabuľka operátorov (ďalej len \textit{tabuľka}) a zásobník. Analýza prebieha spôsobom, že sa prečíta neterminál (token) na vstupe a v tubuľke sa vyhľadá jeho vzťah k neterminálu, ktorý je najbližie vrcholu zásobníka. Tento vzťah určuje, aká akcia je na zásobníku vykonaná (jednotlivé akcie budú vysvetlené nižšie). Následne je prečítaný ďaľší token a celý postup sa opakuje do doby, kedy token na vstupe signalizuje koniec výrazu a na zásobnníku sa nenachádza žiadny neterminál.
+Celej analyzátor se dá rozdělit na tři základní časti: zásobník, množina pravidel a přecedenční tabulka operátorů (dále jen \textit{tabulka}). Analýza probíha způsobem, že jsou všechny vstupní tokeny postupne vkládány na zásobník a redukovány na neterminály na základe pravidel. Kdy a jaká akce se vykoná, se rozhoduje na základe tabulky, ve které se vyhladá relace medzi vstupním tokenem a tokenem (neterminálem), který leží na zásobníku nejblíže vrcholu. Analýza končí, pokud na vstupu prečteme token značíci konec výrazu a na zásobníku se nenachází žádnej neterminál a pouze jeden terminál.
 
-\subsubsection{Precedenčná tabuľka operátorov}
+\subsubsection{Precedenční tabulka operátorů}
+Tahle tabulka vyjadruje vztah (relaci) medzi každou dvojicí operátorů. Tyhle relace zohladňují vzájemnou prioritu i asociativitu operátorů a určují akci, která se na zásobníku vykoná. Tahle akce může být: 
+\begin{itemize}
+   \item Vložení vstupního tokenu na zásobník a načtení dalšího tokenu \textit{(v tabulce symbol =)}
+   \item Vložení zarážky na vrchol zásobníku, následné vložení vstupního tokenu na zásobník a načtení dalšího tokenu \textit{(v tabulce symbol \textless)}
+   \item Záměna tokenů (neterminálů) od zarážky po vrchol zásobníku za jeden terminál \textit{(v tabulce symbol \textgreater)}
+   \item Spracování volání funkce (obnáší přečtení dalších tokenů na vstupu) a nahrazení tokenů od zarážky výše za odpovídajíci terminál \textit{(v tabulce symbol F)}
+\end{itemize}
 
-Tabuľka vyjadruje vztah medzi každou dvojicou operátorov a určuje aká akcia je na zásobníku vykonaná. Tieto akcie sú:
+Pokud má relace dvou operátorů v tabulce označení \textit{E}, znamená to, že takové vzájemné postavení tychto operátorů netvoří validní výraz a tudiž se jendá o chybu.
 
-\begin{table}[]
-\centering
-%\caption{My caption}
-\label{my-label}
-\begin{tabular}{@{}ccc@{}}
-\toprule
-Symbol       & Význam                            & Sématická akcia                         \\ \midrule
-=            & Push                              & Token na vstupe je vložený na zásobník  \\
-\textless    &                                   & Token na vstupe je vložený na zasobník, \\
-\textgreater & Handle                            & Redukcia                                \\
-F            & Function call                     & bla                                     \\ \bottomrule
-\end{tabular}
-\end{table}
+\subsubsection{Pravidla}
+Jedna z akcí provádených na zásobníku je redukce jedného či více tokenů (neterminálů) na jeden terminál. Pokud je pro tuto redukci zavedené pravidlo, je na jeho základu vykonána, pokud ne, jedná se opět o chybu. V našem projektu jsou použita nasledujíci pravidla:
+
+\begin{align*}
+E &\rightarrow E + E  &   E &\rightarrow E < E\\
+E &\rightarrow E - E  &   E &\rightarrow E > E\\
+E &\rightarrow E * E  &   E &\rightarrow E <= E\\
+E &\rightarrow E / E  &   E &\rightarrow E >= E\\
+E &\rightarrow ( E )  &   E &\rightarrow E == E\\
+E &\rightarrow i      &   E &\rightarrow E != E\\
+\end{align*}
+
+\subsubsection{Zásobník}
+Je to pracovní entita, ve které je uchovávan rozpracovaný výraz a všechny ostatní informace potrebné pro analýzu. Pro naše účely jsme navrhli zásobník, který má následovní struktúru:
+
+\begin{lstlisting}[caption={Výstupní struktura SA}, label={lst:saOut}]
+typedef enum {
+    EOS,
+    TOKEN,
+    EXPRESSION
+} t_Element_Type;
+
+typedef struct {
+    t_Element_Type type;
+    void* address;
+    int stop_bit;
+} t_Element;
+
+typedef struct {
+    t_Element* arr;
+    int stack_size;
+    int top_element;
+    int top_token;
+} t_Stack;
+
+\end{lstlisting}
+
 
 \section{Sémantický analyzátor}
 
@@ -198,4 +230,10 @@ Currently working on 0_arithmetic_test_9_UNARY.ifj16:
 	\caption{KA - řetězec}
 \end{figure}
 
+\subsection{Precedenční tabulkaa}
+\begin{figure}[H]
+   \centering
+   \includegraphics[]{precedence_tab.eps}
+   \caption{Precedenční tabulka}
+\end{figure}
 \end{document}
