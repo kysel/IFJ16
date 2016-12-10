@@ -86,7 +86,8 @@ void check_func(Sem_ctx* ctx, const Function f) {
         strcpy(fqName, className);
         strcat(fqName, ".");
         strcat(fqName, symbol->key);
-        if (get_symbol_by_key((Symbol_tree*)&ctx->s_ctx->global_symbols, fqName) == NULL) {
+        Symbol_tree_leaf* glSymbol = get_symbol_by_key((Symbol_tree*)&ctx->s_ctx->global_symbols, fqName);
+        if (glSymbol == NULL || glSymbol->id < 0) {
             gc_free(fqName);
             continue;
         }
