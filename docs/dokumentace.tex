@@ -152,11 +152,30 @@ F            & Function call                     & bla                          
 \section{Interpret}
 
 \section{Vestavěné funkce}
+Vestavěné funkce jsou pro přehlednost rozděleny na dvě části, neboť podle zadání musí být funkce \texttt{find} a \texttt{sort} uloženy právě v souboru \texttt{ial.c}. Ostatní funkce jsou k nalezení v souboru \texttt{build\_in.c}.
+
 \subsection {vestavěné funkce v IAL.c}
 --nevím jestli rozdělovat na podsekce ještě měnší nebo ne--
+
 \subsubsection {\texttt{int find(String s, String search)}}
 Funkce \texttt{int find(String s, String search)} hledá první výskyt zadaného podřetězce (v parametru \texttt{search}) a vrátí jeho pozici (počítanou od nuly). V naší variantě a/3/I jsme měli za úkol implementovat tuto funkci pomocí \texttt{Knuth-Morris-Prattova algorytmu}. Tato implementace spočívala v ... doplním.
+
 \subsubsection {\texttt{String sort(String s)}}
+Funkce \texttt{String sort(String s)} řadí parametrem daný řetězec \texttt{s} podle ordinální hodnoty obsažených znaků, který pak odevzdává návratovou hodnotou. Daný výpočet je dle zadání a/3/I zpracován pomocí řadícího algoritmu \texttt{Shell sort}, nebo též řazení se snižujícím se přírůstkem s asymptotickou složitostí $O(n^{2})$. Styl implementace vychází ze vzorového příkladu přednášek předmětu IAL, kdy při prvním průchodu je brán krok jakožto polovina počtu prvků z celkové délky řetězce.
+
+\subsection {vestavěné funkce v souboru build{\_}in.c}
+Pro usnadnění práce při interpretaci jsou zde u funkcí návratové typy zjednodušeny na datový typ \texttt{Value} a parametry funkcí jsou předávány pomocí datového typu \texttt{Value\_list}.
+
+\begin{itemize}
+\item {\texttt{int readInt ()}} - funkce zpracovává čtený řetězec ze standardního vstupu po znacích a je zde tak zřejmá podobnost s konečnými automaty. Při nepovoleném znaku pro datový typ \texttt{int} volá funkce ke konci chybové hlášení, jinak je připuštěno k převodu řetězce na celé číslo.
+\item {\texttt{double readDouble ()}} - funkce je charakterem obdobná s funkci \texttt{readInt} a výsledná kontrola na desetinné číslo je ošetřena pomocí céčkové funkce \texttt{strtod()}.
+\item {\texttt{String readString ()}} - funkce na podobném přístupu jako \texttt{readInt} s rozšířenou množinou povolených znaků.
+\item {\texttt{void print ( \emph{term\_nebo\_konkatenace} )}} - funkce tisknoucí svůj vstup na standartní výstup. Zde je ošetřena možnost proměnného počtu parametrů pomocí datového typu \texttt{Value\_list}. 
+\item {\texttt{int length(String s)}} - funkce pro zjištění délky daného řetězce, která sama vychází z céčkové funkce \texttt{strlen()}.
+\item {\texttt{String substr(String s, int i, int n)}} - funkce tiskne podřetězec daného řetězce \texttt{s} s ošetřením na přesah paměti pomocí céčkové funkce \texttt{strncat()}.
+\item {\texttt{int compare(String s1, String s2)}} - funkce porovnává dva dané řetězce na základě céčkové funkce \texttt{strcmp()}.
+\end{itemize}
+
 \section{Testy}
 Testovali jsme buď součásti - \textit{unit testy}, kde jsme zkoušeli, zda daná funkce správně reaguje na vstupy. Unit testy si dělal každý sám a podle potřeby. Bylo zvykem v Makefile pro unit test udělat zvláštní target, kde se kromě samotné kompilace ještě prováděl \textit{valgrind} test pro ověření možných \textit{memory leaků}. 
 
