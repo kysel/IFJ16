@@ -213,9 +213,9 @@ Value substr(Value_list vals) {
     }
 
     char* cs = gc_alloc(sizeof(char) * (n + 1));
-    memcpy(cs, s + i, n);
-    cs[n+1] = '\0';
-    
+    cs[0] = 0;
+    strncat(cs, s+i, n);
+
     return (Value) {.type = string_t, .init = true, .s = cs};
 }
 
