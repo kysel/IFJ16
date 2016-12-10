@@ -1,0 +1,18 @@
+// Vytvorenie IFJ16 triedy
+// ako case sensitive
+
+class Main
+{
+	static void run()
+	{
+
+	}
+}
+
+class IFJ16
+{
+	static void test()
+	{
+
+	}
+}

@@ -1,0 +1,9 @@
+class Main{
+   static double a = 10;
+   static void run(){
+      a = a-1;
+      while(a>1){
+         run();
+      }
+   }
+}

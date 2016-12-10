@@ -8,7 +8,10 @@ OBJECTS=$(SOURCES:.c=.o)
 
 all: ifj16
 
-test: binaryTree-test find-test shellSort-test ifj16-test
+test: clean binaryTree-test find-test shellSort-test ifj16-test
+	make -C . clean
+	make -C . ifj16-test
+	cd ../test/; ./test; \
 
 ifj16: $(OBJECTS)
 	$(CC) $(CFLAGS) $^ -o $@
@@ -16,10 +19,10 @@ ifj16: $(OBJECTS)
 binaryTree-test: $(filter-out main.o,$(OBJECTS))
 	$(CC) $(CFLAGS) $^ $@.c -o $@
 	valgrind -q --leak-check=full ./$@
-	
+
 find-test: $(filter-out main.o,$(OBJECTS))
 	$(CC) $(CFLAGS) $^ $@.c -o $@
-	valgrind -q --leak-check=full ./$@	
+	valgrind -q --leak-check=full ./$@  
 
 shellSort-test: $(filter-out main.o,$(OBJECTS))
 	$(CC) $(CFLAGS) $^ $@.c -o $@
@@ -32,7 +35,7 @@ shellSort-test: $(filter-out main.o,$(OBJECTS))
 clean:
 	rm -rf *.o *.d .depend ifj16 find-test shellSort-test binaryTree-test ../test/*.class ../test/logs/*.log
 
-ifj16-test: ifj16
-	cd ../test/; ./test; \
+ifj16-test: CFLAGS=-std=c11 -Wall -Wextra -pedantic -O3 -g -DJAVA_SUCK
+ifj16-test: clean ifj16
 
 -include .depend/*.d

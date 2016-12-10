@@ -13,6 +13,7 @@
 
 typedef struct {
     Syntax_context* s;
+    Function* current_func;
     Value_list* loc_stack;
     Value_list* globals;
 } Inter_ctx;

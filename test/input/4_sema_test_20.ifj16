@@ -1,0 +1,17 @@
+// Porovnanie string v condition
+// 4
+
+class Main
+{
+	static void run()
+	{
+		if (5 != "asd")
+		{
+			ifj16.print("Nieco je asi zle THEN" + "\n");
+		}
+		else
+		{
+			ifj16.print("Nieco je asi zle ELSE" + "\n");
+		}
+	}
+}

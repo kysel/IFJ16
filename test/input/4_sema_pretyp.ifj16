@@ -1,0 +1,10 @@
+// pretypovani double - int
+
+class Main
+{
+    static void run()
+    {
+        int a = ifj16.readDouble();
+        ifj16.print(a);
+    }
+}

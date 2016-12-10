@@ -1,0 +1,14 @@
+/* nedefinovan static */
+class Main
+{
+	static int a;
+	static void example() {
+		a = 1;
+	}
+	
+    static void run()
+    {
+        ifj16.print(a);
+        example();
+    }
+}

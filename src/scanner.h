@@ -28,7 +28,7 @@
     TOKEN(T_BRACKET_LROUND,   "'('",           0x10000)   \
     TOKEN(T_BRACKET_RROUND,   "')'",            0x8000)   \
     TOKEN(T_ID,               "identifier",     0x4000)   \
-    TOKEN(T_DOT,              "'.'",            0x2000)   \
+    TOKEN(T_FULL_ID,          "class.id",       0x2000)   \
     TOKEN(T_KEYWORD,          "keyword",        0x1000)   \
     TOKEN(T_ASSIGN,           "assignment",      0x800)   \
     TOKEN(T_COMMA,            "','",             0x400)   \
@@ -58,6 +58,8 @@ static inline const char* token_to_string(token_type tok) {
 typedef enum {
     FSM_INIT,
     FSM_ID,
+    FSM_FID,
+    FSM_FID1,
     FSM_INT,
     FSM_MUL,
     FSM_DIV,
@@ -79,15 +81,27 @@ typedef enum {
     FSM_ESCAPE,
     FSM_ESCAPE_OCTAL_1,
     FSM_ESCAPE_OCTAL_2,
+    FSM_ESCAPE_OCTAL_3,
+    FSM_ESCAPE_OCTAL_4,
     FSM_DOUBLE,
+    FSM_DOUBLE1,
     FSM_EXPONENT,
     FSM_EXPONENT_SIGN,
     FSM_EXPONENT_2,
+    FSM_ZERO,
+    FSM_OCTAL,
+    FSM_BIN_1,
+    FSM_HEX,
+    FSM_HEX_1,
+    FSM_BIN,
+    FSM_NUM1,
+    FSM_HEX_D,
+    FSM_HEX_D_1,
+    FSM_HEX_P,
     FSM_STRING,
     FSM_COMMENT_LINE,
     FSM_COMMENT_BLOCK,
     FSM_COMMENT_BLOCK_FIN,
-    FSM_DOT, // '.'
 } states;
 
 #define FOREACH_KEYWORD(KEYWORD)                \
@@ -128,7 +142,6 @@ typedef struct {
     token_type type;
     size_t tlen; //lenght of token string
     long long line; //line number
-    int space_flag;
     char* c; //token string literally
     union {
         Data_type dtype; //data types eg.double,int..
@@ -144,7 +157,6 @@ typedef struct {
 typedef struct {
     FILE* f;
     long long line; //save line number among calling get_token
-    int space_flag;
     Ttoken* token;
 } Tinit;
 

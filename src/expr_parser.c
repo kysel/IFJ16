@@ -85,23 +85,40 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init* symbol_tabs, long long line)
                 expression = gc_alloc(sizeof(Expression));
                 Ttoken* token = s->arr[s->top_element].address;
                 Symbol_tree_leaf* leaf;
-
-                //Vytvorenie plne kvalifikovaného identifikátora
-                char* full_name = gc_alloc(sizeof(char) * (strlen(token->c) + strlen(symbol_tabs->class_name) + 2));
-                full_name[0] = '\0';
-                strcat(full_name, symbol_tabs->class_name);
-                strcat(full_name, ".");
-                strcat(full_name, token->c);
+                char* full_name;
 
                 switch (token->type) {
                     case T_ID:
+                        //Vytvorenie plne kvalifikovaného identifikátora
+                        full_name = gc_alloc(sizeof(char) * (strlen(token->c) + strlen(symbol_tabs->class_name) + 2));
+                        full_name[0] = '\0';
+                        strcat(full_name, symbol_tabs->class_name);
+                        strcat(full_name, ".");
+                        strcat(full_name, token->c);
+
                         expression->type = variable;
                         if ((leaf = get_symbol_by_key(symbol_tabs->local_tab, token->c)))
                             expression->variable = leaf->id;
                         else if ((leaf = get_symbol_by_key(symbol_tabs->global_tab, full_name)))
                             expression->variable = leaf->id;
                         else {
-                            leaf = add_symbol(symbol_tabs->global_tab, full_name);
+                            if (symbol_tabs->inside_func)
+                                leaf = add_symbol(symbol_tabs->local_tab, token->c);
+                            else
+                                leaf = add_symbol(symbol_tabs->global_tab, full_name);
+                            leaf->defined = false;
+                            expression->variable = leaf->id;
+                        }
+                        break;
+
+                    case T_FULL_ID:
+                        expression->type = variable;
+                        if ((leaf = get_symbol_by_key(symbol_tabs->global_tab, token->c)))
+                            expression->variable = leaf->id;
+                        else {
+                            leaf = add_symbol(symbol_tabs->global_tab, token->c);
+                            leaf->defined = false;
+                            leaf->init_expr = NULL;
                             expression->variable = leaf->id;
                         }
                         break;
@@ -137,7 +154,7 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init* symbol_tabs, long long line)
 
             //Dlhé pravidlá
         case 3:
-            //Pravidlo E -> i . i
+            /*//Pravidlo E -> i . i
             if (s->arr[s->top_element - 2].type == TOKEN && s->arr[s->top_element - 1].type == TOKEN && s->arr[s->top_element].type == TOKEN) {
                 expression = gc_alloc(sizeof(Expression));
                 Ttoken* left_token = s->arr[s->top_element - 2].address;
@@ -171,7 +188,8 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init* symbol_tabs, long long line)
 
             }
             //Pravidlo E -> ( E )
-            else if (s->arr[s->top_element - 2].type == TOKEN && s->arr[s->top_element - 1].type == EXPRESSION && s->arr[s->top_element].type == TOKEN) {
+            else */
+            if (s->arr[s->top_element - 2].type == TOKEN && s->arr[s->top_element - 1].type == EXPRESSION && s->arr[s->top_element].type == TOKEN) {
                 Ttoken* left_token = s->arr[s->top_element - 2].address;
                 Ttoken* right_token = s->arr[s->top_element].address;
 
@@ -268,12 +286,16 @@ void processFunCall(t_Stack* s, Tinit* scanner, t_Expr_Parser_Init* symbol_tabs,
             strcat(full_name, token->c);
 
             stackPop(s);
+        } else if (token->type == T_FULL_ID) {
+            full_name = token->c;
+
+            stackPop(s);
         } else {
             fprintf(stderr, "Syntax error on line %lld.\n", line);
             exit(syntactic_analysis_error);
         }
 
-    } else if (rule_lenght == 3 && s->arr[s->top_element - 2].type == TOKEN && s->arr[s->top_element - 1].type == TOKEN && s->arr[s->top_element].type == TOKEN) {
+    } /*else if (rule_lenght == 3 && s->arr[s->top_element - 2].type == TOKEN && s->arr[s->top_element - 1].type == TOKEN && s->arr[s->top_element].type == TOKEN) {
         Ttoken* left_token = s->arr[s->top_element - 2].address;
         Ttoken* middle_token = s->arr[s->top_element - 1].address;
         Ttoken* right_token = s->arr[s->top_element].address;
@@ -293,7 +315,7 @@ void processFunCall(t_Stack* s, Tinit* scanner, t_Expr_Parser_Init* symbol_tabs,
             fprintf(stderr, "Syntax error on line %lld.\n", line);
             exit(syntactic_analysis_error);
         }
-    } else {
+    }*/ else {
         fprintf(stderr, "Syntax error on line %lld.\n", line);
         exit(syntactic_analysis_error);
     }
@@ -324,8 +346,8 @@ int terminal2TabIndex(void* terminal, long long line) {
         case T_NOT_EQUAL: return 9;
         case T_BRACKET_LROUND: return 10;
         case T_BRACKET_RROUND: return 11;
-        case T_DOT: return 12;
-        case T_ID: case T_INT: case T_DOUBLE: case T_STRING: return 13;
+        //case T_DOT: return 12;
+        case T_ID: case T_FULL_ID: case T_INT: case T_DOUBLE: case T_STRING: return 13;
         case T_COMMA: case T_SEMICOLON: return 14;
         default:
             fprintf(stderr, "Syntax error on line %lld.\n", line);
@@ -363,6 +385,7 @@ t_Expr_Parser_Init* ExprParserInit(Symbol_tree* global_tab, Symbol_tree* local_t
     init_struct->global_tab = global_tab;
     init_struct->local_tab = local_tab;
     init_struct->class_name = class_name;
+    init_struct->inside_func = false;
     return init_struct;
 }
 

@@ -1,0 +1,20 @@
+// Porovnanie string v condition
+// 4
+
+class Main
+{
+	static void run()
+	{
+		int a = 20;
+		String s = "asd";
+
+		if (a != s)
+		{
+			ifj16.print("Nieco je asi zle THEN" + "\n");
+		}
+		else
+		{
+			ifj16.print("Nieco je asi zle ELSE" + "\n");
+		}
+	}
+}

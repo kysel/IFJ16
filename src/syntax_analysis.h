@@ -11,11 +11,10 @@
 #define SYNTAXANALYSIS_H_
 #include "scanner.h"
 #include "ast.h"
-#include "ial.h"
 #include "expr_parser.h"
 
 typedef struct {
-    Symbol_tree global_symbols, local_symbols;
+    Symbol_tree global_symbols, local_symbols, classes;
     Tinit* s_ctx;
     char* current_class;
     Function_list functions;

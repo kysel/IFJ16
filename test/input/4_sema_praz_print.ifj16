@@ -1,0 +1,10 @@
+// Prazdny print
+
+class Main
+{
+    static void run()
+    {
+        String abc = "abc";
+        ifj16.print();
+    }
+}

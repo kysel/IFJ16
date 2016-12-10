@@ -1,0 +1,31 @@
+// Viacnosobne cykly
+
+class Main
+{
+	static void run()
+	{
+		double d = whileFunc();
+		ifj16.print("Vysledok: " + d + "\n");
+	}
+
+	static double whileFunc()
+	{
+		int a = 10;
+		int b;
+
+		while (a > 5)
+		{
+			ifj16.print("a: " + a + "\n");
+			a = a - 1;
+			b = 10;
+
+			while (b > 5)
+			{
+				ifj16.print("b: " + b + "\n");
+				b = b - 1;
+			}
+		}
+
+		return 2.58;
+	}
+}

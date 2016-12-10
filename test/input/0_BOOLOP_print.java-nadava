@@ -1,0 +1,10 @@
+/* nedefinovan static */
+class Main
+{
+    static boolean t = true;
+    static void run()
+    {
+        ifj16.print(t);
+
+    }
+}

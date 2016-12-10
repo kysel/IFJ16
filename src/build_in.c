@@ -54,9 +54,10 @@ Value readInt(Value_list vals) {
     if (c != '\n' && c != EOF) // pokud byl zaznamenan jiny nepripustny znak
         err = 1;
     if (err == 0)
-        return (Value) {.type = int_t, .init = true, .i = i};
-
-    fprintf(stderr, "Input error\n");
+        if (i > 0) {
+            return (Value) {.type = int_t, .init = true, .i = i};
+        }
+    fprintf(stderr, "Input range error\n");
     exit(runtime_input_error);
 }
 
@@ -68,7 +69,6 @@ Value readDouble(Value_list vals) {
     }
 
     Tstring* r_dbl;
-    int i = 0; // delka
     double d = 0; // vysledne desetinne cislo
     char* ptr; // prebytkovy retezec
     int err = 0; // detekce erroru (podminky retezce)
@@ -76,7 +76,7 @@ Value readDouble(Value_list vals) {
 
     r_dbl = gc_alloc(sizeof(struct Tstring)); 
     r_dbl->str = gc_alloc(sizeof(char) * INC_STRLEN);
-
+	r_dbl->str[0] = 0;
     r_dbl->size = INC_STRLEN;
     r_dbl->len = 0;
 
@@ -93,9 +93,8 @@ Value readDouble(Value_list vals) {
             r_dbl->str = gc_realloc(r_dbl->str, r_dbl->size + (sizeof(char) * INC_STRLEN));
             r_dbl->size += INC_STRLEN;
         }
-        r_dbl->str[i] = c;
-        i++;
-        r_dbl->len = i;
+		strncat(r_dbl->str, &c, 1);
+		r_dbl->len++;
         c = getchar();
     }
     while (c != '\n' && c != EOF) { // pokud byl zaznamenan jiny nepripustny znak
@@ -109,7 +108,12 @@ Value readDouble(Value_list vals) {
             exit(runtime_input_error);
         }
     }
-    return (Value) {.type = double_t, .init = true, .d = d};
+    if (d > 0.0) {
+        return (Value) {.type = double_t, .init = true, .d = d};
+    }
+
+    fprintf(stderr, "Input range error\n");
+    exit(runtime_input_error);
 }
 
 // String readString ();
@@ -161,7 +165,15 @@ Value print(Value_list vals) {
         printf("%d", arg.i);
         break;
     case double_t:
+#ifdef JAVA_SUCK
+        if (((long)arg.d - arg.d) == 0)
+            printf("%.1f", arg.d);
+        else
+            printf("%g", arg.d);
+#else
         printf("%g", arg.d);
+#endif
+
         break;
     case string_t:
         printf("%s", arg.s);
@@ -201,9 +213,9 @@ Value substr(Value_list vals) {
     }
 
     char* cs = gc_alloc(sizeof(char) * (n + 1));
-    memcpy(cs, s + i, n);
-    cs[n+1] = '\0';
-    
+    cs[0] = 0;
+    strncat(cs, s+i, n);
+
     return (Value) {.type = string_t, .init = true, .s = cs};
 }
 

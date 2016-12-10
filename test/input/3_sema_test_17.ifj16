@@ -1,0 +1,18 @@
+// 2x definovanie Main triedy
+// 3
+
+class Main
+{
+	static void run()
+	{
+		
+	}
+}
+
+class Main
+{
+	static void daco()
+	{
+
+	}
+}
