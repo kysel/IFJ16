@@ -86,28 +86,26 @@ typedef struct {
 Syntaktická analýza kódu je implementovaná pomocí rekurzivního sestupu
 
 \subsection{Syntaktická analýza výrazů}
-Úlohou syntaktického analyzátoru je správně transformovat vstupní neterminály (tokeny) na výraz v podobě AST. Při tomto procesu je nutné brát v potaz prioritu a asociativitu operátorů.
+Úlohou syntaktichého analyzátoru výrazov je správne transformovať výraz na vstupe do podoby AST. Musí pri tom brať na zreteľ prioritu jedtnotlivých operátorov a ich asociativitu.
 
-Základem analyzátoru je množina pravidel, precedenční tabulka operátorů (dále jen \textit{tabulka}) a zásobník.
-Analýza probíhá způsobem, že se načte vstupní neterminál a v tabulce se vyhledá jeho vztah k neterminálu, který je nejblíže vrcholu zásobníku. Tento vztah určuje, jaká akce se na zásobníku vykoná (jednotlivé akce jsou vysvětleny níže). Poté se přečte další token a celý proces se opakuje. K ukončení dojde, pokud vstupní token signalizuje konec a zásobník je prázdný.
+Zakladom celého analyzátoru je množina pravidiel, precedenčná tabuľka operátorov (ďalej len \textit{tabuľka}) a zásobník. Analýza prebieha spôsobom, že sa prečíta neterminál (token) na vstupe a v tubuľke sa vyhľadá jeho vzťah k neterminálu, ktorý je najbližie vrcholu zásobníka. Tento vzťah určuje, aká akcia je na zásobníku vykonaná (jednotlivé akcie budú vysvetlené nižšie). Následne je prečítaný ďaľší token a celý postup sa opakuje do doby, kedy token na vstupe signalizuje koniec výrazu a na zásobnníku sa nenachádza žiadny neterminál.
 
-\subsubsection{Precedenční tabulka operátorů}
+\subsubsection{Precedenčná tabuľka operátorov}
 
-
-Tabulka vyjadřuje vztah mezi každou dvojicí operátorů a určuje, jaká akce je na zásobníku vykonaná. Možné akce jsou v sepsány v \hyperref[tab:stackRules]{tabulce}.
+Tabuľka vyjadruje vztah medzi každou dvojicou operátorov a určuje aká akcia je na zásobníku vykonaná. Tieto akcie sú:
 
 \begin{table}[]
 \centering
-\label{tab:stackRules}
+%\caption{My caption}
+\label{my-label}
 \begin{tabular}{@{}ccc@{}}
 \toprule
-Symbol       & Význam                            & Sématická akce                         \\ \midrule
-=            & Push                              & Vstupní token je vložený na zásobník  \\
-\textless    &                                   & Vstupní token je vložený na zásobník \\
-\textgreater & Handle                            & Redukce                                \\
-F            & Function call                     & Parsování volání funkce \\ \bottomrule
+Symbol       & Význam                            & Sématická akcia                         \\ \midrule
+=            & Push                              & Token na vstupe je vložený na zásobník  \\
+\textless    &                                   & Token na vstupe je vložený na zasobník, \\
+\textgreater & Handle                            & Redukcia                                \\
+F            & Function call                     & bla                                     \\ \bottomrule
 \end{tabular}
-\caption{Tabulka možných akcí na zásobníku}
 \end{table}
 
 \section{Sémantický analyzátor}
