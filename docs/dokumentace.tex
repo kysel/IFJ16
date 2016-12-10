@@ -59,54 +59,16 @@ Brno}
 
 \newpage
 \section{Úvod}
-V této dokumentaci naleznete popis návrhu a implementace interpretu jazyka IFJ16, který je velmi zjednodušenou podmnožinou jazyka Java SE 8, což je staticky typovaný objektově orientovaný jazyk. Vybrali jsme si variantu varianta a/3/I, kde jsme měli za úkol přidat do interpretu vestavěnou funkci find, která využívala Knuth-Morris-Prattův algoritmus a funkci sort, kterou jsme měli implementovat tak, aby využívala shell sort.
+V této dokumentaci naleznete popis návrhu a implementace interpretu jazyka IFJ16, který je velmi zjednodušenou podmnožinou jazyka Java SE 8, což je staticky typovaný objektově orientovaný jazyk. Vybrali jsme si variantu  a/3/I, což znamená, že funkce find využívá Knuth-Morris-Prattův algoritmus, ve funkci sort je použit řadící algoritmus \texttt{shell sort} a tabulka symbolů je implementovaná binárním vyhledávacím stromem.
 
 --bude ještě doplněno-
 
 \section{Lexikální analyzátor}
-Lexikální analyza je založena na deterministickém konečném automatu(dále jen \textit{KA}), jehož vstupem je zdrojový kód programu. Lexikální analyzátor na základě předem definovaných pravidel rozdělí jednotlivé posloupnosti znaků na lexémy, které jsou poslány syntaktickému analyzátoru ve formě tokenu. V tokenu jsou obsaženy informace o typu rozpoznaného lexému, jeho délce, pozici v zdrojovém kódu a odpovídájícimu řetězci ze zdrojového kódu. Vedlejším úkolem lexikální analýzy je odstraňování bílých znaků, ale i řádkových a blokových komentářů. Lexikální analýza je řízena syntaktickou analýzou, která postupně žadá o tokeny. Naše implementace obsahuje funkci \texttt{peek\_token}, která usnadňuje práci syntaktické analýze, protože umožňuje se podívat o jeden token napřed. Klíčové slova, která jse nemůžou vyskytovat v jménech identifikátorů jsou realizovana jako pole řetezců.
+Lexikální analýza je založena na deterministickém konečném automatu (dále jen \textit{KA}), jehož vstupem je zdrojový kód programu. Lexikální analyzátor na základě předem definovaných pravidel rozdělí jednotlivé posloupnosti znaků na lexémy, které jsou vráceny syntaktickému analyzátoru ve formě tokenů. Token obsahuje informace o typu rozpoznaného lexému, jeho délce, pozici ve zdrojovém kódu a odpovídající řetězec ze zdrojového kódu. Vedlejším úkolem lexikální analýzy je odstraňování bílých znaků, řádkových i blokových komentářů. Lexikální analýza je řízena syntaktickou analýzou, která postupně žádá o tokeny. Naše implementace obsahuje funkci \texttt{peek\_token}, která umožňuje syntaktické analýze podívat se na další tokeny, bez jejich konzumace. Jména identifikátorů jsou porovnána s prvky v poli řetězců, které obsahuje klíčová slova.
 
-Pokud lexikalní analýza narazí na nerozpoznatelný lexém, tak na chybový výstup vypíše hlášení o chybě a řádku na kterém k ní přišlo.
-\newpage
-\subsection{Diagram konečného automatu lexikální analýzy}
-\textbf{KA hlavní schéma:} % bold
-\begin{figure}[H]
-\centering
-\includegraphics[scale=.31]{FSM_MAIN.eps}
-\caption{KA hlavní schéma}
-\end{figure}
+Pokud lexikální analýza narazí na nerozpoznatelný lexém, vypíše na chybový výstup hlášení o chybě, které obsahuje mimo jiné i řádek ve zdrojovém souboru na kterém se vyskytla.
 
-\newpage
-\textbf{KA chyba:} % bold
-\begin{figure}[H]
-\centering
-\includegraphics[scale=.31]{FSM_ERR.eps}
-\caption{KA chyba}
-\end{figure}
-
-\textbf{KA číslicový literál:} % bold
-\begin{figure}[H]
-\centering
-\includegraphics[scale=.31]{FSM_NUM.eps}
-\caption{KA číslicový literál}
-\end{figure}
-
-
-\textbf{KA identifikátor:} % bold
-\begin{figure}[H]
-\centering
-\includegraphics[scale=.31]{FSM_ID.eps}
-\caption{KA identifikátor}
-\end{figure}
-
-\newpage
-\textbf{KA řetězec:} % bold
-\begin{figure}[H]
-\centering
-\includegraphics[scale=.31]{FSM_STRING.eps}
-\caption{KA řetězec}
-\end{figure}
-
+Diagramy konečného automatu lexikálního analyzátoru jsou v \hyperref[diag:LA-FSM]{příloze}.
 
 
 \section{Syntaktický analyzátor}
@@ -201,5 +163,41 @@ Currently working on 0_arithmetic_test_9_UNARY.ifj16:
 \textbf{\color{red}[FAIL]} ... IFJ16 return code is 2, but 0 was expected, see logs/0_fooTest.log.
 \textbf{\color{red}[FAIL]} ... IFJ16 output of 0_fooTest.ifj16 is different, see logs/0_fooTest.log.
 \end{Verbatim}
+
+
+\section{Přílohy}
+\subsection{Diagramy konečného automatu lexikální analýzy}
+\label{diag:LA-FSM}
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=.31]{FSM_MAIN.eps}
+	\caption{KA - hlavní schéma}
+\end{figure}
+
+\newpage
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=.31]{FSM_ERR.eps}
+	\caption{KA - chyba}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=.31]{FSM_NUM.eps}
+	\caption{KA - číslicový literál}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=.31]{FSM_ID.eps}
+	\caption{KA - identifikátor}
+\end{figure}
+
+\newpage
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=.31]{FSM_STRING.eps}
+	\caption{KA - řetězec}
+\end{figure}
 
 \end{document}
