@@ -89,7 +89,7 @@ Syntaktická analýza kódu je implementovaná pomocí rekurzivního sestupu
 \subsection{Syntaktická analýza výrazů}
 Úkolem syntaktickýho analyzátoru výrazů je správně trasformovat výraz na vstupe z formy sledu tokenů do formy AST. Při této trasformaci se musí řídit prioritou a asociatovitou jednotlivých operátorů.
 
-Celej analyzátor se dá rozdělit na tři základní časti: zásobník, množina pravidel a přecedenční tabulka operátorů (dále jen \textit{tabulka}). Analýza probíha způsobem, že jsou všechny vstupní tokeny postupne vkládány na zásobník a redukovány na neterminály na základe pravidel. Kdy a jaká akce se vykoná, se rozhoduje na základe tabulky, ve které se vyhladá relace medzi vstupním tokenem a tokenem (neterminálem), který leží na zásobníku nejblíže vrcholu. Analýza končí, pokud na vstupu prečteme token značíci konec výrazu a na zásobníku se nenachází žádnej neterminál a pouze jeden terminál.
+Celej analyzátor se dá rozdělit na tři základní časti: zásobník, množina pravidel a přecedenční tabulka operátorů (dále jen \textit{tabulka}). Analýza probíha způsobem, že jsou všechny vstupní tokeny postupne vkládány na zásobník a redukovány na terminály na základe pravidel. Kdy a jaká akce se vykoná, se rozhoduje na základe tabulky, ve které se vyhladá relace medzi vstupním tokenem a tokenem (neterminálem), který leží na zásobníku nejblíže vrcholu. Analýza končí, pokud na vstupu prečteme token značíci konec výrazu a na zásobníku se nenachází žádnej neterminál a pouze jeden terminál.
 
 \subsubsection{Precedenční tabulka operátorů}
 Tahle tabulka vyjadruje vztah (relaci) medzi každou dvojicí operátorů. Tyhle relace zohladňují vzájemnou prioritu i asociativitu operátorů a určují akci, která se na zásobníku vykoná. Tahle akce může být: 
