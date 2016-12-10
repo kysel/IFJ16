@@ -87,6 +87,9 @@ Parsed_id parse_id(Tinit* scanner, const char* currentClass) {
     if (nameTok->type == T_FULL_ID) {
         ret.fullQ = true;
         ret.full = nameTok->c;
+
+        //char*(*kek)[2] = split_id(ret.full);
+
         char* e = strchr(ret.full, '.');
         int idx = (int)(e - ret.full);
         ret.class = gc_alloc(sizeof(char)*(idx + 1));
@@ -107,6 +110,14 @@ Parsed_id parse_id(Tinit* scanner, const char* currentClass) {
         strcat(ret.full, nameTok->c);
     }
     return ret;
+}
+
+Expression* parse_expressionWrap(t_Expr_Parser_Init* symbol_tabs, Tinit* scanner) {
+    Expression* ret = parseExpression(symbol_tabs, scanner);
+    if (ret != NULL)
+        return ret;
+    fprintf(stderr, "Expected expression on line %lld\n", scanner->line);
+    exit(syntactic_analysis_error);
 }
 
 void parse_class(Syntax_context* ctx) {
@@ -183,7 +194,7 @@ Variable parse_global_variable(Syntax_context* ctx, Data_type type) {
     Ttoken* nextToken = check_and_get_token(ctx->s_ctx, T_ASSIGN | T_SEMICOLON);
 
     if (nextToken->type == T_ASSIGN) {
-        ret.init_expr = parseExpression(ctx->expCtx, ctx->s_ctx);
+        ret.init_expr = parse_expressionWrap(ctx->expCtx, ctx->s_ctx);
         check_and_get_token(ctx->s_ctx, T_SEMICOLON);
     }
     else if (nextToken->type == T_SEMICOLON)
@@ -237,7 +248,7 @@ void parse_assigmnent(Syntax_context* ctx, Statement_collection* statements, Par
         .type = assigment,
         .assignment.target = symbol->id
     };
-    Expression* sourceExpr = parseExpression(ctx->expCtx, ctx->s_ctx);
+    Expression* sourceExpr = parse_expressionWrap(ctx->expCtx, ctx->s_ctx);
     st.assignment.source = *sourceExpr;
     add_statement(statements, st);
     check_and_get_token(ctx->s_ctx, T_SEMICOLON);
@@ -283,7 +294,7 @@ void parse_if(Syntax_context* ctx, Statement_collection* statements) {
 
     check_and_get_keyword(ctx->s_ctx, K_IF);
     check_and_get_token(ctx->s_ctx, T_BRACKET_LROUND);
-    st.condition.condition = *parseExpression(ctx->expCtx, ctx->s_ctx);
+    st.condition.condition = *parse_expressionWrap(ctx->expCtx, ctx->s_ctx);
     check_and_get_token(ctx->s_ctx, T_BRACKET_RROUND);
 
     if (peek_token(ctx->s_ctx)->type == T_BRACKET_LCURLY)
@@ -313,7 +324,7 @@ Expression* parse_f_call(t_Expr_Parser_Init* exprCtx, Tinit* scanner, char* id) 
     check_and_get_token(scanner, T_BRACKET_LROUND);
     if (peek_token(scanner)->type != T_BRACKET_RROUND) {
         while (true) {
-            Expression* ex = parseExpression(exprCtx, scanner);
+            Expression* ex = parse_expressionWrap(exprCtx, scanner);
             add_parameter(&st->fCall.parameters, *ex);
             if (check_and_peek_token(scanner, T_COMMA | T_BRACKET_RROUND)->type == T_COMMA)
                 get_token(scanner);
@@ -339,7 +350,7 @@ void parse_while(Syntax_context* ctx, Statement_collection* statements) {
     };
     check_and_get_keyword(ctx->s_ctx, K_WHILE);
     check_and_get_token(ctx->s_ctx, T_BRACKET_LROUND);
-    st.while_loop.condition = *parseExpression(ctx->expCtx, ctx->s_ctx);
+    st.while_loop.condition = *parse_expressionWrap(ctx->expCtx, ctx->s_ctx);
     check_and_get_token(ctx->s_ctx, T_BRACKET_RROUND);
     if (peek_token(ctx->s_ctx)->type != T_BRACKET_LCURLY)
         parse_statement(ctx, &st.while_loop.statements);
@@ -358,7 +369,7 @@ void parse_return(Syntax_context* ctx, Statement_collection* statements) {
         st.ret.type = constant;
         st.ret.constant.type = void_t;
     } else
-        st.ret = *(Return_statement*)parseExpression(ctx->expCtx, ctx->s_ctx);
+        st.ret = *(Return_statement*)parse_expressionWrap(ctx->expCtx, ctx->s_ctx);
     get_token(ctx->s_ctx); // gets ';', cause parseExpression leaves it
     add_statement(statements, st);
 }
@@ -372,7 +383,7 @@ void parse_statement(Syntax_context* ctx, Statement_collection* statements) {
             else {
                 //TODO engliš
                 fprintf(stderr, "Local variable cannot be defined inside a compound statements line %lld.\n", tok->line);
-                exit(semantic_error_in_code);
+                exit(syntactic_analysis_error);
             }
             break;
         case T_FULL_ID:
