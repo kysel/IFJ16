@@ -47,6 +47,22 @@ int get_exit_code(const Err_list errs) {
     return 0;
 }
 
+char*(*split_id(char* fullId))[2]{
+    char*(*ret)[2] = gc_alloc(sizeof(char*) * 2);
+
+    char* e = strchr(fullId, '.');
+    int idx = (int)(e - fullId);
+    (*ret)[0] = gc_alloc(sizeof(char)*(idx + 1));
+    strncpy((*ret)[0], fullId, idx);
+    (*ret)[0][idx] = 0;
+
+    int varNameLen = strlen(fullId - idx - 1);
+    (*ret)[1] = gc_alloc(sizeof(char)*(varNameLen + 1));
+    strncpy((*ret)[1], fullId + idx + 1, varNameLen);
+    (*ret)[1][varNameLen] = 0;
+    return ret;
+}
+
 void check_main(Sem_ctx* ctx) {
     Function* main = getFunc(ctx->s_ctx, "Main.run");
     if (main == NULL) {
@@ -61,7 +77,26 @@ void check_main(Sem_ctx* ctx) {
 
 void check_func(Sem_ctx* ctx, const Function f) {
     bool hasReturned = false;
-    for(int i=0; i!=f.statements.count; i++) {
+    char* className = (*split_id((char*)f.name))[0];
+    for (int i = 0; i <= f.local_symbols.nextId; i++) {
+        Symbol_tree_leaf* symbol = get_symbol_by_id((Symbol_tree*)&f.local_symbols, i);
+        if (symbol == NULL)
+            continue;
+        char* fqName = gc_alloc(sizeof(char)*(strlen(className) + strlen(symbol->key) + 2));
+        strcpy(fqName, className);
+        strcat(fqName, ".");
+        strcat(fqName, symbol->key);
+        Symbol_tree_leaf* glSymbol = get_symbol_by_key((Symbol_tree*)&ctx->s_ctx->global_symbols, fqName);
+        if (glSymbol == NULL || glSymbol->id < 0) {
+            gc_free(fqName);
+            continue;
+        }
+        fprintf(stderr, "Variable and function name collision detected '%s'\n", fqName);
+        gc_free(fqName);
+        exit(semantic_error_in_code);
+    }
+
+    /*for(int i=0; i!=f.statements.count; i++) {
         Statement st = f.statements.statements[i];
         switch (st.type) {
         case Return:
@@ -88,7 +123,7 @@ void check_func(Sem_ctx* ctx, const Function f) {
             break;
             default: break;
         }
-    }
+    }*/
 }
 
 
@@ -97,12 +132,12 @@ void check_semantic(Syntax_context* ctx) {
     Sem_ctx* sem = &ctxVal;
     check_main(sem);
 
-    /*for (int i = 0; i != sem->s_ctx->functions.count; i++) {
+    for (int i = 0; i != sem->s_ctx->functions.count; i++) {
         Function f = sem->s_ctx->functions.items[i];
         if (f.type == build_in)
             continue;
         check_func(sem, f);
-    }*/
+    }
 
     if (sem->errs.count != 0) {
         print_errs(sem->errs);
