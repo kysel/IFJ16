@@ -66,9 +66,12 @@ Brno}
 
 \newpage
 \section{Úvod}
-V této dokumentaci naleznete popis návrhu a implementace interpretu jazyka IFJ16, který je velmi zjednodušenou podmnožinou jazyka Java SE 8, což je staticky typovaný objektově orientovaný jazyk. Vybrali jsme si variantu  a/3/I, což znamená, že funkce find využívá \emph{Knuth-Morris-Prattův algoritmus}, ve funkci sort je použit řadící algoritmus \emph{shell sort} a tabulka symbolů je implementovaná binárním vyhledávacím stromem.
+V této dokumentaci naleznete popis návrhu a implementace interpretu jazyka IFJ16, který je velmi zjednodušenou podmnožinou jazyka Java SE 8, což je staticky typovaný objektově orientovaný jazyk. 
 
---bude ještě doplněno-
+Vybrali jsme si variantu  a/3/I, což znamená, že funkce find využívá \emph{Knuth-Morris-Prattův algoritmus}, ve funkci sort je použit řadící algoritmus \emph{shell sort} a tabulka symbolů je implementovaná binárním vyhledávacím stromem.
+
+Součástí dokumentace jsou i přílohy, které obsahují diagramy lexikální analýzy a precedenční tabulku.
+
 
 \section{Lexikální analyzátor}
 Lexikální analýza (dále jen \emph{LA}) je založena na deterministickém konečném automatu (dále jen \textit{KA}), jehož vstupem je zdrojový kód programu. Lexikální analyzátor na základě předem definovaných pravidel rozdělí jednotlivé posloupnosti znaků na lexémy, které jsou vráceny syntaktickému analyzátoru ve formě tokenů. Token obsahuje informace o typu rozpoznaného lexému, jeho délce, pozici ve zdrojovém kódu a odpovídající řetězec ze zdrojového kódu. Vedlejším úkolem lexikální analýzy je odstraňování bílých znaků a řádkových i blokových komentářů. Lexikální analýza je řízena syntaktickou analýzou, která postupně žádá o tokeny. Naše implementace obsahuje funkci \texttt{peek\_token}, která umožňuje syntaktické analýze podívat se na další tokeny, bez jejich konzumace. Jména identifikátorů jsou porovnána s prvky v poli řetězců, které obsahuje klíčová slova.
@@ -169,9 +172,8 @@ Funkce \texttt{eval\_expr} na základě typu výrazu volá jednu z funkcí \text
 Vestavěné funkce jsou pro přehlednost rozděleny na dvě části, neboť podle zadání musí být funkce \texttt{find} a \texttt{sort} uloženy právě v souboru \texttt{ial.c}. Ostatní funkce jsou v souboru \texttt{build\_in.c}.
 
 \subsection {Modul IAL}
-TODO: grammarček!
 \subsubsection {Vyhledávání řetězce v podřetězci}
-Funkce \texttt{int find(String s, String search)} hledá první výskyt zadaného podřetězce (v parametru \texttt{search}) a vrátí jeho pozici (počítanou od nuly). V naší variantě a/3/I jsme měli za úkol implementovat tuto funkci pomocí \texttt{Knuth-Morris-Prattova algoritmu}. Ten byl zformulován v roce 1977 pány Donaldem Knuthem, Vaughanem Prattem a Jamesem Norrisem. Tento algoritmus nejdříve prohledá vyhledáváne slovo a na základě opakování jeho prefixu označí určitý vzorek jako fail-vektor (unás označený jako pole \texttt{p[n]}). Toto pole znázorňovalo stavový automat. KMP je velmi dobře vysvětlen ve studijní opoře předmětu IAL a tím pádem se dal daný algoritmus dobře pochopit.
+Funkce \texttt{int find(String s, String search)} hledá první výskyt zadaného podřetězce (v parametru \texttt{search}) a vrátí jeho pozici (počítanou od nuly). V naší variantě a/3/I jsme měli za úkol implementovat tuto funkci pomocí \texttt{Knuth-Morris-Prattova algoritmu}. Ten byl zformulován v roce 1977 pány Donaldem Knuthem, Vaughanem Prattem a Jamesem Morrisem. Tento algoritmus nejdříve prohledá vyhledávané slovo a na základě opakování jeho prefixu označí určitý vzorek jako fail-vektor (unás označený jako pole \texttt{p[n]}). Toto pole znázorňovalo stavový automat. KMP je velmi dobře vysvětlen ve studijní opoře předmětu IAL a tím pádem se dal daný algoritmus dobře pochopit.
 
 \subsubsection {Řazení}
 Funkce \texttt{String sort(String s)} řadí parametrem daný řetězec \texttt{s} podle ordinální hodnoty obsažených znaků, který pak odevzdává návratovou hodnotou. Daný výpočet je dle zadání a/3/I zpracován pomocí řadícího algoritmu \texttt{Shell sort}, nazývaným též jako řazení se snižujícím se přírůstkem s asymptotickou složitostí~$O(n^{2})$. Styl implementace vychází ze vzorového příkladu opory k předmětu IAL, kdy při prvním průchodu je brán krok o délce poloviny počtu prvků z celkové délky řetězce s indexováním pole znaků od nuly.
@@ -224,7 +226,6 @@ typedef struct list_atom {
 } list_atom_t;
 \end{lstlisting}
 
-
 \section{Použité služby}
 Při vývoji interpretru jsme využili služeb běžně používaných v průmyslu, které máme přístupné díky \emph{Student Developer Pack}u od GitHubu a statutu studenta.
 
@@ -270,7 +271,7 @@ Výsledné rozdělení bylo přibližně následující:\medskip
 	Kubiš Juraj	&(21\%) \space - & precedenční syntaktická analýza \\
 	Korček Juraj &(21\%) \space - & lexikální analýza \\
 	Kubica Jan &(17\%) \space - & testy, prezentace, shell-sort, vestavěné funkce \\
-	Kovařík Viktor &(19\%) \space - & testy, Knuth-Moris-Prattův algoritmus  \\
+	Kovařík Viktor &(19\%) \space - & testy, Knuth-Moris-Prattův algoritmus, základy dokumentace \\
 \end{tabular}
 \medskip
 
@@ -282,9 +283,11 @@ Rozdělení bodů není rovnoměrné z těchto důvodů: laxní přístup na za�
 			& CI sestavení: 			& \textgreater 237 	\\
 			& zdrojových souborů: 		& 25				\\
 			& řádků zdrojového kódu: 	& >9000 			\\
-			& testů: 					& 287
+			& testů: 					& 287				\\
+			& společných zpráv			& 3486 (aktuální k 20:45, dne 11.12.)
 \end{tabular}
-
+\section{Závěr}
+Cílem tohoto projektu bylo nejen zdokonalit studenty v programování, ale také je naučit pracovat v týmu a společně se snažit přijít na řešení různých problémů. Komunikace v tomto týmu byla důležitá a myslím, že nebylo dne, kdy by naše skupinová konverzace byla bez aktivity. Dále taky je potřeba pozvednout a pochválit našeho předsedu týmu, bez jeho tvrdé autority, velkého nasazení a praktických zkušeností bychom asi projekt neměli takový, jako teď.
 \newpage
 \section{Přílohy}
 \subsection{Diagramy konečného automatu lexikální analýzy}
