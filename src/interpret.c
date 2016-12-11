@@ -206,7 +206,7 @@ Return_value eval_func(Inter_ctx* ctx, FunctionCall* fCall) {
     return (Return_value) { .val = ret.val, .returned = true };
 }
 
-Value eval_op_tree(Inter_ctx* ctx, BinOpTree* tree) {
+Value eval_op_tree(Inter_ctx* ctx, OpTree* tree) {
     Value left = eval_expr(ctx, tree->left_expr);
     Value right = eval_expr(ctx, tree->right_expr);
 
@@ -216,7 +216,7 @@ Value eval_op_tree(Inter_ctx* ctx, BinOpTree* tree) {
     }
 
     Value ret = {.init = true, .type = void_t};
-    switch (tree->BinOp) {
+    switch (tree->Op) {
         case OP_ADD:
             if (left.type == string_t || right.type == string_t) {
                 Value lStr = cast(left, string_t, true);
@@ -419,7 +419,7 @@ Value eval_expr(Inter_ctx* ctx, Expression* ex) {
                     exit(internal_error);
             }
         }
-        case bin_op_tree:
+        case op_tree:
             return eval_op_tree(ctx, &ex->tree);
         default:
             fprintf(stderr, "Fuckuplo se to u expressionu. line %d in file %s.\n", __LINE__, __FILE__);
