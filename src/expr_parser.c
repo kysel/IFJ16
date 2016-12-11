@@ -313,7 +313,7 @@ void processFunCall(t_Stack* s, Tinit* scanner, t_Expr_Parser_Init* symbol_tabs,
 int terminal2TabIndex(void* terminal, long long line) {
     //Jediný terminál, ktorý má adresu nula je EOS - End of Stack - Dno zásobníka
     if (terminal == NULL)
-        return 14;
+        return 19;
 
     //Ak má terminál adresu rôznu od NULL, ide o token
     //Konverzia pointeru na terminál na pointer na token 
