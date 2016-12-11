@@ -194,18 +194,39 @@ struct Symbol_tree_s {
 
 \begin{lstlisting}[caption={Struktura uzlu binárního stromu}, label={lst:stBvsLeafStruct}]
 typedef struct Symbol_tree_leaf_s {
-	const char* key;
-	int id;
-	Data_type type;
-	Expression* init_expr;
-	bool defined;
-	struct Symbol_tree_leaf_s* left;
-	struct Symbol_tree_leaf_s* right;
+    const char* key;
+    int id;
+    Data_type type;
+    Expression* init_expr;
+    bool defined;
+    struct Symbol_tree_leaf_s* left;
+    struct Symbol_tree_leaf_s* right;
 } Symbol_tree_leaf;
 \end{lstlisting}
 
 \section{Správa paměti}
-Pro správu paměti a korektní uvolnění veškerého alokovaného místa jsme implementovaly jednoduchý \emph{garbage collector}. Alokace paměti probírají pomocí metody \texttt{gc\_alloc(size\_t size)}
+Pro správu paměti a korektní uvolnění veškerého alokovaného místa jsme implementovaly jednoduchý \emph{garbage collector} (dále je \emph{GC}). 
+Před první alokací je třeba GC inicializovat pomocí funkce \texttt{gc\_init}, která alokuje místo pro první \hyperref[lst:gcAllocAtom]{uzel obousměrného spojového seznamu alokací} a pomocí \texttt{atexit} zaregistruje funkci \texttt{gc\_collect\_all} pro zavolání při ukončování programu.
+
+Alokace paměti probíhají pomocí funkce \texttt{gc\_alloc(size\_t size)}, která se při vnějším pohledu chová stejně jako \texttt{malloc}, avšak zvětší požadovaný prostor pro alokaci o velikost uzlu seznamu alokací, který se přidá na začátek alokované paměti a vrátí se ukazatel na paměťový prostor jehož velikost je rovna požadované velikosti.
+GC podporuje i realokaci, kdy se uzel odstraní ze seznamu alokací, pomocí \texttt{realloc} se paměť realokuje a do seznamu alokací se přidá uzel nový.
+
+\begin{lstlisting}[caption={Uzel seznamu alokací}, label={lst:gcAllocAtom}]
+typedef struct list_atom {
+    struct list_atom* prev;
+    struct list_atom* next;
+} list_atom_t;
+\end{lstlisting}
+
+
+\section{Použité služby}
+Při vývoji interpretru jsme využili služeb běžně používaných v průmyslu, které máme přístupné díky \emph{Student Developer Pack}u od GitHubu a statutu studenta.
+
+\subsection{Verzování}
+Verzování bylo realizováno pomocí GITu, hosting privátního repozitáře zajistil GitHub, který nám také nabídl plánování práce, přiřazování členů týmu k jednotlivým úkolům, sledování a diskuzi o defektech a přehledně řešené pull requesty.
+
+\subsection{Kontinuální integrace}
+Pro potřeby hodnocení kvality interpretru jsme využili službu kontinuální integrace (dále jen \emph{CI} z anglického Continous Integration) \emph{travis.com}. CI po každém commitu spustí na vzdáleném serveru kompilaci a testy, výsledky jsou dostupné celému týmu a lze sledovat, jak se s časem kvalita interpretru zvyšovala.
 
 \section{Testy}
 Testovali jsme buď součásti - \textit{unit testy}, kde jsme zkoušeli, zda daná funkce správně reaguje na vstupy. Unit testy si dělal každý sám a podle potřeby. Bylo zvykem v Makefile pro unit test udělat zvláštní target, kde se kromě samotné kompilace ještě prováděl \textit{valgrind} test pro ověření možných \textit{memory leaků}. 
@@ -230,6 +251,25 @@ Currently working on 0_arithmetic_test_9_UNARY.ifj16:
 \textbf{\color{red}[FAIL]} ... IFJ16 output of 0_fooTest.ifj16 is different, see logs/0_fooTest.log.
 \end{Verbatim}
 
+\section{Práce v týmu}
+K úspěšnému dokončení projektu bylo třeba zvládnout nejen programování, ale i komunikaci, případně řízení malého týmu. Pro komunikaci jsme využívali \emph{messenger.com} a to jak skupinové chaty pro řešení návrhu a architektury, tak přímé pro řešení konkrétních problémů. Díky tomu, že celý tým je z jedné přednáškové skupiny jsme měli možnost se potkal i před/po přednáškách.
+
+\subsection{Rozdělení práce}
+Na začátku byl projekt rozdělen na několik částí a každý si mohl vybrat co chtěl, části, které nikdo nechtěl byly přiděleny vedoucím.
+
+Výsledné rozdělení bylo přibližně následující:\medskip
+
+\begin{tabular}{llp{11.9cm}}
+	Kyzlink Jiří &(22\%) \space - & AST, syntaktická analýza, sémantická analýza, interpret, tabulka symbolů, CI, vestavěné funkce \\
+	Kubiš Juraj	&(21\%) \space - & precedenční syntaktická analýza \\
+	Korček Juraj &(21\%) \space - & lexikální analýza \\
+	Kubica Jan &(17\%) \space - & testy, prezentace, shell-sort, vestavěné funkce \\
+	Kovařík Viktor &(19\%) \space - & testy, Knuth-Moris-Prattův algoritmus  \\
+\end{tabular}
+\medskip
+
+Rozdělení bodů není rovnoměrné z těchto důvodů: laxní přístup na začátku, případně i v pokročilé části vývoje (Jan, Viktor), zdlouhavá implementace základních algoritmů (Jan), u testů se stávalo, že testovaná návratová hodnota nebyla v souladu se zadáním, případně nebyl test použitelný z důvodu vícenásobné chyby. 
+
 \section{Přílohy}
 \subsection{Diagramy konečného automatu lexikální analýzy}
 \label{diag:LA-FSM}
@@ -239,7 +279,6 @@ Currently working on 0_arithmetic_test_9_UNARY.ifj16:
 	\caption{KA - hlavní schéma}
 \end{figure}
 
-\newpage
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=.31]{FSM_ERR.eps}
@@ -258,7 +297,6 @@ Currently working on 0_arithmetic_test_9_UNARY.ifj16:
 	\caption{KA - identifikátor}
 \end{figure}
 
-\newpage
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=.31]{FSM_STRING.eps}
