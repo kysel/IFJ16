@@ -9,6 +9,7 @@
 \usepackage{booktabs}
 \usepackage{epstopdf}
 \usepackage{fancyvrb}
+\usepackage[htt]{hyphenat}
 \usepackage{amsmath}
 \usepackage{float}
 \fvset{frame=single,framesep=1mm,fontfamily=courier,fontsize=\scriptsize,numbers=left,framerule=.3mm,numbersep=1mm,commandchars=\\\{\}}
@@ -120,7 +121,7 @@ E &\rightarrow i      &   E &\rightarrow E != E\\
 \subsubsection{Zásobník}
 Je pracovní entita, ve které je uložen rozpracovaný výraz a všechny ostatní informace potřebné pro analýzu. Pro naše účely jsme navrhli zásobník, který má následující strukturu:
 
-\begin{lstlisting}[caption={Výstupní struktura SA}, label={lst:saOut}]
+\begin{lstlisting}[caption={Struktura zásobníku}, label={lst:saStack}]
 typedef enum {
     EOS,
     TOKEN,
@@ -149,6 +150,13 @@ Po vytvoření AST pomocí syntaktického analyzátoru je sémantické správnos
 Sémantický analyzátor detekuje omezené množství chyb a v naší implementaci byla velká část sémantické kontroly přenesena na bedra interpretru (kvůli jeho dřívější implementaci). Mezi chyby detekované sémantickým analyzátorem patří: ověření přítomnosti void funkce \texttt{Main.run} a zamezení redefinice proměnné funkcí a naopak.
 
 \section{Interpret}
+
+Interpretace je řešena rekurzivním čtením AST a prováděním operací definovaných v každém uzlu. Vstupní funkcí interpretu je \texttt{execute}, funkce na základě předaného kontextu syntaktického analyzátoru alokuje paměť pro globální proměnné, které jsou posléze inicializovány (výsledek inicializace může být i neinicializovaná proměnná).
+Následuje interpretace funkce \texttt{Main.run} pomocí \texttt{eval\_func}, což obnáší lokalizaci definice funkce v listu funkcí, vytvoření zásobníkového rámce, evaluaci předaných parametrů, a jejich uložení na zásobník, následně se pomocí funkce \texttt{eval\_st\_list} vyhodnotí list příkazů (\texttt{Statement\_collection}), který obsahuje jednotlivé příkazy reprezentované strukturou \texttt{Statement} a vyhodnocené funkcí \texttt{eval\_statement}.
+
+Funkce \texttt{eval\_statement} na základě typu příkazu zavolá \texttt{eval\_declaration} pro vyhodnocení deklarace, \texttt{eval\_if} pro vyhodnocení podmínky, \texttt{eval\_while} pro vyhodnocení while cyklu, případně \texttt{eval\_expr} pro vyhodnocení výrazu a vrácení výsledku jako návratové hodnoty funkce.
+Funkce \texttt{eval\_expr} na základě typu výrazu volá jednu z funkcí \texttt{eval\_func} (vrací návratovou hodnotu funkce), \texttt{get\_val} (vrací hodnotu proměnné), \texttt{eval\_op\_tree} (vrací výsledek evaluace stromu operací) nebo v případě, že je typ výrazu konstanta vrací její hodnotu.
+
 
 \section{Vestavěné funkce}
 Vestavěné funkce jsou pro přehlednost rozděleny na dvě části, neboť podle zadání musí být funkce \texttt{find} a \texttt{sort} uloženy právě v souboru \texttt{ial.c}. Ostatní funkce jsou k nalezení v souboru \texttt{build\_in.c}.
@@ -214,7 +222,7 @@ Currently working on 0_arithmetic_test_9_UNARY.ifj16:
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[scale=.31]{FSM_NUM.eps}
+	\includegraphics[scale=.308]{FSM_NUM.eps}
 	\caption{KA - číslicový literál}
 \end{figure}
 
