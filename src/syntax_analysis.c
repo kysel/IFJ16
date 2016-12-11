@@ -396,11 +396,7 @@ void parse_statement(Syntax_context* ctx, Statement_collection* statements) {
             break;
         }
         case T_KEYWORD:
-            switch (check_and_peek_keyword(ctx->s_ctx, K_DO | K_FOR | K_IF | K_RETURN | K_WHILE)) {
-                case K_DO:
-                case K_FOR:
-                    fprintf(stderr, "Use of unsupported extension.\n");
-                    exit(98);
+            switch (check_and_peek_keyword(ctx->s_ctx, K_IF | K_RETURN | K_WHILE)) {
                 case K_IF:
                     parse_if(ctx, statements);
                     break;
