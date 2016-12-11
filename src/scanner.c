@@ -20,6 +20,7 @@ char* keywords[17] = {"boolean", "break", "class", "continue","do",
     "return", "String", "static", "true", "void", "while"
 };
 
+//Scanner initialization
 Tinit* init_scanner(FILE* fp) {
     long long n = 1;
     Tinit* scanner_struct = gc_alloc(sizeof(Tinit));
@@ -29,6 +30,7 @@ Tinit* init_scanner(FILE* fp) {
     return scanner_struct;
 }
 
+//Adding each num of escape sequence to string
 char* octal_append(char* octal_string, unsigned char c) {
     size_t octal_string_len;
     octal_string_len = strlen(octal_string);
@@ -37,6 +39,7 @@ char* octal_append(char* octal_string, unsigned char c) {
     return octal_string;
 }
 
+//Adding each number to string (ommiting '_')
 char* num_append(char* num_string, unsigned int* alloc_num_len, unsigned char c) {
     if (c != '_'){
         size_t num_string_len;
@@ -52,6 +55,7 @@ char* num_append(char* num_string, unsigned int* alloc_num_len, unsigned char c)
     return num_string;
 }
 
+//Adding each character from sourcecode to string
 char* char_append(char* tmp_string, unsigned int* alloc_len, unsigned char c) {
     size_t tmp_string_len;
     tmp_string_len = strlen(tmp_string);
@@ -64,6 +68,7 @@ char* char_append(char* tmp_string, unsigned int* alloc_len, unsigned char c) {
     return tmp_string;
 }
 
+//Checking if ID is not from reserved strings
 char* is_keyword(char* tmp_string) {
     for (int i = 0; i <= 16; i++) {
         if (!strcmp(tmp_string, keywords[i])) {
@@ -73,14 +78,17 @@ char* is_keyword(char* tmp_string) {
     return NULL;
 }
 
+//One token lookahead
 Ttoken* peek_token(Tinit* scanner_struct) {
     if (scanner_struct->token == NULL)
         scanner_struct->token = get_token(scanner_struct);
     return scanner_struct->token;
 }
 
+
 Ttoken* get_token_internal(Tinit* scanner_struct);
 
+//Returning new token or returning previously peeked token
 Ttoken* get_token(Tinit* scanner_struct) {
     Ttoken* ret;
     if (scanner_struct->token != NULL) {
@@ -91,6 +99,7 @@ Ttoken* get_token(Tinit* scanner_struct) {
     return ret;
 }
 
+//Returning token from sourcecode
 Ttoken* get_token_internal(Tinit* scanner_struct) {
     char* kw_ptr;
     char* endptr;
