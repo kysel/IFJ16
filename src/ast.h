@@ -114,6 +114,9 @@ typedef struct Variable_s {
 
 typedef struct {
     enum {
+        OP_NOT,
+        OP_AND,
+        OP_OR,
         OP_ADD,
         OP_SUB,
         OP_MUL,
@@ -124,10 +127,10 @@ typedef struct {
         OP_GREATER_EQUAL,
         OP_BOOL_EQUAL,
         OP_NOT_EQUAL
-    } BinOp;
+    } Op;
     Expression* left_expr;
     Expression* right_expr;
-} BinOpTree;
+} OpTree;
 
 typedef struct {
     Data_type type;
@@ -135,6 +138,7 @@ typedef struct {
         long int li;
         double d;
         char* c;
+        int b;
     };
 } Constant;
 
@@ -148,13 +152,13 @@ typedef struct Expression_s {
         function_call,
         variable,
         constant,
-        bin_op_tree
+        op_tree
     } type;
     union {
         FunctionCall fCall;
         VariableId variable;
         Constant constant;
-        BinOpTree tree;
+        OpTree tree;
     };
 } Expression;
 

@@ -186,6 +186,12 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                     state = FSM_GREATER;
                 } else if (c == '"') {
                     state = FSM_QUOTE;
+                } else if (c == '&') {
+                	tmp_string = char_append(tmp_string, &alloc_len, c);
+                	state = FSM_AND;
+                } else if (c == '|') {
+                	tmp_string = char_append(tmp_string, &alloc_len, c);
+                	state = FSM_OR;
                 } else if (c == EOF) {
                     read_file = 0;
                     continue;
@@ -275,8 +281,8 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                         return token;
                     }
                     if (strcmp(kw_ptr, "false") == 0) {
-                        token->type = T_KEYWORD;
-                        token->kw = K_FALSE;
+                        token->type = T_BOOL;
+                        token->b = 0;
                         token->tlen = strlen(kw_ptr);
                         token->line = scanner_struct->line;
                         token->c = kw_ptr;
@@ -331,8 +337,8 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                         return token;
                     }
                     if (strcmp(kw_ptr, "true") == 0) {
-                        token->type = T_KEYWORD;
-                        token->kw = K_TRUE;
+                        token->type = T_BOOL;
+                        token->b = 1;
                         token->tlen = strlen(kw_ptr);
                         token->line = scanner_struct->line;
                         token->c = kw_ptr;
@@ -921,8 +927,12 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                     token->c = tmp_string;
                     return token;
                 }
-                fprintf(stderr, "SCANNER ERROR: Unidentified lexem on line %lld!\n", scanner_struct->line);
-                exit(lexical_analysis_error);
+                   	ungetc(c, scanner_struct->f);
+                	token->type = T_NOT;
+                	token->tlen = strlen(tmp_string);
+                	token->line = scanner_struct->line;
+                	token->c = tmp_string;
+                	return token;
             }
 
             case FSM_LOWER: {
@@ -1054,6 +1064,34 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                 }
                 break;
                 // end of auxiliary states for string escape octal
+
+            case FSM_AND:
+            	if (c == '&') {
+            		tmp_string = char_append(tmp_string, &alloc_len, c);
+            		token->type = T_LOGIC_AND;
+            		token->tlen = strlen(tmp_string);
+            		token->line = scanner_struct->line;
+            		token->c = tmp_string;
+            		return token;
+            	} else {
+            		fprintf(stderr, "SCANNER ERROR: Unidentified lexeme on line %lld!\n", scanner_struct->line);
+                    exit(lexical_analysis_error);
+            	}            
+            	break;
+
+            case FSM_OR:
+				if (c == '|') {
+            		tmp_string = char_append(tmp_string, &alloc_len, c);
+            		token->type = T_LOGIC_OR;
+            		token->tlen = strlen(tmp_string);
+            		token->line = scanner_struct->line;
+            		token->c = tmp_string;
+            		return token;
+            	} else {
+            		fprintf(stderr, "SCANNER ERROR: Unidentified lexeme on line %lld!\n", scanner_struct->line);
+                    exit(lexical_analysis_error);
+            	}            
+            	break;
 
                 // start of auxiliary states for comments
             case FSM_COMMENT_LINE:
