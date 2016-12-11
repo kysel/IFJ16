@@ -15,6 +15,7 @@
 #include "gc.h"
 #include "return_codes.h"
 
+//Define to include additional semantic checks
 //#define SEM_CHECK
 
 Value eval_expr(Inter_ctx* ctx, Expression* ex);
@@ -22,6 +23,7 @@ Return_value eval_statement(Inter_ctx* ctx, Statement* st);
 Return_value eval_func(Inter_ctx* ctx, FunctionCall* fCall);
 Return_value eval_st_list(Inter_ctx* ctx, const Statement_collection* statements);
 
+//Retrieve function from function list
 Function* getFunc(Syntax_context* ctx, char* fkName) {
     for (int i = 0; i != ctx->functions.count; i++) {
         if (strcmp(ctx->functions.items[i].name, fkName) == 0)
@@ -30,6 +32,7 @@ Function* getFunc(Syntax_context* ctx, char* fkName) {
     return NULL;
 }
 
+//Allocates stack with given size
 Value_list* alloc_stack(int size) {
     Value_list* ret = gc_alloc(sizeof(Value_list));
     ret->val = gc_alloc(sizeof(Value) * size);
@@ -40,6 +43,7 @@ Value_list* alloc_stack(int size) {
     return ret;
 }
 
+//Gets resulting type for arithmetic operation of two values
 Data_type resulting_type(Data_type t1, Data_type t2) {
     if (t1 == t2)
         return t1;
@@ -48,6 +52,8 @@ Data_type resulting_type(Data_type t1, Data_type t2) {
     return t1;
 }
 
+//Casts value to given data_type if expCast is false, then
+//implicit cast is used. Othervise explicit casts can be used.
 Value cast(Value val, Data_type to, bool expCast) {
     if (val.type == to)
         return val;
@@ -75,6 +81,9 @@ Value cast(Value val, Data_type to, bool expCast) {
                 snprintf(ret.s, strLength + 1, "%d", val.i);
             }
             else if (val.type == double_t) {
+//HACK: asString in java is not compatible with
+//      %g in C, this is a workaround that try to
+//      print with same formatting as java
 #ifdef JAVA_SUCK
                 if (((long)val.d - val.d) == 0)
                     strLength = snprintf(NULL, 0, "%.1f", val.d);
@@ -102,6 +111,8 @@ Value cast(Value val, Data_type to, bool expCast) {
     exit(semantic_error_in_types);
 }
 
+//Sets the variable with given id to the given value
+//Works with local and also global variables
 void set_val(Inter_ctx* ctx, int id, Value val) {
     if (val.init == false) {
         fprintf(stderr, "Use of uninitialized variable\n");
@@ -123,6 +134,8 @@ void set_val(Inter_ctx* ctx, int id, Value val) {
     *ret = cast(val, ret->type, false);
 }
 
+//Gets value of the variable with given id
+//Works with local and also global variables
 Value* get_val(Inter_ctx* ctx, int id) {
     Value* ret = NULL;
     if (id >= 0 && ctx->loc_stack != NULL)
@@ -140,6 +153,7 @@ Value* get_val(Inter_ctx* ctx, int id) {
     return ret;
 }
 
+//Evaluates function
 Return_value eval_func(Inter_ctx* ctx, FunctionCall* fCall) {
     Function* f = getFunc(ctx->s, fCall->name);
     if (f == NULL) {
@@ -203,7 +217,7 @@ Return_value eval_func(Inter_ctx* ctx, FunctionCall* fCall) {
     }
     return (Return_value) { .val = ret.val, .returned = true };
 }
-
+//Evaluates given op tree and returns it's value
 Value eval_op_tree(Inter_ctx* ctx, OpTree* tree) {
     Value left = eval_expr(ctx, tree->left_expr);
     Value right = (Value) { .init = true };
@@ -424,8 +438,8 @@ Value eval_op_tree(Inter_ctx* ctx, OpTree* tree) {
     return ret;
 }
 
+//Evaluates given expression and returns it's value
 Value eval_expr(Inter_ctx* ctx, Expression* ex) {
-    //TODO!
     switch (ex->type) {
         case function_call:
             return eval_func(ctx, &ex->fCall).val;
@@ -442,34 +456,39 @@ Value eval_expr(Inter_ctx* ctx, Expression* ex) {
                     return (Value) { .type = bool_t, .b = ex->constant.b, .init = true };
                 case string_t:
                     return (Value) {.type = string_t, .s = ex->constant.c, .init = true};
-                default:
+                default: //Just to be sure
                     fprintf(stderr, "Fuckuplo se to u expressionu. line %d in file %s.\n", __LINE__, __FILE__);
                     exit(internal_error);
             }
         }
         case op_tree:
             return eval_op_tree(ctx, &ex->tree);
-        default:
+        default: //Just to be sure
             fprintf(stderr, "Fuckuplo se to u expressionu. line %d in file %s.\n", __LINE__, __FILE__);
             exit(internal_error);
     }
 }
 
+//Evaluates declaration and if init_expr is set, performs initialization
 void eval_declaration(Inter_ctx* ctx, Statement* st) {
     if (st->declaration.variable.init_expr != NULL)
         set_val(ctx, st->declaration.variable.id, eval_expr(ctx, st->declaration.variable.init_expr));
 }
 
+//Evaluates condition, returns boolean value
+//To be used in cycles, conditions etc.
 bool eval_condition(Inter_ctx* ctx, Expression* cond) {
 	return cast(eval_expr(ctx, cond), bool_t, false).b;
 }
 
+//Evaluates if and then the respective branch
 Return_value eval_if(Inter_ctx* ctx, If_statement* ifSt) {
     if (eval_condition(ctx, &ifSt->condition))
         return eval_st_list(ctx, &ifSt->caseTrue);
     return  eval_st_list(ctx, &ifSt->caseFalse);
 }
 
+//Just looop while the condition is satisfied
 Return_value eval_while(Inter_ctx* ctx, While_statement* stWhile) {
     Return_value ret;
     while (eval_condition(ctx, &stWhile->condition))
@@ -478,6 +497,7 @@ Return_value eval_while(Inter_ctx* ctx, While_statement* stWhile) {
     return (Return_value) { .returned = false };
 }
 
+//Evaluates statement
 Return_value eval_statement(Inter_ctx* ctx, Statement* st) {
     switch (st->type) {
     case declaration: eval_declaration(ctx, st);
@@ -496,6 +516,7 @@ Return_value eval_statement(Inter_ctx* ctx, Statement* st) {
     return (Return_value) { .returned = false };
 }
 
+//Evaluates statement list
 Return_value eval_st_list(Inter_ctx* ctx, const Statement_collection* statements) {
     Return_value ret;
     for (int i = 0; i != statements->count; i++)
@@ -504,6 +525,7 @@ Return_value eval_st_list(Inter_ctx* ctx, const Statement_collection* statements
     return (Return_value) {.returned = false, .val.type = void_t};
 }
 
+//Implementation of initilization globals
 void init_globals_impl(Inter_ctx* ctx, Symbol_tree_leaf* leaf) {
     if(leaf == NULL)
         return;
@@ -519,6 +541,7 @@ void init_globals_impl(Inter_ctx* ctx, Symbol_tree_leaf* leaf) {
         init_globals_impl(ctx, leaf->right);
 }
 
+//Initializes global variables to their initial values
 void init_globals(Inter_ctx* ctx, Symbol_tree* tree) {
     for (int i=0; i!= ctx->globals->count; i++)
         ctx->globals->val[i].init = false;

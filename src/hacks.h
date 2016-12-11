@@ -6,6 +6,7 @@
 #ifndef HACKS_H_
 #define HACKS_H_
 
+//macros used to generate enum and array of they string value
 #define GENERATE_ENUM2(ENUM, NAME) ENUM,
 #define GENERATE_ENUM3(ENUM, NAME, VALUE) ENUM=VALUE,
 #define GENERATE_CASE2(ENUM, STRING) case ENUM: return STRING;

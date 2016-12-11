@@ -18,7 +18,18 @@ typedef struct {
     Value_list* globals;
 } Inter_ctx;
 
+/**
+ * \brief Search for the function with given name in the syntax context
+ * \param ctx The syntax context where to search for the function
+ * \param fkName Fully qualified function name
+ * \return If the function is found pointer to it, otherwise null
+ */
 Function* getFunc(Syntax_context* ctx, char* fkName);
+
+/**
+ * \brief Interprets AST
+ * \param ctx Syntax context, that contains Main.run function
+ */
 void execute(Syntax_context* ctx);
 
 #endif

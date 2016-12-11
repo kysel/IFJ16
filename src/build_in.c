@@ -36,7 +36,7 @@ Value readInt(Value_list vals) {
     c = getchar(); // cteni prvniho znaku
     while (c >= '0' && c <= '9') {
         if (r_int->len == r_int->size) { // pokud je zaplnen alokovany prostor
-            r_int->str = gc_realloc(r_int->str, r_int->size + (sizeof(char) * INC_STRLEN));
+            r_int->str = gc_realloc(r_int->str, r_int->size + sizeof(char) * INC_STRLEN);
             r_int->size += INC_STRLEN;
         }
         r_int->str[i] = c;
@@ -44,19 +44,16 @@ Value readInt(Value_list vals) {
         r_int->len = i;
         c = getchar();
     }
-    if (c == '\n' || c == EOF) // pokud je ukonceno cteni
-    {
-        if (r_int->len > 0) { // pokud se nacetlo cislo
+    if (c == '\n' || c == EOF){ // pokud je ukonceno cteni
+        if (r_int->len > 0) // pokud se nacetlo cislo
             i = atoi(r_int->str);
-        } else
+        else
             err = 1;
     }
     if (c != '\n' && c != EOF) // pokud byl zaznamenan jiny nepripustny znak
         err = 1;
-    if (err == 0)
-        if (i > 0) {
-            return (Value) {.type = int_t, .init = true, .i = i};
-        }
+    if (err == 0 && i > 0)
+        return (Value) {.type = int_t, .init = true, .i = i};
     fprintf(stderr, "Input range error\n");
     exit(runtime_input_error);
 }
@@ -165,6 +162,9 @@ Value print(Value_list vals) {
         printf("%d", arg.i);
         break;
     case double_t:
+//HACK: asString in java is not compatible with
+//      %g in C, this is a workaround that try to
+//      print with same formatting as java
 #ifdef JAVA_SUCK
         if (((long)arg.d - arg.d) == 0)
             printf("%.1f", arg.d);

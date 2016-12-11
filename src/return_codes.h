@@ -11,7 +11,7 @@
 #define RETURN_CODES_H_
 
 /**
- * \brief Return codes from project's documentation
+ * \brief Return codes from the project's documentation
  */
 typedef enum {
     lexical_analysis_error = 1,

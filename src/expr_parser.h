@@ -77,7 +77,21 @@ static const unsigned char precedence_tab[20][20] = {
 /* 19 $  */ {'<', '<', '<', '<',   '<', '<', '<', '<', '<', '<',   '<', '<', '<',   '<', '<', '<',   '<', 'E', '<', 'E'}
 };
 
+/**
+ * \brief Initializes expression parser
+ * \param global_tab Pointer to the global symbol table
+ * \param local_tab Pointer to the current function's symbol table
+ * \param class_name Current class name (used for generation fully qualified IDs)
+ * \return Expression parser struct
+ */
 t_Expr_Parser_Init* ExprParserInit(Symbol_tree* global_tab, Symbol_tree* local_tab, char* class_name);
-Expression* parseExpression(t_Expr_Parser_Init* symbol_tabs, Tinit* scanner);
+
+/**
+ * \brief Parses expression 
+ * \param parser_ctx Parser struct obtained from \see{ExprParserInit}
+ * \param scanner Pointer to the scanner structure
+ * \return Parsed expression
+ */
+Expression* parseExpression(t_Expr_Parser_Init* parser_ctx, Tinit* scanner);
 
 #endif

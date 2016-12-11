@@ -22,7 +22,7 @@ typedef struct list_atom {
 static list_atom_t* last_atom = NULL;
 
 /**
- * \brief Deallocates all memory allocated with GC
+ * \brief Free up all memory allocated with GC
  * \note Function is called at exit, there is no need to call it from usercode
  */
 static void gc_collect_all() {
@@ -36,6 +36,7 @@ static void gc_collect_all() {
     } while (last_atom);
 }
 
+//Removes atom from alocations ll
 static void remove_from_alloc_list(list_atom_t* atom) {
     if (atom == last_atom)
         last_atom = atom->prev;
@@ -45,6 +46,7 @@ static void remove_from_alloc_list(list_atom_t* atom) {
         atom->next->prev = atom->prev;
 }
 
+//Checks if alloc list contains atom
 static bool alloc_list_contains(list_atom_t* atom) {
     list_atom_t* current_atom = last_atom;
     do {
@@ -55,6 +57,7 @@ static bool alloc_list_contains(list_atom_t* atom) {
     return false;
 }
 
+//Remove alloc from list and free up the memory
 static void gc_free_internal(list_atom_t* ptr) {
     assert(alloc_list_contains(ptr));
     remove_from_alloc_list(ptr);

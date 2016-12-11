@@ -13,6 +13,7 @@
 #include "syntax_analysis.h"
 #include "interpret.h"
 #include "semantic_check.h"
+#include "return_codes.h"
 
 #ifdef _MSC_VER 
 #define _CRT_SECURE_NO_WARNINGS
@@ -22,14 +23,14 @@ int main(int argc, char* argv[]) {
     gc_init();
 
     if (argc == 1)
-        return -1;
+        return internal_error;
     FILE* fp;
 
     fp = fopen(argv[1], "r");
 
     if (fp == NULL) {
         fprintf(stderr, "Error opening file!\n");
-        return 99;
+        return internal_error;
     }
 
     Syntax_context* syntax = init_syntax(fp);
@@ -38,5 +39,5 @@ int main(int argc, char* argv[]) {
     check_semantic(syntax);
     execute(syntax);
 
-    return 0;
+    return EXIT_SUCCESS;
 }

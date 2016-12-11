@@ -14,6 +14,7 @@
 #include "ial.h"
 #include "gc.h"
 
+//Searches for given string in another
 int find(char* s, char* search) {
     int position = -1; //defaultne vracena hodnota vyskytu
 
@@ -149,13 +150,6 @@ Symbol_tree_leaf* add_symbol_impl(Symbol_tree* tree, Symbol_tree_leaf* leaf, con
     return NULL;
 }
 
-/**
- * \brief Add key to symbol tree after initialization the leaf is returned.
- * If leaf with the provided key already exist it's returned too.
- * \param tree Root leaf from where to start the search
- * \param key Leaf key
- * \return Pointer to inserted leaf
- */
 Symbol_tree_leaf* add_symbol(Symbol_tree* tree, const char* key) {
     assert(tree);
     return add_symbol_impl(tree, tree->root, key);
@@ -189,12 +183,6 @@ Symbol_tree_leaf* get_symbol_by_key_impl(Symbol_tree_leaf* node, const char* key
     return NULL;
 }
 
-/**
- * \brief Retrieve leaf from symbol tree
- * \param tree Root leaf from where to start the search
- * \param key Leaf key
- * \return If the leaf with the provided key exist, then it's returned, otherwise NULL
- */
 Symbol_tree_leaf* get_symbol_by_key(Symbol_tree* tree, const char* key) {
     assert(tree);
     if (tree->root != NULL)

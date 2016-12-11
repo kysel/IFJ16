@@ -44,6 +44,7 @@ int findTopTerminal(t_Stack* s) {
     return -1;
 }
 
+//Odebrání prvku z vrcholu zásobníka
 void stackPop(t_Stack* s) {
     if (!stackEmpty(s)) {
         s->top_element -= 1;
@@ -66,6 +67,7 @@ void stackPush(t_Stack* s, t_Element_Type type, void* address) {
         s->top_token = s->top_element;
 }
 
+//Aplikace pravidel na zásobník
 void stackApplyRule(t_Stack* s, t_Expr_Parser_Init* symbol_tabs, long long line) {
     int rule_lenght;
     for (rule_lenght = 0; (rule_lenght < s->top_element) && !(s->arr[s->top_element - rule_lenght].stop_bit); rule_lenght++);
@@ -275,6 +277,7 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init* symbol_tabs, long long line)
     stackPush(s, EXPRESSION, expression);
 }
 
+//Spracovanie volani funkce
 void processFunCall(t_Stack* s, Tinit* scanner, t_Expr_Parser_Init* symbol_tabs, long long line) {
     int rule_lenght;
     for (rule_lenght = 0; (rule_lenght < s->top_element) && !(s->arr[s->top_element - rule_lenght].stop_bit); rule_lenght++);
@@ -309,7 +312,6 @@ void processFunCall(t_Stack* s, Tinit* scanner, t_Expr_Parser_Init* symbol_tabs,
     stackPush(s, EXPRESSION, parse_f_call(symbol_tabs, scanner, full_name));
 }
 
-//
 int terminal2TabIndex(void* terminal, long long line) {
     //Jediný terminál, ktorý má adresu nula je EOS - End of Stack - Dno zásobníka
     if (terminal == NULL)
