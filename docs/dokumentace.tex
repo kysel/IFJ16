@@ -2,6 +2,7 @@
 \usepackage[left=2cm,text={17cm, 24cm},top=3cm]{geometry}
 \usepackage[utf8]{inputenc}
 \usepackage[czech]{babel}
+\usepackage[T1]{fontenc}
 \usepackage{times}
 \usepackage[hidelinks]{hyperref}
 \usepackage{graphicx}
@@ -72,7 +73,7 @@ Diagramy konečného automatu lexikálního analyzátoru jsou v \hyperref[diag:L
 
 
 \section{Syntaktický analyzátor}
-Syntaktický analyzátor (dále jen \textit{SA}) slouží k vyhodnocování správnosti syntaxe a v našem případě i ke generování abstraktního syntaktického stromu (dále jen \textit{AST}). Vstupen SA je proud tokenů z LA, výstupem je \hyperref[lst:saOut]{struktura} na listingu níže. Struktura obsahuje tybulku globálních symbolů, pro případ kontroly typů, seznam definovaných funkcí, kde každá obsahuje vlastní AST a v posledním prvku je uložen počet globální proměnných pro potřeby alokace paměti.
+Syntaktický analyzátor (dále jen \textit{SA}) slouží k vyhodnocování správnosti syntaxe a~v~našem případě i~pro generování abstraktního syntaktického stromu (dále jen \textit{AST}). Vstupen SA je proud tokenů z LA, výstupem je \hyperref[lst:saOut]{struktura na listingu níže}. Struktura obsahuje tabulku globálních symbolů, pro případ kontroly typů, seznam definovaných funkcí, kde každá obsahuje vlastní AST, a~v~posledním prvku je uložen počet globální proměnných pro potřeby alokace paměti.
 
 \begin{lstlisting}[caption={Výstupní struktura SA}, label={lst:saOut}]
 typedef struct {
@@ -83,7 +84,9 @@ typedef struct {
 \end{lstlisting}
 
 \subsection{Syntaktická analýza kódu}
-Syntaktická analýza kódu je implementovaná pomocí rekurzivního sestupu
+Syntaktická analýza kódu je implementovaná pomocí rekurzivního sestupu. Analýza začíná funkcí \texttt{parse\_program} která obaluje funkci \texttt{parse\_class} a kontroluje zpracování celého vstupního souboru (pomocí kontrolu posledního tokenu).
+
+Funkce \texttt{parse\_class} rozpozná definici globální proměnné nebo funkce a a zavolá funkce pro jejich parsování. Jedna ze stěžejních funkcí je \texttt{parse\_statement}, která rozpozná definici proměnné, přiřazení, volání funkce, podmínku a cykly. Na základě toho zavolá funkci, která rozpoznaný příkaz zpracuje a případně přidá do syntaktického stromu. V případě, že se očekává výraz (např. r-hodnota přiřazení nebo argumenty volání funkce) je řízení předáno \emph{syntaktické analýze výrazů} výraz, který precedenční analýza vrátí je poté použit v AST.
 
 \subsection{Syntaktická analýza výrazů}
 Úlohou syntaktického analyzátoru je správně transformovat vstupní neterminály (tokeny) na výraz v podobě AST. Při tomto procesu je nutné brát v potaz prioritu a asociativitu operátorů.
@@ -111,7 +114,9 @@ F            & Function call                     & Parsování volání funkce \
 \end{table}
 
 \section{Sémantický analyzátor}
+Po vytvoření AST pomocí syntaktického analyzátoru je sémantické správnosti provedena postupným průchodem všech definovaných funkcí.
 
+Sémantický analyzátor detekuje omezené množství chyb a v naší implementaci byla velká část sémantické kontroly přenesena na bedra interpretru (kvůli jeho dřívější implementaci). Mezi chyby detekované sémantickým analyzátorem patří: ověření přítomnosti void funkce \texttt{Main.run} a zamezení redefinice proměnné funkcí a naopak.
 
 \section{Interpret}
 
