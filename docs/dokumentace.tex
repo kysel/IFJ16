@@ -68,7 +68,7 @@ Brno}
 \section{Úvod}
 V této dokumentaci naleznete popis návrhu a implementace interpretu jazyka IFJ16, který je velmi zjednodušenou podmnožinou jazyka Java SE 8, což je staticky typovaný objektově orientovaný jazyk. 
 
-Vybrali jsme si variantu  a/3/I, což znamená, že funkce find využívá \emph{Knuth-Morris-Prattův algoritmus}, ve funkci sort je použit řadící algoritmus \emph{shell sort} a tabulka symbolů je implementovaná binárním vyhledávacím stromem.
+Vybrali jsme si variantu a/3/I, což znamená, že funkce find využívá \emph{Knuth-Morris-Prattův algoritmus}, ve funkci sort je použit řadící algoritmus \emph{shell sort} a tabulka symbolů je implementovaná binárním vyhledávacím stromem.
 
 Součástí dokumentace jsou i přílohy, které obsahují diagramy lexikální analýzy a precedenční tabulku.
 
@@ -100,7 +100,7 @@ Funkce \texttt{parse\_class} rozpozná definici globální proměnné nebo funkc
 \subsection{Syntaktická analýza výrazů}
 Úkolem syntaktického analyzátoru výrazů je transformovat vstupní výraz z formy sledu tokenů do formy AST. Při této transformaci se musí řídit prioritou a asociativitou jednotlivých operátorů.
 
-Celý analyzátor se dá rozdělit na tři základní části: zásobník, množina pravidel a precedenční tabulka operátorů (dále jen \textit{tabulka}). Analýza probíhá způsobem, že jsou všechny vstupní tokeny postupně vkládány na vrchol zásobníku a redukovány na terminály na základě pravidel. Kdy a jaká akce se vykoná, se rozhoduje na základě tabulky, ve které se vyhledá relace mezi vstupním tokenem a tokenem (neterminálem), který leží na zásobníku nejblíže vrcholu. Analýza končí, pokud ja na vstupu token značící konec výrazu a na zásobníku se nachází pouze jeden terminál. 
+Celý analyzátor se dá rozdělit na tři základní části: zásobník, množina pravidel a precedenční tabulka operátorů (dále jen \textit{tabulka}). Analýza probíhá způsobem, že jsou všechny vstupní tokeny postupně vkládány na vrchol zásobníku a redukovány na terminály na základě pravidel. Kdy a jaká akce se vykoná, se rozhoduje na základě tabulky, ve které se vyhledá relace mezi vstupním tokenem a tokenem (neterminálem), který leží na zásobníku nejblíže vrcholu. Analýza končí, pokud je na vstupu token značící konec výrazu a na zásobníku se nachází pouze jeden terminál. 
 
 Ekvivalentní sémantická akce k redukci je generování AST. Adresa jeho kořene je uložená v struktuře terminálu.
 
@@ -113,7 +113,7 @@ Tabulka vyjadřuje vztah (relaci) mezi každou dvojicí operátorů. Relace zohl
    \item Zpracování volání funkce (obnáší přečtení dalších tokenů na vstupu) a nahrazení tokenů od zarážky výše za odpovídající terminál \textit{(v tabulce symbol F)}
 \end{itemize}
 
-Pokud má relace dvou operátorů v tabulce označení \textit{E}, znamená to, že takové vzájemné postavení operátorů netvoří validní výraz a tudíž se jedná o syntaktickou chybu.
+Pokud má relace dvou operátorů v tabulce označení \textit{E}, znamená to, že takové vzájemné postavení operátorů netvoří validní výraz, a tudíž se jedná o syntaktickou chybu.
 
 Konkrétní podoba naší tabulky viz. \hyperref[tab:SA-precedence]{příloha na straně \pageref{tab:SA-precedence}}.
 
@@ -179,7 +179,7 @@ Funkce \texttt{int find(String s, String search)} hledá první výskyt zadanéh
 Funkce \texttt{String sort(String s)} řadí parametrem daný řetězec \texttt{s} podle ordinální hodnoty obsažených znaků, který pak odevzdává návratovou hodnotou. Daný výpočet je dle zadání a/3/I zpracován pomocí řadícího algoritmu \texttt{Shell sort}, nazývaným též jako řazení se snižujícím se přírůstkem s asymptotickou složitostí~$O(n^{2})$. Styl implementace vychází ze vzorového příkladu opory k předmětu IAL, kdy při prvním průchodu je brán krok o délce poloviny počtu prvků z celkové délky řetězce s indexováním pole znaků od nuly.
 
 \subsection{Tabulka symbolů}
-Tabulka symbolů je realizována binárním vyhledávacím stromem, který je reprezentován strukturou \hyperref[lst:stBvsStruct]{\texttt{Symbol\_tree\_s}}, kde \texttt{root} je ukazatel na první uzel stromu, \texttt{nextId} je následující id použité při přidávání nového uzlu, \texttt{inc} je příznak inkrementace/dekrementace \texttt{nextId} při přidání uzlu. \texttt{Id} se využívá jako index při práci se zásobníkovými rámci resp. proměnnými.
+Tabulka symbolů je realizována binárním vyhledávacím stromem, který je reprezentován strukturou \hyperref[lst:stBvsStruct]{\texttt{Symbol\_tree\_s}}, kde \texttt{root} je ukazatel na první uzel stromu, \texttt{nextId} je následující id použité při přidávání nového uzlu, \texttt{inc} je příznak inkrementace/dekrementace \texttt{nextId} při přidání uzlu. \texttt{Id} se využívá jako index při práci se zásobníkovými rámci, resp. proměnnými.
 
 Uzel BVS je reprezentován strukturou \hyperref[lst:stBvsLeafStruct]{\texttt{Symbol\_tree\_leaf}}, kde \texttt{key} je název symbolu, \texttt{type} je datový typ proměnné, případně návratová hodnota funkce, \texttt{init\_expr} je výraz využitý pro inicializaci globálních proměnných a \texttt{defined} je příznak značící, zda byl symbol definován ve zdrojovém kódu nebo zda byl pouze použit.
 
@@ -287,7 +287,7 @@ Rozdělení bodů není rovnoměrné z těchto důvodů: laxní přístup na za�
 			& společných zpráv			& 3486 (aktuální k 20:45, dne 11.12.)
 \end{tabular}
 \section{Závěr}
-Cílem tohoto projektu bylo nejen zdokonalit studenty v programování, ale také je naučit pracovat v týmu a společně se snažit přijít na řešení různých problémů. Komunikace v tomto týmu byla důležitá a myslím, že nebylo dne, kdy by naše skupinová konverzace byla bez aktivity. Dále taky je potřeba pozvednout a pochválit našeho předsedu týmu, bez jeho tvrdé autority, velkého nasazení a praktických zkušeností bychom asi projekt neměli takový, jako teď.
+Díky tomuto projektu jsme se nejen zdokonalili v programování, ale také jsme se naučili pracovat v týmu a společně se snažit přijít na řešení různých problémů. Komunikace v tomto týmu byla důležitá a myslím, že nebylo dne, kdy by naše skupinová konverzace byla bez aktivity. Dále taky je potřeba pozvednout a pochválit našeho předsedu týmu, bez jeho tvrdé autority, velkého nasazení a praktických zkušeností bychom asi projekt neměli takový, jako teď.
 \newpage
 \section{Přílohy}
 \subsection{Diagramy konečného automatu lexikální analýzy}
