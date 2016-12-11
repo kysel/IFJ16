@@ -24,7 +24,7 @@ void parse_block(Syntax_context* ctx, Statement_collection* statements);
 void parse_statement(Syntax_context* ctx, Statement_collection* statements);
 Variable parse_global_variable(Syntax_context* ctx, Data_type type);
 
-
+//Add function to the funtion list
 void add_functionToList(Function_list* list, Function f) {
     if (list->size == list->count) {
         list->size += 10;
@@ -33,6 +33,7 @@ void add_functionToList(Function_list* list, Function f) {
     list->items[list->count++] = f;
 }
 
+//Add buildin to the function list
 void add_buildIn(Syntax_context* ctx, Function f) {
     Symbol_tree_leaf* fSym = get_symbol_by_key(&ctx->global_symbols, f.name);
     if (fSym != NULL && fSym->defined == true) {
@@ -45,6 +46,7 @@ void add_buildIn(Syntax_context* ctx, Function f) {
     add_functionToList(&ctx->functions, f);
 }
 
+//Add all buildins to the function list
 void add_buildInsToCtx(Syntax_context* ctx) {
     add_symbol(&ctx->classes, "ifj16");
     add_buildIn(ctx, (Function) {.type = build_in, .name = "ifj16.readInt", .build_in = readInt});
@@ -80,6 +82,7 @@ void parse_program(Syntax_context* ctx) {
     check_and_get_token(ctx->s_ctx, T_EOF);
 }
 
+//Parses id (of the func or variable)
 Parsed_id parse_id(Tinit* scanner, const char* currentClass) {
     Parsed_id ret = {.fullQ = false};
     Ttoken* nameTok = check_and_get_token(scanner, T_ID | T_FULL_ID);
@@ -112,6 +115,7 @@ Parsed_id parse_id(Tinit* scanner, const char* currentClass) {
     return ret;
 }
 
+//Parses expression and checks for null returned by Expression parser
 Expression* parse_expressionWrap(t_Expr_Parser_Init* symbol_tabs, Tinit* scanner) {
     Expression* ret = parseExpression(symbol_tabs, scanner);
     if (ret != NULL)
@@ -120,6 +124,7 @@ Expression* parse_expressionWrap(t_Expr_Parser_Init* symbol_tabs, Tinit* scanner
     exit(syntactic_analysis_error);
 }
 
+//Parses entire class starting with class token
 void parse_class(Syntax_context* ctx) {
     assert(peek_token(ctx->s_ctx)->type == T_KEYWORD && peek_token(ctx->s_ctx)->kw == K_CLASS);
     get_token(ctx->s_ctx); //consume class token
@@ -167,6 +172,7 @@ void parse_class(Syntax_context* ctx) {
     ctx->expCtx->class_name = ctx->current_class;
 }
 
+//Appends statement to the statement list, if there is no more space, list'll be firstly expanded
 void add_statement(Statement_collection* collection, Statement statement) {
     if (collection->size == collection->count) {
         collection->size += 10;
@@ -175,6 +181,7 @@ void add_statement(Statement_collection* collection, Statement statement) {
     collection->statements[collection->count++] = statement;
 }
 
+//Appends parameter to the parameter list, if there is no more space, list'll be firstly expanded
 void add_parameter(Parameter_list* collection, Expression expr) {
     if (collection->size == collection->count) {
         collection->size += 10;
@@ -185,6 +192,7 @@ void add_parameter(Parameter_list* collection, Expression expr) {
     collection->parameters[collection->count++].value = expr;
 }
 
+//Parses global variable definition
 Variable parse_global_variable(Syntax_context* ctx, Data_type type) {
     if (type == void_t) {
         fprintf(stderr, "Invalid variable type, type \'void\' cannot be used here, l. %%\n");
@@ -202,6 +210,7 @@ Variable parse_global_variable(Syntax_context* ctx, Data_type type) {
     return ret;
 }
 
+//Parses function parameters
 void parse_parameters(Syntax_context* ctx, Parameter_list* params) {
     while (peek_token(ctx->s_ctx)->type != T_BRACKET_RROUND) {
         Ttoken* type = check_and_get_token(ctx->s_ctx, T_TYPE);
@@ -225,6 +234,7 @@ void parse_parameters(Syntax_context* ctx, Parameter_list* params) {
     check_and_get_token(ctx->s_ctx, T_BRACKET_RROUND);
 }
 
+//Searches for symbol in the symbol tables (int the local one first, then in the global)
 Symbol_tree_leaf* get_symbol(Syntax_context* ctx, char* key) {
     Symbol_tree_leaf* leaf = get_symbol_by_key(&ctx->local_symbols, key);
     if (leaf == NULL)
@@ -232,6 +242,7 @@ Symbol_tree_leaf* get_symbol(Syntax_context* ctx, char* key) {
     return leaf;
 }
 
+//Parses assignment to the variable
 void parse_assigmnent(Syntax_context* ctx, Statement_collection* statements, Parsed_id id) {
     Symbol_tree_leaf* symbol = NULL;
     if (id.fullQ == false)
@@ -254,6 +265,7 @@ void parse_assigmnent(Syntax_context* ctx, Statement_collection* statements, Par
     check_and_get_token(ctx->s_ctx, T_SEMICOLON);
 }
 
+//Parses definition of the variable
 void parse_definition(Syntax_context* ctx, Statement_collection* statements) {
     Data_type type = check_and_get_token(ctx->s_ctx, T_TYPE)->dtype;
     Parsed_id id = parse_id(ctx->s_ctx, ctx->current_class);
@@ -285,6 +297,7 @@ void parse_definition(Syntax_context* ctx, Statement_collection* statements) {
         parse_assigmnent(ctx, statements, id);
 }
 
+//Parses the if statement and it's compound statements
 void parse_if(Syntax_context* ctx, Statement_collection* statements) {
     Statement st = {
         .type = condition,
@@ -313,6 +326,7 @@ void parse_if(Syntax_context* ctx, Statement_collection* statements) {
     add_statement(statements, st);
 }
 
+//Parses function call
 Expression* parse_f_call(t_Expr_Parser_Init* exprCtx, Tinit* scanner, char* id) {
     Expression* st = gc_alloc(sizeof(Statement));
     st->type = function_call;
@@ -336,6 +350,7 @@ Expression* parse_f_call(t_Expr_Parser_Init* exprCtx, Tinit* scanner, char* id) 
     return st;
 }
 
+//Parses function call and adds fCall statement to the statement list
 void parse_function_call(Syntax_context* ctx, Statement_collection* statements, char* id) {
     Statement* st = gc_alloc(sizeof(Statement));
     st->type = expression;
@@ -344,6 +359,7 @@ void parse_function_call(Syntax_context* ctx, Statement_collection* statements, 
     add_statement(statements, *st);
 }
 
+//Parses the while statement and adds it to the statement list
 void parse_while(Syntax_context* ctx, Statement_collection* statements) {
     Statement st = {
         .type = while_loop
@@ -359,6 +375,7 @@ void parse_while(Syntax_context* ctx, Statement_collection* statements) {
     add_statement(statements, st);
 }
 
+//Parses return statement and adds it to the statement list
 void parse_return(Syntax_context* ctx, Statement_collection* statements) {
     Statement st = {
         .type = Return
@@ -374,6 +391,7 @@ void parse_return(Syntax_context* ctx, Statement_collection* statements) {
     add_statement(statements, st);
 }
 
+//Parses all statements
 void parse_statement(Syntax_context* ctx, Statement_collection* statements) {
     Ttoken* tok;
     switch ((tok = check_and_peek_token(ctx->s_ctx, T_ID | T_FULL_ID | T_KEYWORD | T_TYPE))->type) {
@@ -381,7 +399,6 @@ void parse_statement(Syntax_context* ctx, Statement_collection* statements) {
             if (ctx->depth <= 1)
                 parse_definition(ctx, statements);
             else {
-                //TODO engliš
                 fprintf(stderr, "Local variable cannot be defined inside a compound statements line %lld.\n", tok->line);
                 exit(syntactic_analysis_error);
             }
@@ -417,6 +434,7 @@ void parse_statement(Syntax_context* ctx, Statement_collection* statements) {
     }
 }
 
+//Parses coupound statement from '{' to '}'
 void parse_block(Syntax_context* ctx, Statement_collection* statements) {
     ctx->depth++;
     check_and_get_token(ctx->s_ctx, T_BRACKET_LCURLY);
@@ -432,7 +450,7 @@ void parse_block(Syntax_context* ctx, Statement_collection* statements) {
     ctx->depth--;
 }
 
-
+//Prints simplified statement collection
 void printStList(Statement_collection stc) {
     for (int i = 0; i != stc.count; i++) {
         Statement st = stc.statements[i];
@@ -460,6 +478,7 @@ void printStList(Statement_collection stc) {
     }
 }
 
+//Parses whole function and adds it to the function list
 void parse_function(Syntax_context* ctx, Data_type return_type, char* name) {
     Function f = {
         .name = name,

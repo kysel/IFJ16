@@ -27,6 +27,11 @@ typedef struct {
     Err_list errs;
 }Sem_ctx;
 
+
+/**
+ * \brief Checks for semantics error in the whole AST exits with respective error code
+ * \param ctx Syntax context
+ */
 void check_semantic(Syntax_context* ctx);
 
 #endif

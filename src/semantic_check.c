@@ -15,7 +15,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-
+//Creates new error
 Error new_err(const int ret_code, const char* format, ...) {
     va_list args;
     va_start(args, format);
@@ -27,6 +27,7 @@ Error new_err(const int ret_code, const char* format, ...) {
     return (Error) { .description = buf, .ret_code = ret_code };
 }
 
+//Appends error to the end of the Err_list
 void append_err(Err_list* list, const Error err) {
     if (list->size == list->count) {
         list->size += 10;
@@ -35,11 +36,13 @@ void append_err(Err_list* list, const Error err) {
     list->err[list->count++] = err;
 }
 
+//Prints all errors
 void print_errs(const Err_list errs) {
     for (int i = 0; i != errs.count; i++)
         fprintf(stderr, errs.err[i].description);
 }
 
+//Gets first not zero error code from error list
 int get_exit_code(const Err_list errs) {
     for (int i = 0; i != errs.count; i++)
         if (errs.err[i].ret_code != 0)
@@ -47,6 +50,7 @@ int get_exit_code(const Err_list errs) {
     return 0;
 }
 
+//Splits full id into two strings containing class and name
 char*(*split_id(char* fullId))[2]{
     char*(*ret)[2] = gc_alloc(sizeof(char*) * 2);
 
@@ -63,6 +67,7 @@ char*(*split_id(char* fullId))[2]{
     return ret;
 }
 
+//Checks for presence of the Main.run function
 void check_main(Sem_ctx* ctx) {
     Function* main = getFunc(ctx->s_ctx, "Main.run");
     if (main == NULL) {
@@ -75,6 +80,7 @@ void check_main(Sem_ctx* ctx) {
         append_err(&ctx->errs, new_err(98, "Function 'Main.run' have invalid number of arguments."));
 }
 
+//Checks whether the function comply with the semantic rules
 void check_func(Sem_ctx* ctx, const Function f) {
     bool hasReturned = false;
     char* className = (*split_id((char*)f.name))[0];
@@ -96,7 +102,6 @@ void check_func(Sem_ctx* ctx, const Function f) {
         exit(semantic_error_in_code);
     }
 }
-
 
 void check_semantic(Syntax_context* ctx) {
     Sem_ctx ctxVal = (Sem_ctx) { .s_ctx = ctx, .errs.count = 0, .errs.size = 0, .errs.err = NULL };
