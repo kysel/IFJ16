@@ -9,6 +9,7 @@
 \usepackage{booktabs}
 \usepackage{epstopdf}
 \usepackage{fancyvrb}
+\usepackage{amsmath}
 \usepackage{float}
 \fvset{frame=single,framesep=1mm,fontfamily=courier,fontsize=\scriptsize,numbers=left,framerule=.3mm,numbersep=1mm,commandchars=\\\{\}}
 \usepackage[usenames,dvipsnames]{xcolor}
@@ -41,11 +42,11 @@
 \Huge Tým 021, varianta a/3/I\\
 \vspace{\stretch{0.309}}
 
-\Large Vedoucí:	Kyzlink Jiří 	(xkyzli02)\\
-				Kubiš Juraj		(xkubis15)\\
-				Korček Juraj	(xkorce01)\\
-				Kubica Jan		(xkubic39)\\
-				Kovařík Viktor	(xkovar77)\\
+\Large Vedoucí:	Kyzlink Jiří 	(xkyzli02)	X\%	\\ % přecedo tu musí být finální procenta, viz. zadání
+				Kubiš Juraj		(xkubis15)	X\%	\\
+				Korček Juraj	(xkorce01)	X\%	\\
+				Kubica Jan		(xkubic39)	X\%	\\
+				Kovařík Viktor	(xkovar77)	X\%	\\
 
 \vspace{\stretch{0.309}}
 
@@ -89,29 +90,58 @@ Syntaktická analýza kódu je implementovaná pomocí rekurzivního sestupu. An
 Funkce \texttt{parse\_class} rozpozná definici globální proměnné nebo funkce a a zavolá funkce pro jejich parsování. Jedna ze stěžejních funkcí je \texttt{parse\_statement}, která rozpozná definici proměnné, přiřazení, volání funkce, podmínku a cykly. Na základě toho zavolá funkci, která rozpoznaný příkaz zpracuje a případně přidá do syntaktického stromu. V případě, že se očekává výraz (např. r-hodnota přiřazení nebo argumenty volání funkce) je řízení předáno \emph{syntaktické analýze výrazů} výraz, který precedenční analýza vrátí je poté použit v AST.
 
 \subsection{Syntaktická analýza výrazů}
-Úlohou syntaktického analyzátoru je správně transformovat vstupní neterminály (tokeny) na výraz v podobě AST. Při tomto procesu je nutné brát v potaz prioritu a asociativitu operátorů.
+Úkolem syntaktickýho analyzátoru výrazů je správně trasformovat výraz na vstupe z formy sledu tokenů do formy AST. Při této trasformaci se musí řídit prioritou a asociatovitou jednotlivých operátorů.
 
-Základem analyzátoru je množina pravidel, precedenční tabulka operátorů (dále jen \textit{tabulka}) a zásobník.
-Analýza probíhá způsobem, že se načte vstupní neterminál a v tabulce se vyhledá jeho vztah k neterminálu, který je nejblíže vrcholu zásobníku. Tento vztah určuje, jaká akce se na zásobníku vykoná (jednotlivé akce jsou vysvětleny níže). Poté se přečte další token a celý proces se opakuje. K ukončení dojde, pokud vstupní token signalizuje konec a zásobník je prázdný.
+Celej analyzátor se dá rozdělit na tři základní časti: zásobník, množina pravidel a přecedenční tabulka operátorů (dále jen \textit{tabulka}). Analýza probíha způsobem, že jsou všechny vstupní tokeny postupne vkládány na zásobník a redukovány na terminály na základe pravidel. Kdy a jaká akce se vykoná, se rozhoduje na základe tabulky, ve které se vyhladá relace medzi vstupním tokenem a tokenem (neterminálem), který leží na zásobníku nejblíže vrcholu. Analýza končí, pokud na vstupu prečteme token značíci konec výrazu a na zásobníku se nenachází žádnej neterminál a pouze jeden terminál.
 
 \subsubsection{Precedenční tabulka operátorů}
+Tahle tabulka vyjadruje vztah (relaci) medzi každou dvojicí operátorů. Tyhle relace zohladňují vzájemnou prioritu i asociativitu operátorů a určují akci, která se na zásobníku vykoná. Tahle akce může být: 
+\begin{itemize}
+   \item Vložení vstupního tokenu na zásobník a načtení dalšího tokenu \textit{(v tabulce symbol =)}
+   \item Vložení zarážky na vrchol zásobníku, následné vložení vstupního tokenu na zásobník a načtení dalšího tokenu \textit{(v tabulce symbol \textless)}
+   \item Záměna tokenů (neterminálů) od zarážky po vrchol zásobníku za jeden terminál \textit{(v tabulce symbol \textgreater)}
+   \item Spracování volání funkce (obnáší přečtení dalších tokenů na vstupu) a nahrazení tokenů od zarážky výše za odpovídajíci terminál \textit{(v tabulce symbol F)}
+\end{itemize}
 
+Pokud má relace dvou operátorů v tabulce označení \textit{E}, znamená to, že takové vzájemné postavení tychto operátorů netvoří validní výraz a tudiž se jendá o chybu.
 
-Tabulka vyjadřuje vztah mezi každou dvojicí operátorů a určuje, jaká akce je na zásobníku vykonaná. Možné akce jsou v sepsány v \hyperref[tab:stackRules]{tabulce}.
+\subsubsection{Pravidla}
+Jedna z akcí provádených na zásobníku je redukce jedného či více tokenů (neterminálů) na jeden terminál. Pokud je pro tuto redukci zavedené pravidlo, je na jeho základu vykonána, pokud ne, jedná se opět o chybu. V našem projektu jsou použita nasledujíci pravidla:
 
-\begin{table}[]
-\centering
-\label{tab:stackRules}
-\begin{tabular}{@{}ccc@{}}
-\toprule
-Symbol       & Význam                            & Sématická akce                         \\ \midrule
-=            & Push                              & Vstupní token je vložený na zásobník  \\
-\textless    &                                   & Vstupní token je vložený na zásobník \\
-\textgreater & Handle                            & Redukce                                \\
-F            & Function call                     & Parsování volání funkce \\ \bottomrule
-\end{tabular}
-\caption{Tabulka možných akcí na zásobníku}
-\end{table}
+\begin{align*}
+E &\rightarrow E + E  &   E &\rightarrow E < E\\
+E &\rightarrow E - E  &   E &\rightarrow E > E\\
+E &\rightarrow E * E  &   E &\rightarrow E <= E\\
+E &\rightarrow E / E  &   E &\rightarrow E >= E\\
+E &\rightarrow ( E )  &   E &\rightarrow E == E\\
+E &\rightarrow i      &   E &\rightarrow E != E\\
+\end{align*}
+
+\subsubsection{Zásobník}
+Je to pracovní entita, ve které je uchovávan rozpracovaný výraz a všechny ostatní informace potrebné pro analýzu. Pro naše účely jsme navrhli zásobník, který má následovní struktúru:
+
+\begin{lstlisting}[caption={Výstupní struktura SA}, label={lst:saOut}]
+typedef enum {
+    EOS,
+    TOKEN,
+    EXPRESSION
+} t_Element_Type;
+
+typedef struct {
+    t_Element_Type type;
+    void* address;
+    int stop_bit;
+} t_Element;
+
+typedef struct {
+    t_Element* arr;
+    int stack_size;
+    int top_element;
+    int top_token;
+} t_Stack;
+
+\end{lstlisting}
+
 
 \section{Sémantický analyzátor}
 Po vytvoření AST pomocí syntaktického analyzátoru je sémantické správnosti provedena postupným průchodem všech definovaných funkcí.
@@ -124,10 +154,9 @@ Sémantický analyzátor detekuje omezené množství chyb a v naší implementa
 Vestavěné funkce jsou pro přehlednost rozděleny na dvě části, neboť podle zadání musí být funkce \texttt{find} a \texttt{sort} uloženy právě v souboru \texttt{ial.c}. Ostatní funkce jsou k nalezení v souboru \texttt{build\_in.c}.
 
 \subsection {vestavěné funkce v IAL.c}
---nevím jestli rozdělovat na podsekce ještě měnší nebo ne--
 
 \subsubsection {\texttt{int find(String s, String search)}}
-Funkce \texttt{int find(String s, String search)} hledá první výskyt zadaného podřetězce (v parametru \texttt{search}) a vrátí jeho pozici (počítanou od nuly). V naší variantě a/3/I jsme měli za úkol implementovat tuto funkci pomocí \texttt{Knuth-Morris-Prattova algorytmu}. Tato implementace spočívala v ... doplním.
+Funkce \texttt{int find(String s, String search)} hledá první výskyt zadaného podřetězce (v parametru \texttt{search}) a vrátí jeho pozici (počítanou od nuly). V naší variantě a/3/I jsme měli za úkol implementovat tuto funkci pomocí \texttt{Knuth-Morris-Prattova algoritmu}. Ten byl zformulován v roce 1977 pány Donaldem Knuthem, Vaughanem Prattem a Jamesem Norrisem. Tento algoritmus nejdříve prohledá vyhledáváne slovo a na základě opakování jeho prefixu označí určitý vzorek jako fail-vektor (unás označený jako pole \texttt{p[n]}). Toto pole znázorňovalo stavový automat. KMP je velmi dobře vysvětlen ve studijní opoře předmětu IAL a tím pádem se dal daný algoritmus dobře pochopit.
 
 \subsubsection {\texttt{String sort(String s)}}
 Funkce \texttt{String sort(String s)} řadí parametrem daný řetězec \texttt{s} podle ordinální hodnoty obsažených znaků, který pak odevzdává návratovou hodnotou. Daný výpočet je dle zadání a/3/I zpracován pomocí řadícího algoritmu \texttt{Shell sort}, nebo též řazení se snižujícím se přírůstkem s asymptotickou složitostí $O(n^{2})$. Styl implementace vychází ze vzorového příkladu přednášek předmětu IAL, kdy při prvním průchodu je brán krok jakožto polovina počtu prvků z celkové délky řetězce.
@@ -135,21 +164,19 @@ Funkce \texttt{String sort(String s)} řadí parametrem daný řetězec \texttt{
 \subsection {vestavěné funkce v souboru build{\_}in.c}
 Pro usnadnění práce při interpretaci jsou zde u funkcí návratové typy zjednodušeny na datový typ \texttt{Value} a parametry funkcí jsou předávány pomocí datového typu \texttt{Value\_list}.
 
-\begin{itemize}
-\item {\texttt{int readInt ()}} - funkce zpracovává čtený řetězec ze standardního vstupu po znacích a je zde tak zřejmá podobnost s konečnými automaty. Při nepovoleném znaku pro datový typ \texttt{int} volá funkce ke konci chybové hlášení, jinak je připuštěno k převodu řetězce na celé číslo.
-\item {\texttt{double readDouble ()}} - funkce je charakterem obdobná s funkci \texttt{readInt} a výsledná kontrola na desetinné číslo je ošetřena pomocí céčkové funkce \texttt{strtod()}.
-\item {\texttt{String readString ()}} - funkce na podobném přístupu jako \texttt{readInt} s rozšířenou množinou povolených znaků.
-\item {\texttt{void print ( \emph{term\_nebo\_konkatenace} )}} - funkce tisknoucí svůj vstup na standartní výstup. Zde je ošetřena možnost proměnného počtu parametrů pomocí datového typu \texttt{Value\_list}. 
-\item {\texttt{int length(String s)}} - funkce pro zjištění délky daného řetězce, která sama vychází z céčkové funkce \texttt{strlen()}.
-\item {\texttt{String substr(String s, int i, int n)}} - funkce tiskne podřetězec daného řetězce \texttt{s} s ošetřením na přesah paměti pomocí céčkové funkce \texttt{strncat()}.
-\item {\texttt{int compare(String s1, String s2)}} - funkce porovnává dva dané řetězce na základě céčkové funkce \texttt{strcmp()}.
-\end{itemize}
+\subsubsection {\texttt{int readInt ()}} - funkce zpracovává čtený řetězec ze standardního vstupu po znacích a je zde tak zřejmá podobnost s konečnými automaty. Při nepovoleném znaku pro datový typ \texttt{int} volá funkce ke konci chybové hlášení, jinak je připuštěno k převodu řetězce na celé číslo.
+\subsubsection {\texttt{double readDouble ()}} - funkce je charakterem obdobná s funkci \texttt{readInt} a výsledná kontrola na desetinné číslo je ošetřena pomocí céčkové funkce \texttt{strtod()}.
+\subsubsection {\texttt{String readString ()}} - funkce na podobném přístupu jako \texttt{readInt} s rozšířenou množinou povolených znaků.
+\subsubsection {\texttt{void print ( \emph{term\_nebo\_konkatenace} )}} - funkce tisknoucí svůj vstup na standartní výstup. Zde je ošetřena možnost proměnného počtu parametrů pomocí datového typu \texttt{Value\_list}. 
+\subsubsection {\texttt{int length(String s)}} - funkce pro zjištění délky daného řetězce, která sama vychází z céčkové funkce \texttt{strlen()}.
+\subsubsection {\texttt{String substr(String s, int i, int n)}} - funkce tiskne podřetězec daného řetězce \texttt{s} s ošetřením na přesah paměti pomocí céčkové funkce \texttt{strncat()}.
+\subsubsection {\texttt{int compare(String s1, String s2)}} - funkce porovnává dva dané řetězce na základě céčkové funkce \texttt{strcmp()}.
+
 
 \section{Testy}
 Testovali jsme buď součásti - \textit{unit testy}, kde jsme zkoušeli, zda daná funkce správně reaguje na vstupy. Unit testy si dělal každý sám a podle potřeby. Bylo zvykem v Makefile pro unit test udělat zvláštní target, kde se kromě samotné kompilace ještě prováděl \textit{valgrind} test pro ověření možných \textit{memory leaků}. 
 
 Dále jsme dělali ještě systémové testy. To byly vlastně testy samotného interpretu a porovnávání jeho výstupu s výstupem Javy SE 8 s přidanou kompatibilitou s jazykem IFJ16. Test byl vytvořen jako samostatný bash script, který se volal z Makefile. Ve složce test/input/ byly různé programy v jazyce IFJ16 ve formátu \textit{návratovýKód\_názevProgramu.ifj16} s možností přidání ještě souboru se stejným formátem, ale koncovkou .in, kde byla možnost dát vstup na \textit{stdin}. Daný skript pak prošel složku, zjistil, zda jsou v ní obsaženy i soubory typu .in pro právě interpretovaný kód. Pokud byla předpokládaná návratová hodnota 0 (chyby IFJ16 interpretu nemělo smysl překládat v Javě a porovnávat), došlo k interpretaci kódu v Javě i ifj16 interpretu s následným porovnání návratových kódů a výstupů. Vše se zapisovalo do logu, který se nacházel ve stejné složce \textit{input} jako interpretovaný kód. Obrázek níže zobrazuje výsledky testování v průběhu raných fází interpretu.\\
-
 
 %\begin{figure}
 %	\centering
@@ -168,7 +195,6 @@ Currently working on 0_arithmetic_test_9_UNARY.ifj16:
 \textbf{\color{red}[FAIL]} ... IFJ16 return code is 2, but 0 was expected, see logs/0_fooTest.log.
 \textbf{\color{red}[FAIL]} ... IFJ16 output of 0_fooTest.ifj16 is different, see logs/0_fooTest.log.
 \end{Verbatim}
-
 
 \section{Přílohy}
 \subsection{Diagramy konečného automatu lexikální analýzy}
@@ -205,4 +231,10 @@ Currently working on 0_arithmetic_test_9_UNARY.ifj16:
 	\caption{KA - řetězec}
 \end{figure}
 
+\subsection{Precedenční tabulkaa}
+\begin{figure}[H]
+   \centering
+   \includegraphics[]{precedence_tab.eps}
+   \caption{Precedenční tabulka}
+\end{figure}
 \end{document}
