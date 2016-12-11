@@ -1,0 +1,11 @@
+class Main
+{
+    static void run()
+    {
+        while (5 + 7 +89) // syntax error
+        {
+
+        }
+    }
+
+}

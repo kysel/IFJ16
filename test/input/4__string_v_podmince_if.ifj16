@@ -1,0 +1,12 @@
+class Main
+{
+    static void run()
+    {
+         String a = "retazec";
+
+         if (a)
+         {
+            a = "Sematicka chyba";
+         }
+    }
+}

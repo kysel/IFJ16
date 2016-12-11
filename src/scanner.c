@@ -94,11 +94,14 @@ Ttoken* get_token(Tinit* scanner_struct) {
 Ttoken* get_token_internal(Tinit* scanner_struct) {
     char* kw_ptr;
     char* endptr;
+    char* tmp_string_fid ;
     char c;
     int read_file = 1;
     unsigned int alloc_len = 2;
     unsigned int alloc_num_len = 6;
+    unsigned int alloc_len_fid = 2;
     states state = FSM_INIT;
+	tmp_string_fid = NULL;			
 
     char* tmp_string = (char *)gc_alloc(sizeof(char) * alloc_len);
     tmp_string[0] = 0;
@@ -362,6 +365,10 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
 
             case FSM_FID:
             	if (isalpha(c) || c == '_' || c == '$') {
+            		tmp_string_fid = (char *)gc_alloc(sizeof(char) * alloc_len_fid);
+    				tmp_string_fid[0] = 0;
+            		
+    				tmp_string_fid = char_append(tmp_string_fid, &alloc_len_fid, c);
                     tmp_string = char_append(tmp_string, &alloc_len, c);
                     state = FSM_FID1;
                 } else {
@@ -372,15 +379,21 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
 
             case FSM_FID1:
             	if (isalpha(c) || isdigit(c) || c == '_' || c == '$') {
+            		tmp_string_fid = char_append(tmp_string_fid, &alloc_len_fid, c);
             		tmp_string = char_append(tmp_string, &alloc_len, c);
                     state = FSM_FID1;
             	} else {
-            		ungetc(c,scanner_struct->f);
-            		token->type = T_FULL_ID;
-            		token->tlen = strlen(tmp_string);
-            		token->line = scanner_struct->line;
-            		token->c = tmp_string;
-            		return token;
+            		if (is_keyword(tmp_string_fid) == NULL) {
+            			ungetc(c,scanner_struct->f);
+	            		token->type = T_FULL_ID;
+	            		token->tlen = strlen(tmp_string);
+	            		token->line = scanner_struct->line;
+	            		token->c = tmp_string;
+	            		return token;	
+            		} else {
+            			fprintf(stderr, "SCANNER ERROR: ID error on line %lld!\n", scanner_struct->line);
+                    	exit(lexical_analysis_error); 
+            		}            		
             	}
                 break;
 
@@ -424,15 +437,22 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                 break;
 
             case FSM_DOUBLE:
-                if (isdigit(c) || c == '_') {
-                    if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '.' && c == '_'){
-                        fprintf(stderr, "SCANNER ERROR: Double underscore error on line %lld!\n", scanner_struct->line);
-                        exit(lexical_analysis_error);  
-                    } else {
-                        state = FSM_DOUBLE;
+                if (isdigit(c)) {
+                        state = FSM_DOUBLE1;
                         tmp_string = char_append(tmp_string, &alloc_len, c);
                         num_string = num_append(num_string, &alloc_num_len, c);
-                    }
+                } else {
+                        fprintf(stderr, "SCANNER ERROR: Double number error on line %lld!\n", scanner_struct->line);
+                        exit(lexical_analysis_error);  
+                }
+                break;
+
+
+            case FSM_DOUBLE1:
+                if (isdigit(c) || c == '_') {
+                        state = FSM_DOUBLE1;
+                        tmp_string = char_append(tmp_string, &alloc_len, c);
+                        num_string = num_append(num_string, &alloc_num_len, c);
                 } else if (c == 'E' || c == 'e') {
                     if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
                         fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
@@ -457,6 +477,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                     }
                 }
                 break;
+
 
             case FSM_EXPONENT:
                 if (c == '+' || c == '-') {
@@ -730,15 +751,22 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                 break;
 
             case FSM_HEX_D:
+                if (isdigit(c) || (c >= 65 && c <= 70) || (c >= 97 && c <= 102)) {
+                    tmp_string = char_append(tmp_string, &alloc_len, c);
+                    num_string = num_append(num_string, &alloc_num_len, c);
+                    state = FSM_HEX_D_1;
+                }
+                else {
+                    fprintf(stderr, "SCANNER ERROR: HEX number error on line %lld!\n", scanner_struct->line);
+                    exit(lexical_analysis_error);   
+                }
+                break;
+
+            case FSM_HEX_D_1:
                 if (isdigit(c) || (c >= 65 && c <= 70) || (c >= 97 && c <= 102) || (c == '_')) {
-                    if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '.' && c == '_'){
-                        fprintf(stderr, "SCANNER ERROR: Double underscore error on line %lld!\n", scanner_struct->line);
-                        exit(lexical_analysis_error);  
-                    } else {
                         tmp_string = char_append(tmp_string, &alloc_len, c);
                         num_string = num_append(num_string, &alloc_num_len, c);
-                        state = FSM_HEX_D;
-                    }
+                        state = FSM_HEX_D_1;
                 } else if (c == 'p' || c == 'P') {
                     if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
                         fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
@@ -968,8 +996,11 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                 } else if (c == 'n') {
                     state = FSM_QUOTE;
                     tmp_string = (char_append(tmp_string, &alloc_len, 10));
-                } else if (c >= '0' && c <= '3') {
+                } else if (c >= '1' && c <= '3') {
                     state = FSM_ESCAPE_OCTAL_1;
+                    octal_string = (octal_append(octal_string, c));
+                } else if (c == '0') {
+                    state = FSM_ESCAPE_OCTAL_3;
                     octal_string = (octal_append(octal_string, c));
                 } else {
                     fprintf(stderr, "SCANNER ERROR: String escape sequence error on line %lld!\n", scanner_struct->line);
@@ -998,6 +1029,31 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
 
             case FSM_ESCAPE_OCTAL_2:
                 if (c >= '0' && c <= '7') {
+                    state = FSM_QUOTE;
+                    octal_string = (octal_append(octal_string, c));
+                    long int ascii_c = strtol(octal_string, &endptr, 8);
+                    tmp_string = (char_append(tmp_string, &alloc_len, ascii_c));
+                } else {
+                    fprintf(stderr, "SCANNER ERROR: String escape sequence error on line %lld!\n", scanner_struct->line);
+                    exit(lexical_analysis_error);
+                }
+                break;
+
+            case FSM_ESCAPE_OCTAL_3:
+                if (c >= '1' && c <= '7') {
+                    state = FSM_ESCAPE_OCTAL_2;
+                    octal_string = (octal_append(octal_string, c));
+                } else if (c == '0') {
+                    state = FSM_ESCAPE_OCTAL_4;
+                    octal_string = (octal_append(octal_string, c));
+                } else {
+                    fprintf(stderr, "SCANNER ERROR: String escape sequence error on line %lld!\n", scanner_struct->line);
+                    exit(lexical_analysis_error);
+                }
+                break;
+
+            case FSM_ESCAPE_OCTAL_4:
+                if (c >= '1' && c <= '7') {
                     state = FSM_QUOTE;
                     octal_string = (octal_append(octal_string, c));
                     long int ascii_c = strtol(octal_string, &endptr, 8);

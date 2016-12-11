@@ -1,0 +1,12 @@
+// Inicializacia premennej
+// v triede bez static
+// 2
+
+class Main
+{
+	int a = 5;
+	static void run()
+	{
+		
+	}
+}

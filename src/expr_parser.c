@@ -102,7 +102,11 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init* symbol_tabs, long long line)
                         else if ((leaf = get_symbol_by_key(symbol_tabs->global_tab, full_name)))
                             expression->variable = leaf->id;
                         else {
-                            leaf = add_symbol(symbol_tabs->global_tab, full_name);
+                            if (symbol_tabs->inside_func)
+                                leaf = add_symbol(symbol_tabs->local_tab, token->c);
+                            else
+                                leaf = add_symbol(symbol_tabs->global_tab, full_name);
+                            leaf->defined = false;
                             expression->variable = leaf->id;
                         }
                         break;
@@ -375,6 +379,7 @@ t_Expr_Parser_Init* ExprParserInit(Symbol_tree* global_tab, Symbol_tree* local_t
     init_struct->global_tab = global_tab;
     init_struct->local_tab = local_tab;
     init_struct->class_name = class_name;
+    init_struct->inside_func = false;
     return init_struct;
 }
 

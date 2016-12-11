@@ -17,6 +17,7 @@ typedef struct {
     Symbol_tree* global_tab;
     Symbol_tree* local_tab;
     char* class_name;
+    bool inside_func;
 } t_Expr_Parser_Init;
 
 // Datový typ prvku na zásobníku
