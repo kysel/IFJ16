@@ -4,7 +4,7 @@ class Main
 {
    static void run() 
    {
-   		if ((7 > 5) && (2 == 2) && ((1 == -1) || (-4 <= -4))) {
+   		if ((7 > 5) && (2 == 2) && ((1 == 1) || (4 <= 4))) {
    			ifj16.print("Proslo\n");
    		} else {
    		   	ifj16.print("Neroslo\n");
