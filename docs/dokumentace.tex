@@ -12,6 +12,7 @@
 \usepackage[htt]{hyphenat}
 \usepackage{amsmath}
 \usepackage{float}
+\usepackage{indentfirst}
 \fvset{frame=single,framesep=1mm,fontfamily=courier,fontsize=\scriptsize,numbers=left,framerule=.3mm,numbersep=1mm,commandchars=\\\{\}}
 \usepackage[usenames,dvipsnames]{xcolor}
 \graphicspath{{./images/}}
@@ -32,6 +33,7 @@
 }
 \renewcommand{\lstlistingname}{Kód}
 \lstset{escapechar=@,style=customc}
+\setlength\parindent{8pt}
 
 \begin{document}
 \begin{center}
@@ -93,9 +95,7 @@ Funkce \texttt{parse\_class} rozpozná definici globální proměnné nebo funkc
 \subsection{Syntaktická analýza výrazů}
 Úkolem syntaktického analyzátoru výrazů je transformovat vstupní výraz z formy sledu tokenů do formy AST. Při této transformaci se musí řídit prioritou a asociativitou jednotlivých operátorů.
 
-Celý analyzátor se dá rozdělit na tři základní části: zásobník, množina pravidel a precedenční tabulka operátorů (dále jen \textit{tabulka}). Analýza probíhá způsobem, že jsou všechny vstupní tokeny postupně vkládány na vrchol zásobníku a redukovány na terminály na základě pravidel. Kdy a jaká akce se vykoná, se rozhoduje na základě tabulky, ve které se vyhledá relace mezi vstupním tokenem a tokenem (neterminálem), který leží na zásobníku nejblíže vrcholu. Analýza končí, pokud na vstupu přečteme token značící konec výrazu a na zásobníku se nenachází žádný neterminál a pouze jeden terminál. 
-
-Ekvivaletní sématické akce k redukci je generovaní částéčných AST. Adresy jejich kořenů jsou uložené v struktuře terminálů.
+Celý analyzátor se dá rozdělit na tři základní části: zásobník, množina pravidel a precedenční tabulka operátorů (dále jen \textit{tabulka}). Analýza probíhá způsobem, že jsou všechny vstupní tokeny postupně vkládány na vrchol zásobníku a redukovány na terminály na základě pravidel. Kdy a jaká akce se vykoná, se rozhoduje na základě tabulky, ve které se vyhledá relace mezi vstupním tokenem a tokenem (neterminálem), který leží na zásobníku nejblíže vrcholu. Analýza končí, pokud na vstupu přečteme token značící konec výrazu a na zásobníku se nenachází žádný neterminál a pouze jeden terminál.
 
 \subsubsection{Precedenční tabulka operátorů}
 Tabulka vyjadřuje vztah (relaci) mezi každou dvojicí operátorů. Relace zohledňují vzájemnou prioritu i asociativitu operátorů a určují akci, která se na zásobníku vykoná. Akce může být: 
@@ -112,12 +112,12 @@ Pokud má relace dvou operátorů v tabulce označení \textit{E}, znamená to, 
 Jedna z akcí prováděných na zásobníku je redukce jednoho či více tokenů (neterminálů) na jeden terminál. Pokud je pro tuto redukci zavedené pravidlo, je na jeho základě vykonána, pokud ne, jedná se opět o chybu. V naší implementaci syntaktické analýzy jsou použita následující pravidla:
 
 \begin{align*}
-E &\rightarrow i      &  E &\rightarrow E + E                      &  E &\rightarrow E \thinspace<\thinspace E    &  E &\rightarrow \enspace !E    \\
-E &\rightarrow ( E )  &  E &\rightarrow E - E                      &  E &\rightarrow E \thinspace>\thinspace E    &  E &\rightarrow E \thinspace \&\& \thinspace E\\
-  &                   &  E &\rightarrow E * E                      &  E &\rightarrow E <= E                       &  E &\rightarrow E \thinspace || \thinspace E\\
-  &                   &  E &\rightarrow E\thinspace/\thinspace E   &  E &\rightarrow E >= E                       &    &                 \\
-  &                   &    &                                       &  E &\rightarrow E == E                       &    &                 \\
-  &                   &    &                                       &  E &\rightarrow E\thinspace!\!= E            &    &                 \\
+E &\rightarrow E + E  &   E &\rightarrow E < E\\
+E &\rightarrow E - E  &   E &\rightarrow E > E\\
+E &\rightarrow E * E  &   E &\rightarrow E <= E\\
+E &\rightarrow E / E  &   E &\rightarrow E >= E\\
+E &\rightarrow ( E )  &   E &\rightarrow E == E\\
+E &\rightarrow i      &   E &\rightarrow E != E\\
 \end{align*}
 
 \subsubsection{Zásobník}
@@ -145,6 +145,7 @@ typedef struct {
 
 \end{lstlisting}
 
+
 \section{Sémantický analyzátor}
 Po vytvoření AST pomocí syntaktického analyzátoru je sémantické správnosti provedena postupným průchodem všech definovaných funkcí.
 
@@ -171,41 +172,7 @@ Funkce \texttt{int find(String s, String search)} hledá první výskyt zadanéh
 Funkce \texttt{String sort(String s)} řadí parametrem daný řetězec \texttt{s} podle ordinální hodnoty obsažených znaků, který pak odevzdává návratovou hodnotou. Daný výpočet je dle zadání a/3/I zpracován pomocí řadícího algoritmu \texttt{Shell sort}, nazývaným též jako řazení se snižujícím se přírůstkem s asymptotickou složitostí~$O(n^{2})$. Styl implementace vychází ze vzorového příkladu opory k předmětu IAL, kdy při prvním průchodu je brán krok o délce poloviny počtu prvků z celkové délky řetězce s indexováním pole znaků od nuly.
 
 \subsection{Tabulka symbolů}
-Tabulka symbolů je realizována binárním vyhledávacím stromem, který je reprezentován strukturou \hyperref[lst:stBvsStruct]{\texttt{Symbol\_tree\_s}}, kde \texttt{root} je ukazatel na první uzel stromu, \texttt{nextId} je následující id použité při přidávání nového uzlu, \texttt{inc} je příznak inkrementace/dekrementace \texttt{nextId} při přidání uzlu. \texttt{Id} se využívá jako index při práci se zásobníkovými rámci resp. proměnnými.
 
-Uzel BVS je reprezentován strukturou \hyperref[lst:stBvsLeafStruct]{\texttt{Symbol\_tree\_leaf}}, kde \texttt{key} je název symbolu, \texttt{type} je datový typ proměnné, případně návratová hodnota funkce, \texttt{init\_expr} je výraz využitý pro inicializaci globálních proměnných a \texttt{defined} je příznak značící, zda byl symbol definován ve zdrojovém kódu nebo zda byl pouze použit.
-
-Funkce definované pro operace nad binárním stromem jsou následující:\medskip
-
-\begin{tabular}{llp{11.9cm}}
-	\texttt{symbol\_tree\_new}  & - & Inicializuje ukazatel na kořen na \texttt{null} a~počet symbolu na 0.\\
-	\texttt{add\_symbol}    & - & Prohledá BVS, pokud zadaný symbol ve stromu není, vytvoří uzel a přidá jej, jinak vrátí ukazatel na nalezený symbol. \\
-	\texttt{get\_symbol\_by\_key} & - & Prohledá BVS a vrátí ukazatel na symbol dle zadaného řetězce \texttt{key}. \\	
-	\texttt{get\_symbol\_by\_id} & - & Prohledá BVS a vrátí ukazatel na symbol dle zadaného \texttt{id}. \\
-\end{tabular}
-\medskip	
-\begin{lstlisting}[caption={Struktura binárního stromu}, label={lst:stBvsStruct}]
-struct Symbol_tree_s {
-    Symbol_tree_leaf* root;
-    int nextId;
-    bool inc;
-};
-\end{lstlisting}
-
-\begin{lstlisting}[caption={Struktura uzlu binárního stromu}, label={lst:stBvsLeafStruct}]
-typedef struct Symbol_tree_leaf_s {
-	const char* key;
-	int id;
-	Data_type type;
-	Expression* init_expr;
-	bool defined;
-	struct Symbol_tree_leaf_s* left;
-	struct Symbol_tree_leaf_s* right;
-} Symbol_tree_leaf;
-\end{lstlisting}
-
-\section{Správa paměti}
-Pro správu paměti a korektní uvolnění veškerého alokovaného místa jsme implementovaly jednoduchý \emph{garbage collector}. Alokace paměti probírají pomocí metody \texttt{gc\_alloc(size\_t size)}
 
 \section{Testy}
 Testovali jsme buď součásti - \textit{unit testy}, kde jsme zkoušeli, zda daná funkce správně reaguje na vstupy. Unit testy si dělal každý sám a podle potřeby. Bylo zvykem v Makefile pro unit test udělat zvláštní target, kde se kromě samotné kompilace ještě prováděl \textit{valgrind} test pro ověření možných \textit{memory leaků}. 
