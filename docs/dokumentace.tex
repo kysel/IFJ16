@@ -97,7 +97,7 @@ Funkce \texttt{parse\_class} rozpozná definici globální proměnné nebo funkc
 
 Celý analyzátor se dá rozdělit na tři základní části: zásobník, množina pravidel a precedenční tabulka operátorů (dále jen \textit{tabulka}). Analýza probíhá způsobem, že jsou všechny vstupní tokeny postupně vkládány na vrchol zásobníku a redukovány na terminály na základě pravidel. Kdy a jaká akce se vykoná, se rozhoduje na základě tabulky, ve které se vyhledá relace mezi vstupním tokenem a tokenem (neterminálem), který leží na zásobníku nejblíže vrcholu. Analýza končí, pokud na vstupu přečteme token značící konec výrazu a na zásobníku se nachází pouze jeden terminál. 
 
-Ekvivaletní sématické akce k redukci je generovaní částéčných AST. Adresy jejich kořenů jsou uložené v struktuře terminálů.
+Ekvivaletní sémantická akce k redukci je generování AST. Adresa jeho kořene je uložená v struktuře terminálu.
 
 \subsubsection{Precedenční tabulka operátorů}
 Tabulka vyjadřuje vztah (relaci) mezi každou dvojicí operátorů. Relace zohledňují vzájemnou prioritu i asociativitu operátorů a určují akci, která se na zásobníku vykoná. Akce může být: 
@@ -110,12 +110,14 @@ Tabulka vyjadřuje vztah (relaci) mezi každou dvojicí operátorů. Relace zohl
 
 Pokud má relace dvou operátorů v tabulce označení \textit{E}, znamená to, že takové vzájemné postavení operátorů netvoří validní výraz a tudíž se jedná o chybu syntaxe.
 
+Konkrétní podoba naší tabulky viz příloha na straně \pageref{tab:SA-precedence}.
+
 \subsubsection{Pravidla}
 Jedna z akcí prováděných na zásobníku je redukce jednoho či více tokenů (neterminálů) na jeden terminál. Pokud je pro tuto redukci zavedené pravidlo, je na jeho základě vykonána, pokud ne, jedná se opět o chybu. V naší implementaci syntaktické analýzy jsou použita následující pravidla:
 
 \begin{align*}
 E &\rightarrow i      &  E &\rightarrow E + E                      &  E &\rightarrow E \thinspace<\thinspace E    &  E &\rightarrow \enspace !E    \\
-E &\rightarrow ( E )  &  E &\rightarrow E - E                      &  E &\rightarrow E \thinspace>\thinspace E    &  E &\rightarrow E \thinspace \&\& \thinspace E\\
+E &\rightarrow ( E )  &  E &\rightarrow E - E                      &  E &\rightarrow E \thinspace>\thinspace E    &  E &\rightarrow E \thinspace \&\!\& \thinspace E\\
   &                   &  E &\rightarrow E * E                      &  E &\rightarrow E <= E                       &  E &\rightarrow E \thinspace || \thinspace E\\
   &                   &  E &\rightarrow E\thinspace/\thinspace E   &  E &\rightarrow E >= E                       &    &                 \\
   &                   &    &                                       &  E &\rightarrow E == E                       &    &                 \\
@@ -305,7 +307,8 @@ Rozdělení bodů není rovnoměrné z těchto důvodů: laxní přístup na za�
 	\caption{KA - řetězec}
 \end{figure}
 
-\subsection{Precedenční tabulkaa}
+\subsection{Precedenční tabulka}
+\label{tab:SA-precedence}
 \begin{figure}[H]
    \centering
    \includegraphics[]{precedence_tab.eps}
