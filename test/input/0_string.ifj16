@@ -1,0 +1,10 @@
+// string neni keyword
+
+class Main
+{
+	static void run()
+	{
+		String string = "abc";
+		ifj16.print(string);
+	}
+}

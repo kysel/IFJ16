@@ -1,0 +1,15 @@
+// 2x definicia funkcie run
+// 3
+
+class Main
+{
+	static void run()
+	{
+		
+	}
+
+	static void run()
+	{
+
+	}
+}

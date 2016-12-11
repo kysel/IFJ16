@@ -22,25 +22,51 @@ typedef enum {
     string_literal
 } symbol_type_t;
 
-typedef struct Symbol_tree_leaf_s {
-    const char* key;
-    int id;
-    Data_type type;
-    Expression* init_expr;
-    bool defined;
-    struct Symbol_tree_leaf_s* left;
-    struct Symbol_tree_leaf_s* right;
-} Symbol_tree_leaf;
-
-typedef struct {
-    Symbol_tree_leaf* root;
-    int nextId;
-    bool inc;
-} Symbol_tree;
-
 Symbol_tree symbol_tree_new(bool inc);
+
+
+/**
+ * \brief Counts the number of the leafs in a tree
+ * \param tree Symbol tree 
+ * \return Number ob the leaves
+ */
 int count_leafs(Symbol_tree* tree);
+
+/**
+* \brief Add leaf with given key. If leaf with provided
+* key already exist it's returned too.
+* \param root Symbol tree where to search for the leaf
+* \param key Leaf key
+* \return Pointer to the inserted leaf
+*/
 Symbol_tree_leaf* add_symbol(Symbol_tree* root, const char* key);
+
+
+/**
+* \brief Add leaf with given key but does NOT increase id.
+* If leaf with provided key already exist it's returned too.
+* \param tree Symbol tree where to search for the leaf
+* \param key Leaf key
+* \return Pointer to the inserted leaf
+*/
+Symbol_tree_leaf* add_symbol_woId(Symbol_tree* tree, const char* key);
+
+/**
+ * \brief Search for key with given key
+ * \param root Symbol tree where to search for.
+ * \param key Leaf key
+ * \return If leaf with provided key is found then pointer to that leaf,
+ * oherwise null
+ */
 Symbol_tree_leaf* get_symbol_by_key(Symbol_tree* root, const char* key);
+
+/**
+* \brief Search for key with given id
+* \param tree Symbol tree where to search for.
+* \param id Leaf id
+* \return If leaf with provided id is found then pointer to that leaf,
+* oherwise null
+*/
+Symbol_tree_leaf* get_symbol_by_id(Symbol_tree* tree, const int id);
 
 #endif //IAL_H_

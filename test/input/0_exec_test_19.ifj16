@@ -1,0 +1,18 @@
+// Funkcia s navratovou hodnotou
+// ako vyraz, zahodenie hodnoty
+
+class Main
+{
+	static void run()
+	{
+		int a = 5;
+		func();
+
+		ifj16.print(a + "\n");
+	}
+
+	static int func()
+	{
+		return (5+ 10 - 5 * 3);
+	}
+}

@@ -24,7 +24,7 @@ void parse_block(Syntax_context* ctx, Statement_collection* statements);
 void parse_statement(Syntax_context* ctx, Statement_collection* statements);
 Variable parse_global_variable(Syntax_context* ctx, Data_type type);
 
-
+//Add function to the funtion list
 void add_functionToList(Function_list* list, Function f) {
     if (list->size == list->count) {
         list->size += 10;
@@ -33,16 +33,31 @@ void add_functionToList(Function_list* list, Function f) {
     list->items[list->count++] = f;
 }
 
-void add_buildIn(Syntax_context* ctx) {
-    add_functionToList(&ctx->functions, (Function) {.type = build_in, .name = "ifj16.readInt", .build_in = readInt});
-    add_functionToList(&ctx->functions, (Function) {.type = build_in, .name = "ifj16.readDouble", .build_in = readDouble});
-    add_functionToList(&ctx->functions, (Function) {.type = build_in, .name = "ifj16.readString", .build_in = readString});
-    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.print", .build_in = print });
-    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.length", .build_in = length });
-    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.substr", .build_in = substr });
-    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.compare", .build_in = compare });
-    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.find", .build_in = findBI });
-    add_functionToList(&ctx->functions, (Function) { .type = build_in, .name = "ifj16.sort", .build_in = sortBI });
+//Add buildin to the function list
+void add_buildIn(Syntax_context* ctx, Function f) {
+    Symbol_tree_leaf* fSym = get_symbol_by_key(&ctx->global_symbols, f.name);
+    if (fSym != NULL && fSym->defined == true) {
+        fprintf(stderr, "Symbol %s was previously defined.\n", f.name);
+        exit(semantic_error_in_code);
+    }
+    fSym = add_symbol_woId(&ctx->global_symbols, f.name);
+    fSym->init_expr = NULL;
+    fSym->defined = true;
+    add_functionToList(&ctx->functions, f);
+}
+
+//Add all buildins to the function list
+void add_buildInsToCtx(Syntax_context* ctx) {
+    add_symbol(&ctx->classes, "ifj16");
+    add_buildIn(ctx, (Function) {.type = build_in, .name = "ifj16.readInt", .build_in = readInt});
+    add_buildIn(ctx, (Function) {.type = build_in, .name = "ifj16.readDouble", .build_in = readDouble});
+    add_buildIn(ctx, (Function) {.type = build_in, .name = "ifj16.readString", .build_in = readString});
+    add_buildIn(ctx, (Function) { .type = build_in, .name = "ifj16.print", .build_in = print });
+    add_buildIn(ctx, (Function) { .type = build_in, .name = "ifj16.length", .build_in = length });
+    add_buildIn(ctx, (Function) { .type = build_in, .name = "ifj16.substr", .build_in = substr });
+    add_buildIn(ctx, (Function) { .type = build_in, .name = "ifj16.compare", .build_in = compare });
+    add_buildIn(ctx, (Function) { .type = build_in, .name = "ifj16.find", .build_in = findBI });
+    add_buildIn(ctx, (Function) { .type = build_in, .name = "ifj16.sort", .build_in = sortBI });
 }
 
 Syntax_context* init_syntax(FILE* input_file) {
@@ -50,12 +65,13 @@ Syntax_context* init_syntax(FILE* input_file) {
     ret->s_ctx = init_scanner(input_file);
     ret->global_symbols = symbol_tree_new(false);
     ret->local_symbols = symbol_tree_new(true);
+    ret->classes = symbol_tree_new(true);
     ret->functions.count = 0;
     ret->functions.size = 0;
     ret->functions.items = 0;
     ret->depth = 0;
     ret->expCtx = ExprParserInit(&ret->global_symbols, &ret->local_symbols, "");
-    add_buildIn(ret);
+    add_buildInsToCtx(ret);
     return ret;
 }
 
@@ -66,43 +82,61 @@ void parse_program(Syntax_context* ctx) {
     check_and_get_token(ctx->s_ctx, T_EOF);
 }
 
+//Parses id (of the func or variable)
 Parsed_id parse_id(Tinit* scanner, const char* currentClass) {
     Parsed_id ret = {.fullQ = false};
-    Ttoken* nameTok = check_and_get_token(scanner, T_ID);
-    ret.class = gc_alloc(sizeof(char) * strlen(currentClass) + 1);
-    strcpy(ret.class, currentClass);
-    ret.name = nameTok->c;
+    Ttoken* nameTok = check_and_get_token(scanner, T_ID | T_FULL_ID);
     ret.nameTok = nameTok;
-    if (peek_token(scanner)->type == T_DOT) {
-        Ttoken* dot = get_token(scanner); //consume '.'
-        char* name2 = check_and_get_token(scanner, T_ID)->c;
-        if(dot->space_flag != 0) {
-            fprintf(stderr, "Invalid identifier\n");
-            exit(syntactic_analysis_error);
-        }
-        char* FKname = gc_alloc(sizeof(char) * (strlen(nameTok->c) + strlen(name2)) + 2);
-        FKname[0] = 0;
-        strcat(FKname, nameTok->c);
-        strcat(FKname, ".");
-        strcat(FKname, name2);
+    if (nameTok->type == T_FULL_ID) {
         ret.fullQ = true;
-        ret.class = nameTok->c;
-        ret.name = name2;
-        ret.full = FKname;
-        return ret;
+        ret.full = nameTok->c;
+
+        //char*(*kek)[2] = split_id(ret.full);
+
+        char* e = strchr(ret.full, '.');
+        int idx = (int)(e - ret.full);
+        ret.class = gc_alloc(sizeof(char)*(idx + 1));
+        strncpy(ret.class, nameTok->c, idx);
+        ret.class[idx] = 0;
+
+        int varNameLen = strlen(nameTok->c - idx - 1);
+        ret.name = gc_alloc(sizeof(char)*(varNameLen+1));
+        strncpy(ret.name, nameTok->c + idx + 1, varNameLen);
+        ret.name[varNameLen] = 0;
     }
-    ret.full = gc_alloc(sizeof(char) * (strlen(currentClass) + strlen(nameTok->c)) + 2);
-    strcpy(ret.full, currentClass);
-    strcat(ret.full, ".");
-    strcat(ret.full, nameTok->c);
+    else {
+        ret.class = (char*)currentClass;
+        ret.name = nameTok->c;
+        ret.full = gc_alloc(sizeof(char) * (strlen(currentClass) + strlen(nameTok->c)) + 2);
+        strcpy(ret.full, currentClass);
+        strcat(ret.full, ".");
+        strcat(ret.full, nameTok->c);
+    }
     return ret;
 }
 
+//Parses expression and checks for null returned by Expression parser
+Expression* parse_expressionWrap(t_Expr_Parser_Init* symbol_tabs, Tinit* scanner) {
+    Expression* ret = parseExpression(symbol_tabs, scanner);
+    if (ret != NULL)
+        return ret;
+    fprintf(stderr, "Expected expression on line %lld\n", scanner->line);
+    exit(syntactic_analysis_error);
+}
+
+//Parses entire class starting with class token
 void parse_class(Syntax_context* ctx) {
     assert(peek_token(ctx->s_ctx)->type == T_KEYWORD && peek_token(ctx->s_ctx)->kw == K_CLASS);
     get_token(ctx->s_ctx); //consume class token
 
     Ttoken* classId = check_and_get_token(ctx->s_ctx, T_ID);
+
+    if(get_symbol_by_key(&ctx->classes, classId->c) != NULL) {
+        fprintf(stderr, "Redefinion of class '%s' on line '%lld'\n", classId->c, classId->line);
+        exit(semantic_error_in_code);
+    }
+    add_symbol(&ctx->classes, classId->c);
+
     ctx->current_class = classId->c;
     check_and_get_token(ctx->s_ctx, T_BRACKET_LCURLY);
     ctx->expCtx->class_name = ctx->current_class;
@@ -138,6 +172,7 @@ void parse_class(Syntax_context* ctx) {
     ctx->expCtx->class_name = ctx->current_class;
 }
 
+//Appends statement to the statement list, if there is no more space, list'll be firstly expanded
 void add_statement(Statement_collection* collection, Statement statement) {
     if (collection->size == collection->count) {
         collection->size += 10;
@@ -146,6 +181,7 @@ void add_statement(Statement_collection* collection, Statement statement) {
     collection->statements[collection->count++] = statement;
 }
 
+//Appends parameter to the parameter list, if there is no more space, list'll be firstly expanded
 void add_parameter(Parameter_list* collection, Expression expr) {
     if (collection->size == collection->count) {
         collection->size += 10;
@@ -156,6 +192,7 @@ void add_parameter(Parameter_list* collection, Expression expr) {
     collection->parameters[collection->count++].value = expr;
 }
 
+//Parses global variable definition
 Variable parse_global_variable(Syntax_context* ctx, Data_type type) {
     if (type == void_t) {
         fprintf(stderr, "Invalid variable type, type \'void\' cannot be used here, l. %%\n");
@@ -165,7 +202,7 @@ Variable parse_global_variable(Syntax_context* ctx, Data_type type) {
     Ttoken* nextToken = check_and_get_token(ctx->s_ctx, T_ASSIGN | T_SEMICOLON);
 
     if (nextToken->type == T_ASSIGN) {
-        ret.init_expr = parseExpression(ctx->expCtx, ctx->s_ctx);
+        ret.init_expr = parse_expressionWrap(ctx->expCtx, ctx->s_ctx);
         check_and_get_token(ctx->s_ctx, T_SEMICOLON);
     }
     else if (nextToken->type == T_SEMICOLON)
@@ -173,6 +210,7 @@ Variable parse_global_variable(Syntax_context* ctx, Data_type type) {
     return ret;
 }
 
+//Parses function parameters
 void parse_parameters(Syntax_context* ctx, Parameter_list* params) {
     while (peek_token(ctx->s_ctx)->type != T_BRACKET_RROUND) {
         Ttoken* type = check_and_get_token(ctx->s_ctx, T_TYPE);
@@ -196,6 +234,7 @@ void parse_parameters(Syntax_context* ctx, Parameter_list* params) {
     check_and_get_token(ctx->s_ctx, T_BRACKET_RROUND);
 }
 
+//Searches for symbol in the symbol tables (int the local one first, then in the global)
 Symbol_tree_leaf* get_symbol(Syntax_context* ctx, char* key) {
     Symbol_tree_leaf* leaf = get_symbol_by_key(&ctx->local_symbols, key);
     if (leaf == NULL)
@@ -203,12 +242,13 @@ Symbol_tree_leaf* get_symbol(Syntax_context* ctx, char* key) {
     return leaf;
 }
 
+//Parses assignment to the variable
 void parse_assigmnent(Syntax_context* ctx, Statement_collection* statements, Parsed_id id) {
     Symbol_tree_leaf* symbol = NULL;
     if (id.fullQ == false)
     //definitely local symbol
         symbol = get_symbol(ctx, id.name);
-    if (symbol == NULL && id.fullQ == true) {
+    if (symbol == NULL /*&& id.fullQ == true*/) {
         symbol = get_symbol(ctx, id.full);
         if (symbol == NULL)
             symbol = add_symbol(&ctx->global_symbols, id.full);
@@ -219,12 +259,13 @@ void parse_assigmnent(Syntax_context* ctx, Statement_collection* statements, Par
         .type = assigment,
         .assignment.target = symbol->id
     };
-    Expression* sourceExpr = parseExpression(ctx->expCtx, ctx->s_ctx);
+    Expression* sourceExpr = parse_expressionWrap(ctx->expCtx, ctx->s_ctx);
     st.assignment.source = *sourceExpr;
     add_statement(statements, st);
     check_and_get_token(ctx->s_ctx, T_SEMICOLON);
 }
 
+//Parses definition of the variable
 void parse_definition(Syntax_context* ctx, Statement_collection* statements) {
     Data_type type = check_and_get_token(ctx->s_ctx, T_TYPE)->dtype;
     Parsed_id id = parse_id(ctx->s_ctx, ctx->current_class);
@@ -256,6 +297,7 @@ void parse_definition(Syntax_context* ctx, Statement_collection* statements) {
         parse_assigmnent(ctx, statements, id);
 }
 
+//Parses the if statement and it's compound statements
 void parse_if(Syntax_context* ctx, Statement_collection* statements) {
     Statement st = {
         .type = condition,
@@ -265,7 +307,7 @@ void parse_if(Syntax_context* ctx, Statement_collection* statements) {
 
     check_and_get_keyword(ctx->s_ctx, K_IF);
     check_and_get_token(ctx->s_ctx, T_BRACKET_LROUND);
-    st.condition.condition = *parseExpression(ctx->expCtx, ctx->s_ctx);
+    st.condition.condition = *parse_expressionWrap(ctx->expCtx, ctx->s_ctx);
     check_and_get_token(ctx->s_ctx, T_BRACKET_RROUND);
 
     if (peek_token(ctx->s_ctx)->type == T_BRACKET_LCURLY)
@@ -284,6 +326,7 @@ void parse_if(Syntax_context* ctx, Statement_collection* statements) {
     add_statement(statements, st);
 }
 
+//Parses function call
 Expression* parse_f_call(t_Expr_Parser_Init* exprCtx, Tinit* scanner, char* id) {
     Expression* st = gc_alloc(sizeof(Statement));
     st->type = function_call;
@@ -295,7 +338,7 @@ Expression* parse_f_call(t_Expr_Parser_Init* exprCtx, Tinit* scanner, char* id) 
     check_and_get_token(scanner, T_BRACKET_LROUND);
     if (peek_token(scanner)->type != T_BRACKET_RROUND) {
         while (true) {
-            Expression* ex = parseExpression(exprCtx, scanner);
+            Expression* ex = parse_expressionWrap(exprCtx, scanner);
             add_parameter(&st->fCall.parameters, *ex);
             if (check_and_peek_token(scanner, T_COMMA | T_BRACKET_RROUND)->type == T_COMMA)
                 get_token(scanner);
@@ -307,6 +350,7 @@ Expression* parse_f_call(t_Expr_Parser_Init* exprCtx, Tinit* scanner, char* id) 
     return st;
 }
 
+//Parses function call and adds fCall statement to the statement list
 void parse_function_call(Syntax_context* ctx, Statement_collection* statements, char* id) {
     Statement* st = gc_alloc(sizeof(Statement));
     st->type = expression;
@@ -315,13 +359,14 @@ void parse_function_call(Syntax_context* ctx, Statement_collection* statements, 
     add_statement(statements, *st);
 }
 
+//Parses the while statement and adds it to the statement list
 void parse_while(Syntax_context* ctx, Statement_collection* statements) {
     Statement st = {
         .type = while_loop
     };
     check_and_get_keyword(ctx->s_ctx, K_WHILE);
     check_and_get_token(ctx->s_ctx, T_BRACKET_LROUND);
-    st.while_loop.condition = *parseExpression(ctx->expCtx, ctx->s_ctx);
+    st.while_loop.condition = *parse_expressionWrap(ctx->expCtx, ctx->s_ctx);
     check_and_get_token(ctx->s_ctx, T_BRACKET_RROUND);
     if (peek_token(ctx->s_ctx)->type != T_BRACKET_LCURLY)
         parse_statement(ctx, &st.while_loop.statements);
@@ -330,6 +375,7 @@ void parse_while(Syntax_context* ctx, Statement_collection* statements) {
     add_statement(statements, st);
 }
 
+//Parses return statement and adds it to the statement list
 void parse_return(Syntax_context* ctx, Statement_collection* statements) {
     Statement st = {
         .type = Return
@@ -340,23 +386,24 @@ void parse_return(Syntax_context* ctx, Statement_collection* statements) {
         st.ret.type = constant;
         st.ret.constant.type = void_t;
     } else
-        st.ret = *(Return_statement*)parseExpression(ctx->expCtx, ctx->s_ctx);
+        st.ret = *(Return_statement*)parse_expressionWrap(ctx->expCtx, ctx->s_ctx);
     get_token(ctx->s_ctx); // gets ';', cause parseExpression leaves it
     add_statement(statements, st);
 }
 
+//Parses all statements
 void parse_statement(Syntax_context* ctx, Statement_collection* statements) {
     Ttoken* tok;
-    switch ((tok = check_and_peek_token(ctx->s_ctx, T_ID | T_KEYWORD | T_TYPE))->type) {
+    switch ((tok = check_and_peek_token(ctx->s_ctx, T_ID | T_FULL_ID | T_KEYWORD | T_TYPE))->type) {
         case T_TYPE:
             if (ctx->depth <= 1)
                 parse_definition(ctx, statements);
             else {
-                //TODO engliš
-                fprintf(stderr, "Local variable cannot be defined inside fixme(SLOZENY VYRAZ).\n");
-                exit(1337);
+                fprintf(stderr, "Local variable cannot be defined inside a compound statements line %lld.\n", tok->line);
+                exit(syntactic_analysis_error);
             }
             break;
+        case T_FULL_ID:
         case T_ID: {
             Parsed_id id = parse_id(ctx->s_ctx, ctx->current_class);
             if (check_and_peek_token(ctx->s_ctx, T_ASSIGN | T_BRACKET_LROUND)->type == T_ASSIGN)
@@ -366,11 +413,7 @@ void parse_statement(Syntax_context* ctx, Statement_collection* statements) {
             break;
         }
         case T_KEYWORD:
-            switch (check_and_peek_keyword(ctx->s_ctx, K_DO | K_FOR | K_IF | K_RETURN | K_WHILE)) {
-                case K_DO:
-                case K_FOR:
-                    fprintf(stderr, "Use of unsupported extension.\n");
-                    exit(98);
+            switch (check_and_peek_keyword(ctx->s_ctx, K_IF | K_RETURN | K_WHILE)) {
                 case K_IF:
                     parse_if(ctx, statements);
                     break;
@@ -391,6 +434,7 @@ void parse_statement(Syntax_context* ctx, Statement_collection* statements) {
     }
 }
 
+//Parses coupound statement from '{' to '}'
 void parse_block(Syntax_context* ctx, Statement_collection* statements) {
     ctx->depth++;
     check_and_get_token(ctx->s_ctx, T_BRACKET_LCURLY);
@@ -406,7 +450,7 @@ void parse_block(Syntax_context* ctx, Statement_collection* statements) {
     ctx->depth--;
 }
 
-
+//Prints simplified statement collection
 void printStList(Statement_collection stc) {
     for (int i = 0; i != stc.count; i++) {
         Statement st = stc.statements[i];
@@ -434,6 +478,7 @@ void printStList(Statement_collection stc) {
     }
 }
 
+//Parses whole function and adds it to the function list
 void parse_function(Syntax_context* ctx, Data_type return_type, char* name) {
     Function f = {
         .name = name,
@@ -451,20 +496,22 @@ void parse_function(Syntax_context* ctx, Data_type return_type, char* name) {
         fprintf(stderr, "Symbol %s was previously defined.\n", name);
         exit(semantic_error_in_code);
     }
-    fSym = add_symbol(&ctx->global_symbols, name);
-    ctx->global_symbols.nextId += 1;
+    fSym = add_symbol_woId(&ctx->global_symbols, name);
     fSym->init_expr = NULL;
     fSym->defined = true;
 
+    //Setup context for function
     Symbol_tree oldSymbols = ctx->local_symbols;
     ctx->local_symbols = symbol_tree_new(true);
     ctx->expCtx->local_tab = &ctx->local_symbols;
+    ctx->expCtx->inside_func = true;
 
     check_and_get_token(ctx->s_ctx, T_BRACKET_LROUND);
     parse_parameters(ctx, &f.parameters);
 
     parse_block(ctx, &f.statements);
     f.stack_size = count_leafs(&ctx->local_symbols);
+    f.local_symbols = ctx->local_symbols;
 #ifdef DEBUG
     printStList(f.statements);
 #endif
@@ -472,6 +519,8 @@ void parse_function(Syntax_context* ctx, Data_type return_type, char* name) {
         add_statement(&f.statements, (Statement) { .type = Return, .ret.type = constant, .ret.constant.type = void_t });
     add_functionToList(&ctx->functions, f);
 
+
+    ctx->expCtx->inside_func = false;
     ctx->local_symbols = oldSymbols;
     ctx->expCtx->local_tab = &ctx->local_symbols;
 }

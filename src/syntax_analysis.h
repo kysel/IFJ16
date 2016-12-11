@@ -11,11 +11,10 @@
 #define SYNTAXANALYSIS_H_
 #include "scanner.h"
 #include "ast.h"
-#include "ial.h"
 #include "expr_parser.h"
 
 typedef struct {
-    Symbol_tree global_symbols, local_symbols;
+    Symbol_tree global_symbols, local_symbols, classes;
     Tinit* s_ctx;
     char* current_class;
     Function_list functions;
@@ -32,7 +31,26 @@ typedef struct {
     Ttoken* nameTok;
 } Parsed_id;
 
+
+/**
+ * \brief Parses function call
+ * \param exprCtx Expression parser context
+ * \param scanner Scanner context
+ * \param id Function id
+ * \return Expression that contains parsed function call
+ */
 Expression* parse_f_call(t_Expr_Parser_Init* exprCtx, Tinit* scanner, char* id);
+
+/**
+ * \brief Initializes suntax parser
+ * \param input_file Handle to the opened file, that has to be parsed
+ * \return Initialized syntax analyzer context
+ */
 Syntax_context* init_syntax(FILE* input_file);
+
+/**
+ * \brief Parses input file and generates AST in syntax context
+ * \param ctx Syntax context
+ */
 void parse_program(Syntax_context* ctx);
 #endif

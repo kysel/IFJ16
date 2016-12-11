@@ -1,3 +1,4 @@
+SHELL := /bin/bash
 all:
 	make -C docs
 	rm -rf odevzdat || true
@@ -9,4 +10,6 @@ all:
 
 clean:
 	rm -rf odevzdat
-	rm xkyzli02.tgz
+	rm -f xkyzli02.tgz
+	make clean -C docs
+	make clean -C src

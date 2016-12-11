@@ -1,0 +1,6 @@
+class Main {
+    static void run() {
+         String a = "aaa";
+         String b = a - 42;
+    }
+}

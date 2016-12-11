@@ -1,0 +1,14 @@
+//funkcia nema static
+
+class Main()
+{
+	static void run()
+	{
+		int a = 5;
+	}
+
+	int test()
+	{
+
+	}
+}

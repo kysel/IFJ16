@@ -1,0 +1,10 @@
+// Testy retazovych literalov
+
+class Main
+{
+	static void run()
+	{
+		String a = "";
+		ifj16.print(a + "");
+	}
+}

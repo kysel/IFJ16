@@ -1,0 +1,10 @@
+// Testovanie ifj16 funkcie readInt
+
+class Main
+{
+    static void run()
+    {
+        int a = ifj16.readInt();
+        ifj16.print(a + "\n");
+    }
+}

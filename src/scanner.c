@@ -20,6 +20,7 @@ char* keywords[17] = {"boolean", "break", "class", "continue","do",
     "return", "String", "static", "true", "void", "while"
 };
 
+//Scanner initialization
 Tinit* init_scanner(FILE* fp) {
     long long n = 1;
     Tinit* scanner_struct = gc_alloc(sizeof(Tinit));
@@ -29,6 +30,7 @@ Tinit* init_scanner(FILE* fp) {
     return scanner_struct;
 }
 
+//Adding each num of escape sequence to string
 char* octal_append(char* octal_string, unsigned char c) {
     size_t octal_string_len;
     octal_string_len = strlen(octal_string);
@@ -37,9 +39,25 @@ char* octal_append(char* octal_string, unsigned char c) {
     return octal_string;
 }
 
+//Adding each number to string (ommiting '_')
+char* num_append(char* num_string, unsigned int* alloc_num_len, unsigned char c) {
+    if (c != '_'){
+        size_t num_string_len;
+        num_string_len = strlen(num_string);
+        if (*alloc_num_len < (num_string_len + 2)) {
+            num_string = (char *)gc_realloc(num_string, sizeof(char) * (num_string_len + 6));
+            *alloc_num_len = (*alloc_num_len) + 5;
+        }
+        num_string[num_string_len] = c;
+        num_string[num_string_len + 1] = '\0';
+        
+    }
+    return num_string;
+}
 
+//Adding each character from sourcecode to string
 char* char_append(char* tmp_string, unsigned int* alloc_len, unsigned char c) {
-    unsigned int tmp_string_len;
+    size_t tmp_string_len;
     tmp_string_len = strlen(tmp_string);
     if (*alloc_len < (tmp_string_len + 2)) {
         tmp_string = (char *)gc_realloc(tmp_string, sizeof(char) * (tmp_string_len + 5));
@@ -50,6 +68,7 @@ char* char_append(char* tmp_string, unsigned int* alloc_len, unsigned char c) {
     return tmp_string;
 }
 
+//Checking if ID is not from reserved strings
 char* is_keyword(char* tmp_string) {
     for (int i = 0; i <= 16; i++) {
         if (!strcmp(tmp_string, keywords[i])) {
@@ -59,14 +78,17 @@ char* is_keyword(char* tmp_string) {
     return NULL;
 }
 
+//One token lookahead
 Ttoken* peek_token(Tinit* scanner_struct) {
     if (scanner_struct->token == NULL)
         scanner_struct->token = get_token(scanner_struct);
     return scanner_struct->token;
 }
 
+
 Ttoken* get_token_internal(Tinit* scanner_struct);
 
+//Returning new token or returning previously peeked token
 Ttoken* get_token(Tinit* scanner_struct) {
     Ttoken* ret;
     if (scanner_struct->token != NULL) {
@@ -77,19 +99,27 @@ Ttoken* get_token(Tinit* scanner_struct) {
     return ret;
 }
 
+//Returning token from sourcecode
 Ttoken* get_token_internal(Tinit* scanner_struct) {
     char* kw_ptr;
     char* endptr;
+    char* tmp_string_fid ;
     char c;
     int read_file = 1;
     unsigned int alloc_len = 2;
+    unsigned int alloc_num_len = 6;
+    unsigned int alloc_len_fid = 2;
     states state = FSM_INIT;
+	tmp_string_fid = NULL;			
 
     char* tmp_string = (char *)gc_alloc(sizeof(char) * alloc_len);
     tmp_string[0] = 0;
 
     char* octal_string = (char *)gc_alloc(sizeof(char) * 4);
     octal_string[0] = 0;
+
+    char* num_string = (char *)gc_alloc(sizeof(char) * alloc_num_len);
+    num_string[0] = 0;
 
     Ttoken* token = (Ttoken *)gc_alloc(sizeof(Ttoken));
 
@@ -106,9 +136,15 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                 } else if ((isalpha(c)) || (c == '_') || (c == '$')) {
                     tmp_string = char_append(tmp_string, &alloc_len, c);
                     state = FSM_ID;
-                } else if (isdigit(c)) {
+                }  else if (isdigit(c) && c !=  '0') {
                     tmp_string = char_append(tmp_string, &alloc_len, c);
+                    num_string = num_append(num_string, &alloc_num_len, c);
                     state = FSM_INT;
+                }            
+                 else if (c ==  '0') {
+                    tmp_string = char_append(tmp_string, &alloc_len, c);
+                    num_string = num_append(num_string, &alloc_num_len, c);
+                    state = FSM_ZERO;  
                 } else if (c == '*') {
                     tmp_string = char_append(tmp_string, &alloc_len, c);
                     state = FSM_MUL;
@@ -159,9 +195,12 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                     state = FSM_GREATER;
                 } else if (c == '"') {
                     state = FSM_QUOTE;
-                } else if (c == '.') {
-                    tmp_string = char_append(tmp_string, &alloc_len, c);
-                    state = FSM_DOT;
+                } else if (c == '&') {
+                	tmp_string = char_append(tmp_string, &alloc_len, c);
+                	state = FSM_AND;
+                } else if (c == '|') {
+                	tmp_string = char_append(tmp_string, &alloc_len, c);
+                	state = FSM_OR;
                 } else if (c == EOF) {
                     read_file = 0;
                     continue;
@@ -175,13 +214,16 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                 if (isalpha(c) || isdigit(c) || c == '_' || c == '$') {
                     tmp_string = char_append(tmp_string, &alloc_len, c);
                     state = FSM_ID;
+                } else if (c == '.') {
+                    kw_ptr = (is_keyword(tmp_string));
+                    if (kw_ptr == NULL) {
+                        tmp_string = char_append(tmp_string, &alloc_len, c);
+                        state = FSM_FID;   
+                    } else {
+                        fprintf(stderr, "SCANNER ERROR: ID error on line %lld!\n", scanner_struct->line);
+                        exit(lexical_analysis_error); 
+                    }                	
                 } else {
-                    if (c == 32) {
-                        scanner_struct->space_flag = 1;
-                    }
-                    else {
-                        scanner_struct->space_flag = 0;
-                    }
                     ungetc(c, scanner_struct->f);
                     kw_ptr = (is_keyword(tmp_string));
                     if (kw_ptr == NULL) {
@@ -248,8 +290,8 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                         return token;
                     }
                     if (strcmp(kw_ptr, "false") == 0) {
-                        token->type = T_KEYWORD;
-                        token->kw = K_FALSE;
+                        token->type = T_BOOL;
+                        token->b = 0;
                         token->tlen = strlen(kw_ptr);
                         token->line = scanner_struct->line;
                         token->c = kw_ptr;
@@ -304,8 +346,8 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                         return token;
                     }
                     if (strcmp(kw_ptr, "true") == 0) {
-                        token->type = T_KEYWORD;
-                        token->kw = K_TRUE;
+                        token->type = T_BOOL;
+                        token->b = 1;
                         token->tlen = strlen(kw_ptr);
                         token->line = scanner_struct->line;
                         token->c = kw_ptr;
@@ -330,66 +372,131 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                 }
                 break;
 
-            case FSM_DOT:
-                if (scanner_struct->space_flag == 1 || c == 32) {
-                    token->space_flag = 1;
+            case FSM_FID:
+            	if (isalpha(c) || c == '_' || c == '$') {
+            		tmp_string_fid = (char *)gc_alloc(sizeof(char) * alloc_len_fid);
+    				tmp_string_fid[0] = 0;
+            		
+    				tmp_string_fid = char_append(tmp_string_fid, &alloc_len_fid, c);
+                    tmp_string = char_append(tmp_string, &alloc_len, c);
+                    state = FSM_FID1;
+                } else {
+                	fprintf(stderr, "SCANNER ERROR: ID error on line %lld!\n", scanner_struct->line);
+                    exit(lexical_analysis_error);  
                 }
-                else {
-                    token->space_flag = 0;
-                }
-                ungetc(c, scanner_struct->f);
-                token->type = T_DOT;
-                token->tlen = strlen(tmp_string);
-                token->line = scanner_struct->line;
-                token->c = tmp_string;
-                return token;
+                break;
+
+            case FSM_FID1:
+            	if (isalpha(c) || isdigit(c) || c == '_' || c == '$') {
+            		tmp_string_fid = char_append(tmp_string_fid, &alloc_len_fid, c);
+            		tmp_string = char_append(tmp_string, &alloc_len, c);
+                    state = FSM_FID1;
+            	} else {
+            		if (is_keyword(tmp_string_fid) == NULL) {
+            			ungetc(c,scanner_struct->f);
+	            		token->type = T_FULL_ID;
+	            		token->tlen = strlen(tmp_string);
+	            		token->line = scanner_struct->line;
+	            		token->c = tmp_string;
+	            		return token;	
+            		} else {
+            			fprintf(stderr, "SCANNER ERROR: ID error on line %lld!\n", scanner_struct->line);
+                    	exit(lexical_analysis_error); 
+            		}            		
+            	}
+                break;
 
             case FSM_INT:
-                if (isdigit(c)) {
+                if (isdigit(c) || c == '_') {
                     state = FSM_INT;
                     tmp_string = char_append(tmp_string, &alloc_len, c);
+                    num_string = num_append(num_string, &alloc_num_len, c);
                 } else if (c == '.') {
+                    if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
+                        fprintf(stderr, "SCANNER ERROR: INT underscore error on line %lld!\n", scanner_struct->line);
+                        exit(lexical_analysis_error);  
+                    } else {
                     tmp_string = char_append(tmp_string, &alloc_len, c);
+                    num_string = num_append(num_string, &alloc_num_len, c);
                     state = FSM_DOUBLE;
+                    }
                 } else if (c == 'E' || c == 'e') {
+                    if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
+                        fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
+                        exit(lexical_analysis_error);  
+                    } else {
                     state = FSM_EXPONENT;
                     tmp_string = char_append(tmp_string, &alloc_len, c);
+                    num_string = num_append(num_string, &alloc_num_len, c);
+                    }
                 } else {
+                    if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
+                        fprintf(stderr, "SCANNER ERROR: INT underscore error on line %lld!\n", scanner_struct->line);
+                        exit(lexical_analysis_error);  
+                    } else {
                     ungetc(c, scanner_struct->f);
                     token->type = T_INT;
                     token->tlen = strlen(tmp_string);
                     token->line = scanner_struct->line;
-                    token->li = strtol(tmp_string, &endptr, 10);
+                    token->li = strtol(num_string, &endptr, 10);
                     token->c = tmp_string;
                     return token;
+                    }
                 }
                 break;
 
             case FSM_DOUBLE:
                 if (isdigit(c)) {
-                    state = FSM_DOUBLE;
-                    tmp_string = char_append(tmp_string, &alloc_len, c);
+                        state = FSM_DOUBLE1;
+                        tmp_string = char_append(tmp_string, &alloc_len, c);
+                        num_string = num_append(num_string, &alloc_num_len, c);
+                } else {
+                        fprintf(stderr, "SCANNER ERROR: Double number error on line %lld!\n", scanner_struct->line);
+                        exit(lexical_analysis_error);  
+                }
+                break;
+
+
+            case FSM_DOUBLE1:
+                if (isdigit(c) || c == '_') {
+                        state = FSM_DOUBLE1;
+                        tmp_string = char_append(tmp_string, &alloc_len, c);
+                        num_string = num_append(num_string, &alloc_num_len, c);
                 } else if (c == 'E' || c == 'e') {
+                    if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
+                        fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
+                        exit(lexical_analysis_error);  
+                    } else {
                     state = FSM_EXPONENT;
                     tmp_string = char_append(tmp_string, &alloc_len, c);
+                    num_string = num_append(num_string, &alloc_num_len, c);
+                    }
                 } else {
+                    if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
+                        fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
+                        exit(lexical_analysis_error);  
+                    } else {
                     ungetc(c, scanner_struct->f);
                     token->type = T_DOUBLE;
                     token->tlen = strlen(tmp_string);
                     token->line = scanner_struct->line;
-                    token->d = strtod(tmp_string, &endptr);
+                    token->d = strtod(num_string, &endptr);
                     token->c = tmp_string;
                     return token;
+                    }
                 }
                 break;
+
 
             case FSM_EXPONENT:
                 if (c == '+' || c == '-') {
                     state = FSM_EXPONENT_SIGN;
                     tmp_string = char_append(tmp_string, &alloc_len, c);
+                    num_string = num_append(num_string, &alloc_num_len, c);
                 } else if (isdigit(c)) {
                     state = FSM_EXPONENT_2;
                     tmp_string = char_append(tmp_string, &alloc_len, c);
+                    num_string = num_append(num_string, &alloc_num_len, c);
                 } else {
                     fprintf(stderr, "SCANNER ERROR: Exponent error on line %lld!\n", scanner_struct->line);
                     exit(lexical_analysis_error);
@@ -400,6 +507,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                 if (isdigit(c)) {
                     state = FSM_EXPONENT_2;
                     tmp_string = char_append(tmp_string, &alloc_len, c);
+                    num_string = num_append(num_string, &alloc_num_len, c);
                 } else {
                     fprintf(stderr, "SCANNER ERROR: Exponent sign error on line %lld!\n", scanner_struct->line);
                     exit(lexical_analysis_error);
@@ -407,19 +515,297 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                 break;
 
             case FSM_EXPONENT_2:
-                if (isdigit(c)) {
+                if (isdigit(c) || c == '_') {
                     state = FSM_EXPONENT_2;
                     tmp_string = char_append(tmp_string, &alloc_len, c);
+                    num_string = num_append(num_string, &alloc_num_len, c);
                 } else {
+                    if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
+                        fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
+                        exit(lexical_analysis_error);  
+                    } else {
                     ungetc(c, scanner_struct->f);
                     token->type = T_DOUBLE;
                     token->tlen = strlen(tmp_string);
                     token->line = scanner_struct->line;
-                    token->d = strtod(tmp_string, &endptr);
+                    token->d = strtod(num_string, &endptr);
                     token->c = tmp_string;
                     return token;
+                    }
                 }
                 break;
+
+            case FSM_ZERO:
+                if (c == '_') {
+                    tmp_string = char_append(tmp_string, &alloc_len, c);
+                    state = FSM_ZERO;
+                }
+                else if (c == 'x') {
+                    if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
+                        fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
+                        exit(lexical_analysis_error);  
+                    } else {
+                        tmp_string = char_append(tmp_string, &alloc_len, c);
+                        num_string = num_append(num_string, &alloc_num_len, c);
+                        state = FSM_HEX;
+                    }
+                } else if (c == 'b') {
+                    if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
+                        fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
+                        exit(lexical_analysis_error);  
+                    } else {
+                     tmp_string = char_append(tmp_string, &alloc_len, c);
+                     state = FSM_BIN;
+                    }
+                } else if (isdigit(c) && c != '8' && c != '9') {
+                     tmp_string = char_append(tmp_string, &alloc_len, c);
+                     num_string = num_append(num_string, &alloc_num_len, c);
+                     state = FSM_OCTAL;
+                } else if (c == '8' || c == '9') {
+                     tmp_string = char_append(tmp_string, &alloc_len, c);
+                     num_string = num_append(num_string, &alloc_num_len, c);
+                     state = FSM_NUM1;
+                } else if (c == '.') {
+                    if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
+                        fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
+                        exit(lexical_analysis_error);  
+                    } else {
+                     tmp_string = char_append(tmp_string, &alloc_len, c);
+                     num_string = num_append(num_string, &alloc_num_len, c);
+                     state = FSM_DOUBLE;
+                    }
+                } else if (c == 'e' || c == 'E') {
+                    if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
+                        fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
+                        exit(lexical_analysis_error);  
+                    } else {
+                     tmp_string = char_append(tmp_string, &alloc_len, c);
+                     num_string = num_append(num_string, &alloc_num_len, c);
+                     state = FSM_EXPONENT;
+                    }
+                } else {
+                    if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
+                        fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
+                        exit(lexical_analysis_error);  
+                    } else {
+                    ungetc(c, scanner_struct->f);
+                       token->type = T_INT;
+                       token->tlen = strlen(tmp_string);
+                       token->line = scanner_struct->line;
+                       token->li = strtol(num_string, &endptr, 10);
+                       token->c = tmp_string;
+                      return token;
+                    }
+                }
+                break;
+
+            case FSM_OCTAL:
+                if (isdigit(c) && c != '8' && c != '9') {
+                    tmp_string = char_append(tmp_string, &alloc_len, c);
+                    num_string = num_append(num_string, &alloc_num_len, c);
+                    state = FSM_OCTAL;
+                } else if (c == '8' || c == '9') {
+                    tmp_string = char_append(tmp_string, &alloc_len, c);
+                    num_string = num_append(num_string, &alloc_num_len, c);
+                    state = FSM_NUM1;
+                } else if (c == '.') {
+                    if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
+                        fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
+                        exit(lexical_analysis_error);  
+                    } else {
+                    tmp_string = char_append(tmp_string, &alloc_len, c);
+                    num_string = num_append(num_string, &alloc_num_len, c);
+                    state = FSM_DOUBLE;
+                    }
+                } else if (c == 'e' || c == 'E') {
+                    if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
+                        fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
+                        exit(lexical_analysis_error);  
+                    } else {
+                    tmp_string = char_append(tmp_string, &alloc_len, c);
+                    num_string = num_append(num_string, &alloc_num_len, c);
+                    state = FSM_EXPONENT;
+                    }
+                } else if (c == '_') {
+                    tmp_string = char_append(tmp_string, &alloc_len, c);
+                    state = FSM_OCTAL;
+                } else {
+                    if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
+                        fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
+                        exit(lexical_analysis_error);  
+                    } else {
+                    ungetc(c, scanner_struct->f);
+                    token->type = T_INT;
+                    token->tlen = strlen(tmp_string);
+                    token->line = scanner_struct->line;
+                    token->li = strtol(num_string, &endptr, 8);
+                    token->c = tmp_string;
+                    return token;
+                    }
+                }
+                break;
+
+            case FSM_NUM1:
+                if (isdigit(c) || c == '_') {
+                    tmp_string = char_append(tmp_string, &alloc_len, c);
+                    num_string = num_append(num_string, &alloc_num_len, c);
+                    state = FSM_NUM1; 
+                } else if (c == '.') {
+                    if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
+                        fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
+                        exit(lexical_analysis_error);  
+                    } else {
+                     tmp_string = char_append(tmp_string, &alloc_len, c);
+                     num_string = num_append(num_string, &alloc_num_len, c);
+                     state = FSM_DOUBLE;
+                    }
+                } else if (c == 'e' || c == 'E') {
+                    if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
+                        fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
+                        exit(lexical_analysis_error);  
+                    } else {
+                     tmp_string = char_append(tmp_string, &alloc_len, c);
+                     num_string = num_append(num_string, &alloc_num_len, c);
+                     state = FSM_EXPONENT;
+                     } 
+                } else {
+                    fprintf(stderr, "SCANNER ERROR: Unidentified lexem on line %lld!\n", scanner_struct->line);
+                    exit(lexical_analysis_error);
+                }
+                break;
+
+            case FSM_BIN:
+                if (c == '0' || c == '1') {
+                    tmp_string = char_append(tmp_string, &alloc_len, c);
+                    num_string = num_append(num_string, &alloc_num_len, c);
+                    state = FSM_BIN_1;
+                } else {
+                    fprintf(stderr, "SCANNER ERROR: Unidentified lexem on line %lld!\n", scanner_struct->line);
+                    exit(lexical_analysis_error);
+                }
+                break;
+
+            case FSM_BIN_1:
+                
+                if (c == '0' || c == '1' || c == '_') {
+                    tmp_string = char_append(tmp_string, &alloc_len, c);
+                    num_string = num_append(num_string, &alloc_num_len, c);
+                    state = FSM_BIN_1;
+                }
+                else {
+                    ungetc(c,scanner_struct->f);
+                    if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
+                        fprintf(stderr, "SCANNER ERROR: Binary underscore error on line %lld!\n", scanner_struct->line);
+                        exit(lexical_analysis_error);
+                    } else {
+                        token->type = T_INT;
+                        token->tlen = strlen(tmp_string);
+                        token->line = scanner_struct->line;
+                        token->li = strtol(num_string, &endptr, 2);
+                        token->c = tmp_string;
+                        return token;   
+                    }
+                }
+                break;
+
+            case FSM_HEX:
+                if (isdigit(c) || (c >= 65 && c <= 70) || (c >= 97 && c <= 102)) {
+                    tmp_string = char_append(tmp_string, &alloc_len, c);
+                    num_string = num_append(num_string, &alloc_num_len, c);
+                    state = FSM_HEX_1;
+                } else {
+                    fprintf(stderr, "SCANNER ERROR: Unidentified lexem on line %lld!\n", scanner_struct->line);
+                    exit(lexical_analysis_error);
+                }
+                break;
+
+
+            case FSM_HEX_1:
+                if (isdigit(c) || (c >= 65 && c <= 70) || (c >= 97 && c <= 102) || (c == '_')) {
+                    tmp_string = char_append(tmp_string, &alloc_len, c);
+                    num_string = num_append(num_string, &alloc_num_len, c);
+                    state = FSM_HEX_1;
+                } else if (c == '.') {
+                    if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
+                        fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
+                        exit(lexical_analysis_error);  
+                    } else {
+                    tmp_string = char_append(tmp_string, &alloc_len, c);
+                    num_string = num_append(num_string, &alloc_num_len, c);
+                    state = FSM_HEX_D;
+                    }
+                } else if (c == 'p' || c == 'P') {
+                    if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
+                        fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
+                        exit(lexical_analysis_error);  
+                    } else {
+                    tmp_string = char_append(tmp_string, &alloc_len, c);
+                    num_string = num_append(num_string, &alloc_num_len, c);
+                    state = FSM_HEX_P;
+                    }
+                } else {
+                    if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
+                        fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
+                        exit(lexical_analysis_error);  
+                    } else {
+                    ungetc(c, scanner_struct->f);
+                    token->type = T_INT;
+                    token->tlen = strlen(tmp_string);
+                    token->line = scanner_struct->line;
+                    token->li = strtol(num_string, &endptr, 16);
+                    token->c = tmp_string;
+                    return token;
+                    }
+                }
+                break;
+
+            case FSM_HEX_D:
+                if (isdigit(c) || (c >= 65 && c <= 70) || (c >= 97 && c <= 102)) {
+                    tmp_string = char_append(tmp_string, &alloc_len, c);
+                    num_string = num_append(num_string, &alloc_num_len, c);
+                    state = FSM_HEX_D_1;
+                }
+                else {
+                    fprintf(stderr, "SCANNER ERROR: HEX number error on line %lld!\n", scanner_struct->line);
+                    exit(lexical_analysis_error);   
+                }
+                break;
+
+            case FSM_HEX_D_1:
+                if (isdigit(c) || (c >= 65 && c <= 70) || (c >= 97 && c <= 102) || (c == '_')) {
+                        tmp_string = char_append(tmp_string, &alloc_len, c);
+                        num_string = num_append(num_string, &alloc_num_len, c);
+                        state = FSM_HEX_D_1;
+                } else if (c == 'p' || c == 'P') {
+                    if(*tmp_string && tmp_string[(strlen(tmp_string))-1] == '_'){
+                        fprintf(stderr, "SCANNER ERROR: Underscore error on line %lld!\n", scanner_struct->line);
+                        exit(lexical_analysis_error);  
+                    } else {
+                    tmp_string = char_append(tmp_string, &alloc_len, c);
+                    num_string = num_append(num_string, &alloc_num_len, c);
+                    state = FSM_HEX_P;
+                    } 
+                } else {
+                    fprintf(stderr, "SCANNER ERROR: HEX number error on line %lld!\n", scanner_struct->line);
+                    exit(lexical_analysis_error);       
+                }
+                break;
+
+            case FSM_HEX_P:
+                if (c == '+' || c == '-') {
+                    state = FSM_EXPONENT_SIGN;
+                    tmp_string = char_append(tmp_string, &alloc_len, c);
+                    num_string = num_append(num_string, &alloc_num_len, c);
+                } else if (isdigit(c)) {
+                    state = FSM_EXPONENT_2;
+                    tmp_string = char_append(tmp_string, &alloc_len, c);
+                    num_string = num_append(num_string, &alloc_num_len, c);
+                } else {
+                    fprintf(stderr, "SCANNER ERROR: Exponent error on line %lld!\n", scanner_struct->line);
+                    exit(lexical_analysis_error);
+                }
+                break;
+
 
             case FSM_MUL:
                 ungetc(c, scanner_struct->f);
@@ -550,8 +936,12 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                     token->c = tmp_string;
                     return token;
                 }
-                fprintf(stderr, "SCANNER ERROR: Unidentified lexem on line %lld!\n", scanner_struct->line);
-                exit(lexical_analysis_error);
+                   	ungetc(c, scanner_struct->f);
+                	token->type = T_NOT;
+                	token->tlen = strlen(tmp_string);
+                	token->line = scanner_struct->line;
+                	token->c = tmp_string;
+                	return token;
             }
 
             case FSM_LOWER: {
@@ -593,7 +983,7 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                     state = FSM_ESCAPE;
                 } else if (c == '"') {
                     state = FSM_STRING;
-                } else if (!isprint(c)) {
+                } else if (c <= 31) {
                     fprintf(stderr, "SCANNER ERROR: Unidentified token on line %lld!\n", scanner_struct->line);
                     exit(lexical_analysis_error);
                 } else {
@@ -615,8 +1005,11 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                 } else if (c == 'n') {
                     state = FSM_QUOTE;
                     tmp_string = (char_append(tmp_string, &alloc_len, 10));
-                } else if (c >= '0' && c <= '3') {
+                } else if (c >= '1' && c <= '3') {
                     state = FSM_ESCAPE_OCTAL_1;
+                    octal_string = (octal_append(octal_string, c));
+                } else if (c == '0') {
+                    state = FSM_ESCAPE_OCTAL_3;
                     octal_string = (octal_append(octal_string, c));
                 } else {
                     fprintf(stderr, "SCANNER ERROR: String escape sequence error on line %lld!\n", scanner_struct->line);
@@ -654,7 +1047,60 @@ Ttoken* get_token_internal(Tinit* scanner_struct) {
                     exit(lexical_analysis_error);
                 }
                 break;
+
+            case FSM_ESCAPE_OCTAL_3:
+                if (c >= '1' && c <= '7') {
+                    state = FSM_ESCAPE_OCTAL_2;
+                    octal_string = (octal_append(octal_string, c));
+                } else if (c == '0') {
+                    state = FSM_ESCAPE_OCTAL_4;
+                    octal_string = (octal_append(octal_string, c));
+                } else {
+                    fprintf(stderr, "SCANNER ERROR: String escape sequence error on line %lld!\n", scanner_struct->line);
+                    exit(lexical_analysis_error);
+                }
+                break;
+
+            case FSM_ESCAPE_OCTAL_4:
+                if (c >= '1' && c <= '7') {
+                    state = FSM_QUOTE;
+                    octal_string = (octal_append(octal_string, c));
+                    long int ascii_c = strtol(octal_string, &endptr, 8);
+                    tmp_string = (char_append(tmp_string, &alloc_len, ascii_c));
+                } else {
+                    fprintf(stderr, "SCANNER ERROR: String escape sequence error on line %lld!\n", scanner_struct->line);
+                    exit(lexical_analysis_error);
+                }
+                break;
                 // end of auxiliary states for string escape octal
+
+            case FSM_AND:
+            	if (c == '&') {
+            		tmp_string = char_append(tmp_string, &alloc_len, c);
+            		token->type = T_LOGIC_AND;
+            		token->tlen = strlen(tmp_string);
+            		token->line = scanner_struct->line;
+            		token->c = tmp_string;
+            		return token;
+            	} else {
+            		fprintf(stderr, "SCANNER ERROR: Unidentified lexeme on line %lld!\n", scanner_struct->line);
+                    exit(lexical_analysis_error);
+            	}            
+            	break;
+
+            case FSM_OR:
+				if (c == '|') {
+            		tmp_string = char_append(tmp_string, &alloc_len, c);
+            		token->type = T_LOGIC_OR;
+            		token->tlen = strlen(tmp_string);
+            		token->line = scanner_struct->line;
+            		token->c = tmp_string;
+            		return token;
+            	} else {
+            		fprintf(stderr, "SCANNER ERROR: Unidentified lexeme on line %lld!\n", scanner_struct->line);
+                    exit(lexical_analysis_error);
+            	}            
+            	break;
 
                 // start of auxiliary states for comments
             case FSM_COMMENT_LINE:

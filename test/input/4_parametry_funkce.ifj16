@@ -1,0 +1,17 @@
+/* Parametry funkce s chybou */
+class Main
+{
+	static int a = 21;
+	static int b = 5;
+    static void run()
+    {
+		if (a > 4) {
+			funkce(a, b);
+		}
+    }
+    static void funkce(int n) // Definice funkce
+    {
+        a = n - 1;
+        ifj16.print(a);
+    }
+}

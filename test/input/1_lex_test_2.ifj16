@@ -1,0 +1,6 @@
+class Main
+{
+	static String a = "asdf\a"
+}
+
+

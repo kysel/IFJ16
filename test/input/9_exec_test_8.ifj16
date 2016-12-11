@@ -1,0 +1,10 @@
+// Delenie nulou - 9
+
+class Main
+{
+	static void run()
+	{
+		int a = 0;
+		int b = 5 / a;
+	}
+}

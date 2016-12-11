@@ -1,0 +1,18 @@
+// Praca s neinicializovana premennou
+
+class Main
+{
+    static void run()
+    {
+        Second.variable();
+    }
+}
+
+class Second
+{
+	static int variable()
+	{
+		int v;
+        return v;
+    }
+}

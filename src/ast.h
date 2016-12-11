@@ -21,6 +21,7 @@ typedef struct Expression_s Expression;
 typedef Expression Return_statement;
 typedef struct Variable_s Variable;
 typedef struct Func_parameter_s Func_parameter;
+typedef struct Symbol_tree_s Symbol_tree;
 
 
 typedef struct {
@@ -59,6 +60,22 @@ typedef struct {
     int size;
 } Parameter_list;
 
+typedef struct Symbol_tree_leaf_s {
+    const char* key;
+    int id;
+    Data_type type;
+    Expression* init_expr;
+    bool defined;
+    struct Symbol_tree_leaf_s* left;
+    struct Symbol_tree_leaf_s* right;
+} Symbol_tree_leaf;
+
+struct Symbol_tree_s {
+    Symbol_tree_leaf* root;
+    int nextId;
+    bool inc;
+};
+
 typedef struct Function_s {
     char* name;
     enum {
@@ -69,6 +86,7 @@ typedef struct Function_s {
         struct {
             Statement_collection statements;
             Parameter_list parameters;
+            Symbol_tree local_symbols;
             int stack_size;
         };
         BuildInPtr build_in;
@@ -96,6 +114,9 @@ typedef struct Variable_s {
 
 typedef struct {
     enum {
+        OP_NOT,
+        OP_AND,
+        OP_OR,
         OP_ADD,
         OP_SUB,
         OP_MUL,
@@ -106,10 +127,10 @@ typedef struct {
         OP_GREATER_EQUAL,
         OP_BOOL_EQUAL,
         OP_NOT_EQUAL
-    } BinOp;
+    } Op;
     Expression* left_expr;
     Expression* right_expr;
-} BinOpTree;
+} OpTree;
 
 typedef struct {
     Data_type type;
@@ -117,6 +138,7 @@ typedef struct {
         long int li;
         double d;
         char* c;
+        int b;
     };
 } Constant;
 
@@ -130,13 +152,13 @@ typedef struct Expression_s {
         function_call,
         variable,
         constant,
-        bin_op_tree
+        op_tree
     } type;
     union {
         FunctionCall fCall;
         VariableId variable;
         Constant constant;
-        BinOpTree tree;
+        OpTree tree;
     };
 } Expression;
 

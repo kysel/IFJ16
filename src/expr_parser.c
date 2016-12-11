@@ -44,6 +44,7 @@ int findTopTerminal(t_Stack* s) {
     return -1;
 }
 
+//Odebrání prvku z vrcholu zásobníka
 void stackPop(t_Stack* s) {
     if (!stackEmpty(s)) {
         s->top_element -= 1;
@@ -66,6 +67,7 @@ void stackPush(t_Stack* s, t_Element_Type type, void* address) {
         s->top_token = s->top_element;
 }
 
+//Aplikace pravidel na zásobník
 void stackApplyRule(t_Stack* s, t_Expr_Parser_Init* symbol_tabs, long long line) {
     int rule_lenght;
     for (rule_lenght = 0; (rule_lenght < s->top_element) && !(s->arr[s->top_element - rule_lenght].stop_bit); rule_lenght++);
@@ -85,23 +87,40 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init* symbol_tabs, long long line)
                 expression = gc_alloc(sizeof(Expression));
                 Ttoken* token = s->arr[s->top_element].address;
                 Symbol_tree_leaf* leaf;
-
-                //Vytvorenie plne kvalifikovaného identifikátora
-                char* full_name = gc_alloc(sizeof(char) * (strlen(token->c) + strlen(symbol_tabs->class_name) + 2));
-                full_name[0] = '\0';
-                strcat(full_name, symbol_tabs->class_name);
-                strcat(full_name, ".");
-                strcat(full_name, token->c);
+                char* full_name;
 
                 switch (token->type) {
                     case T_ID:
+                        //Vytvorenie plne kvalifikovaného identifikátora
+                        full_name = gc_alloc(sizeof(char) * (strlen(token->c) + strlen(symbol_tabs->class_name) + 2));
+                        full_name[0] = '\0';
+                        strcat(full_name, symbol_tabs->class_name);
+                        strcat(full_name, ".");
+                        strcat(full_name, token->c);
+
                         expression->type = variable;
                         if ((leaf = get_symbol_by_key(symbol_tabs->local_tab, token->c)))
                             expression->variable = leaf->id;
                         else if ((leaf = get_symbol_by_key(symbol_tabs->global_tab, full_name)))
                             expression->variable = leaf->id;
                         else {
-                            leaf = add_symbol(symbol_tabs->global_tab, full_name);
+                            if (symbol_tabs->inside_func)
+                                leaf = add_symbol(symbol_tabs->local_tab, token->c);
+                            else
+                                leaf = add_symbol(symbol_tabs->global_tab, full_name);
+                            leaf->defined = false;
+                            expression->variable = leaf->id;
+                        }
+                        break;
+
+                    case T_FULL_ID:
+                        expression->type = variable;
+                        if ((leaf = get_symbol_by_key(symbol_tabs->global_tab, token->c)))
+                            expression->variable = leaf->id;
+                        else {
+                            leaf = add_symbol(symbol_tabs->global_tab, token->c);
+                            leaf->defined = false;
+                            leaf->init_expr = NULL;
                             expression->variable = leaf->id;
                         }
                         break;
@@ -124,6 +143,12 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init* symbol_tabs, long long line)
                         expression->constant.c = token->c;
                         break;
 
+                    case T_BOOL:
+                        expression->type = constant;
+                        expression->constant.type = bool_t;
+                        expression->constant.b = token->b;
+                        break;
+
                     default:
                         fprintf(stderr, "Syntax error on line %lld.\n", line);
                         exit(syntactic_analysis_error);
@@ -135,43 +160,35 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init* symbol_tabs, long long line)
             stackPop(s);
             break;
 
+            //Unáne pravidlá
+        case 2:
+            if (s->arr[s->top_element - 1].type == TOKEN && s->arr[s->top_element].type == EXPRESSION) {      
+                Ttoken* token = s->arr[s->top_element - 1].address;
+                expression = gc_alloc(sizeof(Expression));
+                expression->type = op_tree;
+
+                switch (token->type) {
+                    case T_NOT:
+                        expression->tree.Op = OP_NOT;
+                        expression->tree.left_expr = s->arr[s->top_element].address;
+                        expression->tree.right_expr = NULL;
+                        break;
+                    
+                    default:
+                        fprintf(stderr, "Syntax error on line %lld.\n", line);
+                        exit(syntactic_analysis_error);
+                }
+            } else {
+                fprintf(stderr, "Syntax error on line %lld.\n", line);
+                exit(syntactic_analysis_error);
+            }
+            stackPop(s);
+            stackPop(s);
+            break;
+
             //Dlhé pravidlá
         case 3:
-            //Pravidlo E -> i . i
-            if (s->arr[s->top_element - 2].type == TOKEN && s->arr[s->top_element - 1].type == TOKEN && s->arr[s->top_element].type == TOKEN) {
-                expression = gc_alloc(sizeof(Expression));
-                Ttoken* left_token = s->arr[s->top_element - 2].address;
-                Ttoken* middle_token = s->arr[s->top_element - 1].address;
-                Ttoken* right_token = s->arr[s->top_element].address;
-
-                if (left_token->type == T_ID && middle_token->type == T_DOT && middle_token->space_flag == 0 && right_token->type == T_ID) {
-                    Symbol_tree_leaf* leaf;
-
-                    //Vytvorenie plne kvalifikovaného identifikátora
-                    char* full_name = gc_alloc(sizeof(char) * (strlen(left_token->c) + strlen(right_token->c) + 2));
-                    full_name[0] = '\0';
-                    strcat(full_name, left_token->c);
-                    strcat(full_name, ".");
-                    strcat(full_name, right_token->c);
-
-                    expression->type = variable;
-                    if ((leaf = get_symbol_by_key(symbol_tabs->global_tab, full_name)))
-                        expression->variable = leaf->id;
-                    else {
-                        leaf = add_symbol(symbol_tabs->global_tab, full_name);
-                        leaf->defined = false;
-                        leaf->init_expr = NULL;
-                        expression->variable = leaf->id;
-                    }
-
-                } else {
-                    fprintf(stderr, "Syntax error on line %lld.\n", line);
-                    exit(syntactic_analysis_error);
-                }
-
-            }
-            //Pravidlo E -> ( E )
-            else if (s->arr[s->top_element - 2].type == TOKEN && s->arr[s->top_element - 1].type == EXPRESSION && s->arr[s->top_element].type == TOKEN) {
+            if (s->arr[s->top_element - 2].type == TOKEN && s->arr[s->top_element - 1].type == EXPRESSION && s->arr[s->top_element].type == TOKEN) {
                 Ttoken* left_token = s->arr[s->top_element - 2].address;
                 Ttoken* right_token = s->arr[s->top_element].address;
 
@@ -191,50 +208,58 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init* symbol_tabs, long long line)
 
                 switch (token->type) {
                     case T_ADD:
-                        expression->tree.BinOp = OP_ADD;
+                        expression->tree.Op = OP_ADD;
                         break;
 
                     case T_SUB:
-                        expression->tree.BinOp = OP_SUB;
+                        expression->tree.Op = OP_SUB;
                         break;
 
                     case T_MUL:
-                        expression->tree.BinOp = OP_MUL;
+                        expression->tree.Op = OP_MUL;
                         break;
 
                     case T_DIV:
-                        expression->tree.BinOp = OP_DIV;
+                        expression->tree.Op = OP_DIV;
                         break;
 
                     case T_LOWER:
-                        expression->tree.BinOp = OP_LOWER;
+                        expression->tree.Op = OP_LOWER;
                         break;
 
                     case T_GREATER:
-                        expression->tree.BinOp = OP_GREATER;
+                        expression->tree.Op = OP_GREATER;
                         break;
 
                     case T_LOWER_EQUAL:
-                        expression->tree.BinOp = OP_LOWER_EQUAL;
+                        expression->tree.Op = OP_LOWER_EQUAL;
                         break;
 
                     case T_GREATER_EQUAL:
-                        expression->tree.BinOp = OP_GREATER_EQUAL;
+                        expression->tree.Op = OP_GREATER_EQUAL;
                         break;
 
                     case T_BOOL_EQUAL:
-                        expression->tree.BinOp = OP_BOOL_EQUAL;
+                        expression->tree.Op = OP_BOOL_EQUAL;
                         break;
 
                     case T_NOT_EQUAL:
-                        expression->tree.BinOp = OP_NOT_EQUAL;
+                        expression->tree.Op = OP_NOT_EQUAL;
+                        break;
+
+                    case T_LOGIC_AND:
+                        expression->tree.Op = OP_AND;
+                        break;
+
+                    case T_LOGIC_OR:
+                        expression->tree.Op = OP_OR;
                         break;
 
                     default:
                         fprintf(stderr, "Syntax error on line %lld.\n", line);
                         exit(syntactic_analysis_error);
                 }
-                expression->type = bin_op_tree;
+                expression->type = op_tree;
                 expression->tree.left_expr = s->arr[s->top_element - 2].address;
                 expression->tree.right_expr = s->arr[s->top_element].address;
             } else {
@@ -252,6 +277,7 @@ void stackApplyRule(t_Stack* s, t_Expr_Parser_Init* symbol_tabs, long long line)
     stackPush(s, EXPRESSION, expression);
 }
 
+//Spracovanie volani funkce
 void processFunCall(t_Stack* s, Tinit* scanner, t_Expr_Parser_Init* symbol_tabs, long long line) {
     int rule_lenght;
     for (rule_lenght = 0; (rule_lenght < s->top_element) && !(s->arr[s->top_element - rule_lenght].stop_bit); rule_lenght++);
@@ -268,31 +294,15 @@ void processFunCall(t_Stack* s, Tinit* scanner, t_Expr_Parser_Init* symbol_tabs,
             strcat(full_name, token->c);
 
             stackPop(s);
+        } else if (token->type == T_FULL_ID) {
+            full_name = token->c;
+
+            stackPop(s);
         } else {
             fprintf(stderr, "Syntax error on line %lld.\n", line);
             exit(syntactic_analysis_error);
         }
 
-    } else if (rule_lenght == 3 && s->arr[s->top_element - 2].type == TOKEN && s->arr[s->top_element - 1].type == TOKEN && s->arr[s->top_element].type == TOKEN) {
-        Ttoken* left_token = s->arr[s->top_element - 2].address;
-        Ttoken* middle_token = s->arr[s->top_element - 1].address;
-        Ttoken* right_token = s->arr[s->top_element].address;
-
-        if (left_token->type == T_ID && middle_token->type == T_DOT && middle_token->space_flag == 0 && right_token->type == T_ID) {
-            //Vytvorenie plne kvalifikovaného identifikátora
-            full_name = gc_alloc(sizeof(char) * (strlen(left_token->c) + strlen(right_token->c) + 2));
-            full_name[0] = '\0';
-            strcat(full_name, left_token->c);
-            strcat(full_name, ".");
-            strcat(full_name, right_token->c);
-
-            stackPop(s);
-            stackPop(s);
-            stackPop(s);
-        } else {
-            fprintf(stderr, "Syntax error on line %lld.\n", line);
-            exit(syntactic_analysis_error);
-        }
     } else {
         fprintf(stderr, "Syntax error on line %lld.\n", line);
         exit(syntactic_analysis_error);
@@ -302,11 +312,10 @@ void processFunCall(t_Stack* s, Tinit* scanner, t_Expr_Parser_Init* symbol_tabs,
     stackPush(s, EXPRESSION, parse_f_call(symbol_tabs, scanner, full_name));
 }
 
-//
 int terminal2TabIndex(void* terminal, long long line) {
     //Jediný terminál, ktorý má adresu nula je EOS - End of Stack - Dno zásobníka
     if (terminal == NULL)
-        return 14;
+        return 19;
 
     //Ak má terminál adresu rôznu od NULL, ide o token
     //Konverzia pointeru na terminál na pointer na token 
@@ -316,17 +325,26 @@ int terminal2TabIndex(void* terminal, long long line) {
         case T_SUB: return 1;
         case T_MUL: return 2;
         case T_DIV: return 3;
-        case T_LOWER: return 4;
-        case T_GREATER: return 5;
-        case T_LOWER_EQUAL: return 6;
-        case T_GREATER_EQUAL: return 7;
-        case T_BOOL_EQUAL: return 8;
-        case T_NOT_EQUAL: return 9;
-        case T_BRACKET_LROUND: return 10;
-        case T_BRACKET_RROUND: return 11;
-        case T_DOT: return 12;
-        case T_ID: case T_INT: case T_DOUBLE: case T_STRING: return 13;
-        case T_COMMA: case T_SEMICOLON: return 14;
+
+        case T_BOOL_EQUAL: return 4;
+        case T_NOT_EQUAL: return 5;
+        case T_LOWER: return 6;
+        case T_GREATER: return 7;
+        case T_LOWER_EQUAL: return 8;
+        case T_GREATER_EQUAL: return 9;
+
+        case T_NOT : return 10;
+        case T_LOGIC_AND: return 11;
+        case T_LOGIC_OR: return 12;
+
+        //case : return 13;
+        //case : return 14;
+        //case : return 15;
+        
+        case T_BRACKET_LROUND: return 16;
+        case T_BRACKET_RROUND: return 17;
+        case T_ID: case T_FULL_ID: case T_INT: case T_DOUBLE: case T_STRING: case T_BOOL: return 18;
+        case T_COMMA: case T_SEMICOLON: return 19;
         default:
             fprintf(stderr, "Syntax error on line %lld.\n", line);
             exit(syntactic_analysis_error);
@@ -363,6 +381,7 @@ t_Expr_Parser_Init* ExprParserInit(Symbol_tree* global_tab, Symbol_tree* local_t
     init_struct->global_tab = global_tab;
     init_struct->local_tab = local_tab;
     init_struct->class_name = class_name;
+    init_struct->inside_func = false;
     return init_struct;
 }
 
@@ -376,20 +395,20 @@ Expression* parseExpression(t_Expr_Parser_Init* symbol_tabs, Tinit* scanner) {
 
     while (!(a == NULL && (b->type == T_SEMICOLON || b->type == T_COMMA || b->type == T_BRACKET_RROUND))) {
         switch (precedence_tab[terminal2TabIndex(a, b->line)][terminal2TabIndex(b, b->line)]) {
-            case 'E':
+            case '=':
                 stackPush(stack, TOKEN, b);
                 get_token(scanner);
                 b = peek_token(scanner);
                 break;
 
-            case 'L':
+            case '<':
                 stackSetStopBit(stack);
                 stackPush(stack, TOKEN, b);
                 get_token(scanner);
                 b = peek_token(scanner);
                 break;
 
-            case 'M':
+            case '>':
                 stackApplyRule(stack, symbol_tabs, b->line);
                 break;
 

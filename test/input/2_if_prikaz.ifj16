@@ -1,0 +1,18 @@
+/* deklarace neni platnym prikazem dle schematu pro if */
+class Main
+{
+	static int a = 21;
+    static void run()
+    {
+
+        ifj16.print(a + "\n");
+        if (a > 10) { int b; }
+        else {}
+
+    }
+    static int funkce(int n) // Definice funkce
+    {
+        a = n - 1;
+        return a;
+    }
+}
