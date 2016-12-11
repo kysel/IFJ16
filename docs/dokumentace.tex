@@ -170,7 +170,41 @@ Funkce \texttt{int find(String s, String search)} hledá první výskyt zadanéh
 Funkce \texttt{String sort(String s)} řadí parametrem daný řetězec \texttt{s} podle ordinální hodnoty obsažených znaků, který pak odevzdává návratovou hodnotou. Daný výpočet je dle zadání a/3/I zpracován pomocí řadícího algoritmu \texttt{Shell sort}, nebo též řazení se snižujícím se přírůstkem s asymptotickou složitostí $O(n^{2})$. Styl implementace vychází ze vzorového příkladu přednášek předmětu IAL, kdy při prvním průchodu je brán krok jakožto polovina počtu prvků z celkové délky řetězce.
 
 \subsection{Tabulka symbolů}
+Tabulka symbolů je realizována binárním vyhledávacím stromem, který je reprezentován strukturou \hyperref[lst:stBvsStruct]{\texttt{Symbol\_tree\_s}}, kde \texttt{root} je ukazatel na první uzel stromu, \texttt{nextId} je následující id použité při přidávání nového uzlu, \texttt{inc} je příznak inkrementace/dekrementace \texttt{nextId} při přidání uzlu. \texttt{Id} se využívá jako index při práci se zásobníkovými rámci resp. proměnnými.
 
+Uzel BVS je reprezentován strukturou \hyperref[lst:stBvsLeafStruct]{\texttt{Symbol\_tree\_leaf}}, kde \texttt{key} je název symbolu, \texttt{type} je datový typ proměnné, případně návratová hodnota funkce, \texttt{init\_expr} je výraz využitý pro inicializaci globálních proměnných a \texttt{defined} je příznak značící, zda byl symbol definován ve zdrojovém kódu nebo zda byl pouze použit.
+
+Funkce definované pro operace nad binárním stromem jsou následující:\medskip
+
+\begin{tabular}{llp{11.9cm}}
+	\texttt{symbol\_tree\_new}  & - & Inicializuje ukazatel na kořen na \texttt{null} a~počet symbolu na 0.\\
+	\texttt{add\_symbol}    & - & Prohledá BVS, pokud zadaný symbol ve stromu není, vytvoří uzel a přidá jej, jinak vrátí ukazatel na nalezený symbol. \\
+	\texttt{get\_symbol\_by\_key} & - & Prohledá BVS a vrátí ukazatel na symbol dle zadaného řetězce \texttt{key}. \\	
+	\texttt{get\_symbol\_by\_id} & - & Prohledá BVS a vrátí ukazatel na symbol dle zadaného \texttt{id}. \\
+\end{tabular}
+\medskip	
+\begin{lstlisting}[caption={Struktura binárního stromu}, label={lst:stBvsStruct}]
+struct Symbol_tree_s {
+    Symbol_tree_leaf* root;
+    int nextId;
+    bool inc;
+};
+\end{lstlisting}
+
+\begin{lstlisting}[caption={Struktura uzlu binárního stromu}, label={lst:stBvsLeafStruct}]
+typedef struct Symbol_tree_leaf_s {
+	const char* key;
+	int id;
+	Data_type type;
+	Expression* init_expr;
+	bool defined;
+	struct Symbol_tree_leaf_s* left;
+	struct Symbol_tree_leaf_s* right;
+} Symbol_tree_leaf;
+\end{lstlisting}
+
+\section{Správa paměti}
+Pro správu paměti a korektní uvolnění veškerého alokovaného místa jsme implementovaly jednoduchý \emph{garbage collector}. Alokace paměti probírají pomocí metody \texttt{gc\_alloc(size\_t size)}
 
 \section{Testy}
 Testovali jsme buď součásti - \textit{unit testy}, kde jsme zkoušeli, zda daná funkce správně reaguje na vstupy. Unit testy si dělal každý sám a podle potřeby. Bylo zvykem v Makefile pro unit test udělat zvláštní target, kde se kromě samotné kompilace ještě prováděl \textit{valgrind} test pro ověření možných \textit{memory leaků}. 
