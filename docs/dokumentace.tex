@@ -66,9 +66,12 @@ Brno}
 
 \newpage
 \section{Úvod}
-V této dokumentaci naleznete popis návrhu a implementace interpretu jazyka IFJ16, který je velmi zjednodušenou podmnožinou jazyka Java SE 8, což je staticky typovaný objektově orientovaný jazyk. Vybrali jsme si variantu  a/3/I, což znamená, že funkce find využívá \emph{Knuth-Morris-Prattův algoritmus}, ve funkci sort je použit řadící algoritmus \emph{shell sort} a tabulka symbolů je implementovaná binárním vyhledávacím stromem.
+V této dokumentaci naleznete popis návrhu a implementace interpretu jazyka IFJ16, který je velmi zjednodušenou podmnožinou jazyka Java SE 8, což je staticky typovaný objektově orientovaný jazyk. 
 
---bude ještě doplněno-
+Vybrali jsme si variantu a/3/I, což znamená, že funkce \texttt{find} využívá \emph{Knuth-Morris-Prattův algoritmus}, ve funkci \texttt{sort} je použit řadící algoritmus \emph{shell sort} a tabulka symbolů je implementovaná binárním vyhledávacím stromem.
+
+Součástí dokumentace jsou i přílohy, které obsahují diagramy lexikální analýzy a precedenční tabulku.
+
 
 \section{Lexikální analyzátor}
 Lexikální analýza (dále jen \emph{LA}) je založena na deterministickém konečném automatu (dále jen \textit{KA}), jehož vstupem je zdrojový kód programu. Lexikální analyzátor na základě předem definovaných pravidel rozdělí jednotlivé posloupnosti znaků na lexémy, které jsou vráceny syntaktickému analyzátoru ve formě tokenů. Token obsahuje informace o typu rozpoznaného lexému, jeho délce, pozici ve zdrojovém kódu a odpovídající řetězec ze zdrojového kódu. Vedlejším úkolem lexikální analýzy je odstraňování bílých znaků a řádkových i blokových komentářů. Lexikální analýza je řízena syntaktickou analýzou, která postupně žádá o tokeny. Naše implementace obsahuje funkci \texttt{peek\_token}, která umožňuje syntaktické analýze podívat se na další tokeny, bez jejich konzumace. Jména identifikátorů jsou porovnána s prvky v poli řetězců, které obsahuje klíčová slova.
@@ -97,7 +100,7 @@ Funkce \texttt{parse\_class} rozpozná definici globální proměnné nebo funkc
 \subsection{Syntaktická analýza výrazů}
 Úkolem syntaktického analyzátoru výrazů je transformovat vstupní výraz z formy sledu tokenů do formy AST. Při této transformaci se musí řídit prioritou a asociativitou jednotlivých operátorů.
 
-Celý analyzátor se dá rozdělit na tři základní části: zásobník, množina pravidel a precedenční tabulka operátorů (dále jen \textit{tabulka}). Analýza probíhá způsobem, že jsou všechny vstupní tokeny postupně vkládány na vrchol zásobníku a redukovány na terminály na základě pravidel. Kdy a jaká akce se vykoná, se rozhoduje na základě tabulky, ve které se vyhledá relace mezi vstupním tokenem a tokenem (neterminálem), který leží na zásobníku nejblíže vrcholu. Analýza končí, pokud ja na vstupu token značící konec výrazu a na zásobníku se nachází pouze jeden terminál. 
+Celý analyzátor se dá rozdělit na tři základní části: zásobník, množina pravidel a precedenční tabulka operátorů (dále jen \textit{tabulka}). Analýza probíhá způsobem, že jsou všechny vstupní tokeny postupně vkládány na vrchol zásobníku a redukovány na terminály na základě pravidel. Kdy a jaká akce se vykoná, se rozhoduje na základě tabulky, ve které se vyhledá relace mezi vstupním tokenem a tokenem (neterminálem), který leží na zásobníku nejblíže vrcholu. Analýza končí, pokud je na vstupu token značící konec výrazu a na zásobníku se nachází pouze jeden terminál. 
 
 Ekvivalentní sémantická akce k redukci je generování AST. Adresa jeho kořene je uložená v struktuře terminálu.
 
@@ -110,7 +113,7 @@ Tabulka vyjadřuje vztah (relaci) mezi každou dvojicí operátorů. Relace zohl
    \item Zpracování volání funkce (obnáší přečtení dalších tokenů na vstupu) a nahrazení tokenů od zarážky výše za odpovídající terminál \textit{(v tabulce symbol F)}
 \end{itemize}
 
-Pokud má relace dvou operátorů v tabulce označení \textit{E}, znamená to, že takové vzájemné postavení operátorů netvoří validní výraz a tudíž se jedná o syntaktickou chybu.
+Pokud má relace dvou operátorů v tabulce označení \textit{E}, znamená to, že takové vzájemné postavení operátorů netvoří validní výraz, a tudíž se jedná o syntaktickou chybu.
 
 Konkrétní podoba naší tabulky viz. \hyperref[tab:SA-precedence]{příloha na straně \pageref{tab:SA-precedence}}.
 
@@ -127,7 +130,7 @@ E &\rightarrow ( E )  &  E &\rightarrow E - E                      &  E &\righta
 \end{align*}
 
 \subsubsection{Zásobník}
-Je pracovní entita, ve které je uložen rozpracovaný výraz a všechny ostatní informace potřebné pro analýzu. Námi implementovaný zásobním má následující strukturu:
+Je pracovní entita, ve které je uložen rozpracovaný výraz a všechny ostatní informace potřebné pro analýzu. Námi implementovaný zásobník má následující strukturu:
 
 \begin{lstlisting}[caption={Struktura zásobníku}, label={lst:saStack}]
 typedef enum {
@@ -154,7 +157,7 @@ typedef struct {
 \section{Sémantický analyzátor}
 Po vytvoření AST pomocí syntaktického analyzátoru je kontrola sémantické správnosti provedena postupným průchodem všech AST definovaných funkcí.
 
-Sémantický analyzátor detekuje omezené množství chyb a v naší implementaci byla velká část sémantické kontroly přenesena na bedra interpretru (kvůli jeho dřívější implementaci). Mezi chyby detekovatelné sémantickým analyzátorem patří: ověření přítomnosti void funkce \texttt{Main.run} a zamezení redefinice proměnné funkcí a naopak.
+Sémantický analyzátor detekuje omezené množství chyb a v naší implementaci byla velká část sémantické kontroly přenesena na bedra interpretru (kvůli jeho dřívější implementaci). Mezi chyby detekovatelné sémantickým analyzátorem patří ověření přítomnosti void funkce \texttt{Main.run} a zamezení redefinice proměnné funkcí a naopak.
 
 \section{Interpret}
 
@@ -162,22 +165,21 @@ Interpretace je řešena rekurzivním čtením AST a prováděním operací defi
 Následuje interpretace funkce \texttt{Main.run} pomocí \texttt{eval\_func}, což obnáší lokalizaci definice funkce v listu funkcí, vytvoření zásobníkového rámce, evaluaci předaných parametrů a jejich uložení na zásobník, následně se pomocí funkce \texttt{eval\_st\_list} vyhodnotí list příkazů (\texttt{Statement\_collection}), který obsahuje jednotlivé příkazy reprezentované strukturou \texttt{Statement} a vyhodnocené funkcí \texttt{eval\_statement}.
 
 Funkce \texttt{eval\_statement} na základě typu příkazu zavolá \texttt{eval\_declaration} pro vyhodnocení deklarace, \texttt{eval\_if} pro vyhodnocení podmínky, \texttt{eval\_while} pro vyhodnocení while cyklu, případně \texttt{eval\_expr} pro vyhodnocení výrazu, a vrácení výsledku jako návratové hodnoty funkce.
-Funkce \texttt{eval\_expr} na základě typu výrazu volá jednu z funkcí \texttt{eval\_func} (vrací návratovou hodnotu funkce), \texttt{get\_val} (vrací hodnotu proměnné), \texttt{eval\_op\_tree} (vrací výsledek evaluace stromu operací) nebo v případě, že je typ výrazu konstanta vrací její hodnotu.
+Funkce \texttt{eval\_expr} na základě typu výrazu volá jednu z funkcí \texttt{eval\_func} (vrací návratovou hodnotu funkce), \texttt{get\_val} (vrací hodnotu proměnné), \texttt{eval\_op\_tree} (vrací výsledek evaluace stromu operací) nebo v případě, že je typ výrazu konstanta, vrací její hodnotu.
 
 
 \section{Vestavěné funkce}
 Vestavěné funkce jsou pro přehlednost rozděleny na dvě části, neboť podle zadání musí být funkce \texttt{find} a \texttt{sort} uloženy právě v souboru \texttt{ial.c}. Ostatní funkce jsou v souboru \texttt{build\_in.c}.
 
 \subsection {Modul IAL}
-TODO: grammarček!
 \subsubsection {Vyhledávání řetězce v podřetězci}
-Funkce \texttt{int find(String s, String search)} hledá první výskyt zadaného podřetězce (v parametru \texttt{search}) a vrátí jeho pozici (počítanou od nuly). V naší variantě a/3/I jsme měli za úkol implementovat tuto funkci pomocí \texttt{Knuth-Morris-Prattova algoritmu}. Ten byl zformulován v roce 1977 pány Donaldem Knuthem, Vaughanem Prattem a Jamesem Norrisem. Tento algoritmus nejdříve prohledá vyhledáváne slovo a na základě opakování jeho prefixu označí určitý vzorek jako fail-vektor (unás označený jako pole \texttt{p[n]}). Toto pole znázorňovalo stavový automat. KMP je velmi dobře vysvětlen ve studijní opoře předmětu IAL a tím pádem se dal daný algoritmus dobře pochopit.
+Funkce \texttt{int find(String s, String search)} hledá první výskyt zadaného podřetězce (v parametru \texttt{search}) a vrátí jeho pozici (počítanou od nuly). V naší variantě a/3/I jsme měli za úkol implementovat tuto funkci pomocí \texttt{Knuth-Morris-Prattova algoritmu}. Ten byl zformulován v roce 1977 pány Donaldem Knuthem, Vaughanem Prattem a Jamesem Morrisem. Tento algoritmus nejdříve prohledá vyhledávané slovo a na základě opakování jeho prefixu označí určitý vzorek jako fail-vektor (u nás označený jako pole \texttt{p[n]}). Toto pole znázorňovalo stavový automat. KMP je velmi dobře vysvětlen ve studijní opoře předmětu IAL a tím pádem se dal daný algoritmus dobře pochopit.
 
 \subsubsection {Řazení}
 Funkce \texttt{String sort(String s)} řadí parametrem daný řetězec \texttt{s} podle ordinální hodnoty obsažených znaků, který pak odevzdává návratovou hodnotou. Daný výpočet je dle zadání a/3/I zpracován pomocí řadícího algoritmu \texttt{Shell sort}, nazývaným též jako řazení se snižujícím se přírůstkem s asymptotickou složitostí~$O(n^{2})$. Styl implementace vychází ze vzorového příkladu opory k předmětu IAL, kdy při prvním průchodu je brán krok o délce poloviny počtu prvků z celkové délky řetězce s indexováním pole znaků od nuly.
 
 \subsection{Tabulka symbolů}
-Tabulka symbolů je realizována binárním vyhledávacím stromem, který je reprezentován strukturou \hyperref[lst:stBvsStruct]{\texttt{Symbol\_tree\_s}}, kde \texttt{root} je ukazatel na první uzel stromu, \texttt{nextId} je následující id použité při přidávání nového uzlu, \texttt{inc} je příznak inkrementace/dekrementace \texttt{nextId} při přidání uzlu. \texttt{Id} se využívá jako index při práci se zásobníkovými rámci resp. proměnnými.
+Tabulka symbolů je realizována binárním vyhledávacím stromem, který je reprezentován strukturou \linebreak \hyperref[lst:stBvsStruct]{\texttt{Symbol\_tree\_s}}, kde \texttt{root} je ukazatel na první uzel stromu, \texttt{nextId} je následující id použité při přidávání nového uzlu, \texttt{inc} je příznak inkrementace/dekrementace \texttt{nextId} při přidání uzlu. \texttt{Id} se využívá jako index při práci se zásobníkovými rámci, resp. proměnnými.
 
 Uzel BVS je reprezentován strukturou \hyperref[lst:stBvsLeafStruct]{\texttt{Symbol\_tree\_leaf}}, kde \texttt{key} je název symbolu, \texttt{type} je datový typ proměnné, případně návratová hodnota funkce, \texttt{init\_expr} je výraz využitý pro inicializaci globálních proměnných a \texttt{defined} je příznak značící, zda byl symbol definován ve zdrojovém kódu nebo zda byl pouze použit.
 
@@ -211,10 +213,10 @@ typedef struct Symbol_tree_leaf_s {
 \end{lstlisting}
 
 \section{Správa paměti}
-Pro správu paměti a korektní uvolnění veškerého alokovaného místa jsme implementovaly jednoduchý \emph{garbage collector} (dále je \emph{GC}). 
+Pro správu paměti a korektní uvolnění veškerého alokovaného místa jsme implementovali jednoduchý \emph{garbage collector} (dále je \emph{GC}). 
 Před první alokací je třeba GC inicializovat pomocí funkce \texttt{gc\_init}, která alokuje místo pro první \hyperref[lst:gcAllocAtom]{uzel obousměrného spojového seznamu alokací} a pomocí \texttt{atexit} zaregistruje funkci \texttt{gc\_collect\_all} pro zavolání při ukončování programu.
 
-Alokace paměti probíhají pomocí funkce \texttt{gc\_alloc(size\_t size)}, která se při vnějším pohledu chová stejně jako \texttt{malloc}, avšak zvětší požadovaný prostor pro alokaci o velikost uzlu seznamu alokací, který se přidá na začátek alokované paměti a vrátí se ukazatel na paměťový prostor jehož velikost je rovna požadované velikosti.
+Alokace paměti probíhají pomocí funkce \texttt{gc\_alloc(size\_t size)}, která se při vnějším pohledu chová stejně jako \texttt{malloc}, avšak zvětší požadovaný prostor pro alokaci o velikost uzlu seznamu alokací, který se přidá na začátek alokované paměti a vrátí se ukazatel na paměťový prostor, jehož velikost je rovna požadované velikosti.
 GC podporuje i realokaci, kdy se uzel odstraní ze seznamu alokací, pomocí \texttt{realloc} se paměť realokuje a do seznamu alokací se přidá uzel nový.
 
 \begin{lstlisting}[caption={Uzel seznamu alokací}, label={lst:gcAllocAtom}]
@@ -223,7 +225,6 @@ typedef struct list_atom {
     struct list_atom* next;
 } list_atom_t;
 \end{lstlisting}
-
 
 \section{Použité služby}
 Při vývoji interpretru jsme využili služeb běžně používaných v průmyslu, které máme přístupné díky \emph{Student Developer Pack}u od GitHubu a statutu studenta.
@@ -258,10 +259,10 @@ Currently working on 0_arithmetic_test_9_UNARY.ifj16:
 \end{Verbatim}
 
 \section{Práce v týmu}
-K úspěšnému dokončení projektu bylo třeba zvládnout nejen programování, ale i komunikaci, případně řízení malého týmu. Pro komunikaci jsme využívali \emph{messenger.com} a to jak skupinové chaty pro řešení návrhu a architektury, tak přímé pro řešení konkrétních problémů. Díky tomu, že celý tým je z jedné přednáškové skupiny jsme měli možnost se potkal i před/po přednáškách.
+K úspěšnému dokončení projektu bylo třeba zvládnout nejen programování, ale i komunikaci, případně řízení malého týmu. Pro komunikaci jsme využívali \emph{messenger.com}, a to jak skupinové chaty pro řešení návrhu a architektury, tak přímé pro řešení konkrétních problémů. Díky tomu, že celý tým je z jedné přednáškové skupiny, měli jsme možnost se potkat i před/po přednáškách.
 
 \subsection{Rozdělení práce}
-Na začátku byl projekt rozdělen na několik částí a každý si mohl vybrat co chtěl, části, které nikdo nechtěl byly přiděleny vedoucím.
+Na začátku byl projekt rozdělen na několik částí a každý si mohl vybrat co chtěl. Části, které nikdo nechtěl, byly přiděleny vedoucím.
 
 Výsledné rozdělení bylo přibližně následující:\medskip
 
@@ -270,7 +271,7 @@ Výsledné rozdělení bylo přibližně následující:\medskip
 	Kubiš Juraj	&(21\%) \space - & precedenční syntaktická analýza \\
 	Korček Juraj &(21\%) \space - & lexikální analýza \\
 	Kubica Jan &(17\%) \space - & testy, prezentace, shell-sort, vestavěné funkce \\
-	Kovařík Viktor &(19\%) \space - & testy, Knuth-Moris-Prattův algoritmus  \\
+	Kovařík Viktor &(19\%) \space - & testy, Knuth-Moris-Prattův algoritmus, základy dokumentace \\
 \end{tabular}
 \medskip
 
@@ -282,9 +283,11 @@ Rozdělení bodů není rovnoměrné z těchto důvodů: laxní přístup na za�
 			& CI sestavení: 			& \textgreater 237 	\\
 			& zdrojových souborů: 		& 25				\\
 			& řádků zdrojového kódu: 	& >9000 			\\
-			& testů: 					& 287
+			& testů: 					& 287				\\
+			& společných zpráv			& 3486 (aktuální k 20:45, dne 11.12.)
 \end{tabular}
-
+\section{Závěr}
+Díky tomuto projektu jsme se nejen zdokonalili v programování, ale také jsme se naučili pracovat v týmu a společně se snažili přijít na řešení různých problémů. Komunikace v tomto týmu byla důležitá a myslím, že nebylo dne, kdy by naše skupinová konverzace byla bez aktivity. Dále taky je potřeba pozvednout a pochválit našeho předsedu týmu, bez jehož tvrdé autority, velkého nasazení a praktických zkušeností bychom asi projekt neměli takový, jako teď.
 \newpage
 \section{Přílohy}
 \subsection{Diagramy konečného automatu lexikální analýzy}
