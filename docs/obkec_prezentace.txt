@@ -1,4 +1,4 @@
-Naši implementaci projektu reprezentuje nasledovné blokové schéma na slidu. Jak je možné vidět, naše implementace se liší tím, že sémantická analýza je součásti interpretu.
+Naši strukturu projektu reprezentuje nasledovné blokové schéma na slidu.
 
 Lexikalí analýza je založena na deterministickém konečnem automatu, jehož vstupem je zdrojový kód programu, v případě našeho zadaní se jedná o jazyk IFJ16, který byl inspirován jazykem JAVA. Lexikální analyzátor je plně řízen syntaktickým analyzátorem. Implementace obsahuje dvě funkce, které umožňují získat token. Funkce GET_TOKEN, která vrací nasledující token a PEEK_TOKEN. PEEK_TOKEN byl speciálně navržen pro usnadnění práce syntaktické analýze a to tak, že se umožňuje podívat o jeden token napřed. Funkce PEEK_TOKEN bude vracet stejný token pokud nebude zavolána funkce GET_TOKEN. Aby jsme zajistili časovou nenáročnost a spolehlivost této funkce, tak při opětovném voláni PEEK_TOKEN se nevracíme s čítací hlavou a znova neanalyzuje kód, nýbrž první získaný token je uložen v struktuře a následně je z ní vrácen syntaktické analýze. PEEK_TOKEN je vo velké míře využívána precedenční analýzou.
 
@@ -6,7 +6,16 @@ Struktura tokenu u naši implementace obsahuje nejen typ tokenu a řetezec v zdr
 
 Dále jsme si připravili jednoduchou demontraci funkce konečného automatu, při načtení plňe kvalifikovaného identifikátoru.
 
+Syntaktická analýza kódu je implementována metodou rekurniznívo sestupu a přímo vytváří AST. 
+TODO...
+
 Syntaktická analýza metodou rekurzivního sestupu není príliš vhodná na spracovávaní výrazů a proto se na jejich vyhodnonocovaní používa synktaktická analýza řízená precedenční tabulkou operátorů. Analýza dostáva jako vstup tokeny, které jsou vkládány na zásobník. Celá analýza je řízená precedenční tabulkou (token na vstupu a nejvrchnejší neterminál). Tahle tabulka reflektuje prioritu a asociativitu jednotlivých operátorů (je na jejich základe vytvořená). Na zásobníku jsou pak na základe pravidel provádené redukce na terminály. Výraz je zpracován, pokud je celej prečten a na zásobníku ostal pouze jeden terminál. Tenhle proces si můžeme vysvětlit na téhle ukážce: ... 
+
+Sémantická analýza detekuje omezené množství chyb. Vetšina chyb je detekována při běhu interpretem.
+TODO...
+
+Interpret rekurzivně prochází AST s tí, že začíná funkcí Main.run...
+TODO...
 
 Testy probíhaly buď jako unit testování, kdy jsme testovali zda například volaná funkce reaguje správně na vstupy. Tyto unit testy byly na vlastním zvážení a pokud je někdo vytvořil, tak bylo doporučeno integrovat je do společného Makefilu pro ověření. Hlavní část testování se však týkala testů interpretu, kdy bylo potřeba ověřit, zda výstup interpretu souhlasí s výstupem JAVY s obohacené o podporu IFJ16 a zda také sedí návratové kódy. K testování byl vytvořen BASH script volaný z Makefilu a výstupní hodnoty z Javy a IFJ16 byly ukládány do .log souboru pro případnou pozdější analýzu. Testů jsme měli v době odevzdání projektu 287.
 
