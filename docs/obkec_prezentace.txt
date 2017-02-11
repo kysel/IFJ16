@@ -1,0 +1,43 @@
+BLOKOVE SCHEMA
+Naši strukturu projektu reprezentuje nasledovné blokové schéma na slidu.
+
+LEXIKALNI ANALYZA
+Lexikalí analýza je založena na deterministickém konečnem automatu, jehož vstupem je zdrojový kód programu, v případě našeho zadaní se jedná o jazyk IFJ16, který byl inspirován jazykem JAVA. Lexikální analyzátor je plně řízen syntaktickým analyzátorem. Implementace obsahuje dvě funkce, které umožňují získat token. Funkce GET_TOKEN, která vrací nasledující token a PEEK_TOKEN. PEEK_TOKEN byl speciálně navržen pro usnadnění práce syntaktické analýze a to tak, že se umožňuje podívat o jeden token napřed. Funkce PEEK_TOKEN bude vracet stejný token pokud nebude zavolána funkce GET_TOKEN. Aby jsme zajistili časovou nenáročnost a spolehlivost této funkce, tak při opětovném voláni PEEK_TOKEN se nevracíme s čítací hlavou a znova neanalyzuje kód, nýbrž první získaný token je uložen v struktuře a následně je z ní vrácen syntaktické analýze. PEEK_TOKEN je vo velké míře využívána precedenční analýzou.
+
+Struktura tokenu u naši implementace obsahuje nejen typ tokenu a řetezec v zdrojovém kódu, ale i délku řetezce a řádek, na kterém se daný lexém nachází. Tato vlastnost umožňuje v případe chyby vypsat číslo řádku, na kterém k dané chybě přišlo. Usnadní to hlavně práci programátorovi, který chybu jednodušeji lokalizuje a odstraní. Implementace konečného automatu podporuje i rozšíření BASE.
+
+Dále jsme si připravili jednoduchou demontraci funkce konečného automatu, při načtení plňe kvalifikovaného identifikátoru.
+
+SYNTAKTICKÁ ANALÝZA
+Syntaktická analýza kódu je implementována metodou rekurniznívo sestupu a přímo vytváří AST. 
+TODO...
+
+PRECEDENČNÍ SYNTAKTICKÁ ANALÝZA VÝRAZŮ
+Syntaktická analýza metodou rekurzivního sestupu není príliš vhodná na spracovávaní výrazů a proto se na jejich vyhodnonocovaní používa synktaktická analýza řízená precedenční tabulkou operátorů. Analýza dostáva jako vstup tokeny, které jsou vkládány na zásobník. Celá analýza je řízená precedenční tabulkou (token na vstupu a nejvrchnejší neterminál). Tahle tabulka reflektuje prioritu a asociativitu jednotlivých operátorů (je na jejich základe vytvořená). Na zásobníku jsou pak na základe pravidel provádené redukce na terminály. Výraz je zpracován, pokud je celej prečten a na zásobníku ostal pouze jeden terminál. Tenhle proces si můžeme vysvětlit na téhle ukážce: ... 
+
+SÉMANTICKÁ ANALÝZA
+Sémantická analýza detekuje omezené množství chyb. Vetšina chyb je detekována při běhu interpretem.
+TODO...
+
+INTERPRET
+Interpret rekurzivně prochází AST s tím, že začíná funkcí Main.run...
+TODO...
+
+KNUTH-MORRIS-PRATTŮV ALGORITMUS
+Vestavěná funkce find hledá první výskyt zadaného podřetězce (v parametru search) a vrátí jeho pozici (počítanou od nuly). V našem zadání jsme měli za úkol využít algoritmu KMP (Knuth–Morris–Prattův algorithmus). Nejdříve se prohledá vyhledávané slovo a na základě opakování jeho prefixu označí určitý vzorek jako fail-vektor (u nás jsme jej označili jako pole p[n]). Toto pole znázorňovalo stavový automat. Výhodou KMP je, že se nevrací k již prohledaným znakům. Složitost tohoto algoritmu je O(n), tudíž je tento algoritmus lineárně složitý.
+
+SHELL SORT
+Jako metodu řazení jsme měli zadán Shell sort. Velmi nápomocna nám byla při jeho implementaci právě opora tohoto předmětu, ze které jsme vycházeli. Shell sort je též nazýván jako řazení se snižujícím se přírůstkem a jeho asymptotická složitost je O(n^2). My jsme užili jeho klasičtější variantu, kdy v první etapě je brán krok o polovině počtu prvků, který je v každé další etapě dělen dvěma. V tabulce je možné vidět příklad shell sortu, kdy je řazen řetězec o šesti znacích, tudíž první krok je roven 3, poté pak 1. Hodnoty jsou postupně kontrolovány a případně prohozeny, zeleně došlo k prohození, oranžově pak jsou hodnoty ve správném pořadí. Ke konci Shell sort s krokem jedna je typický Bubble sort.
+
+TABULKA SYMBOLŮ POMOCÍ BST
+Pro implementaci tabulky symbolů jsme měli využít binární vyhledávací strom. Průchod mezi uzly je pak realizován podle klíče daného uzlu. Každý uzel byl specifikován parametry jako: klíč, ID, Datový typ, Výraz, který byl následně zpracován interpretem, nebo jeho přímá hodnota. Příznak, jestli daný symbol byl definován a ke konci pak dva ukazatele na levého a pravého podsyna.
+
+GARBAGE COLLECTOR
+Pro usnadnění alokování paměti v projektu jsme využili možnost implementace jednoduchého garbagge collectoru, v češtině nepříliš používané označení „svoz odpadu“, který ve stylu oboustraně vázaného seznamu alokuje potřebnou pamět a je zaručeno, že na konci programu je všechna alokovaná paměť zpětně vymazána. Proto jsme v celém našem zdrojovém kódu používali funkce s předponou gc, a to gc_init pro inicializaci seznamu, gc_alloc pro alokování paměti, gc_realloc pro realokaci a gc_free pro uvolnění z paměti.
+
+SKUPINOVÁ IMPLEMENTACE
+Jak všichni víme, práce v týmu při tvorbě programu není jednoduchá. Abychom usnadnili vzájemné sdílení dat a možnost ukládání průběžných verzí zdrojového kódu, využívali jsme verzovací systém GIT a službu GitHub. Pokyny, rozdělení úkolů a poznámky ke kódu byly evidovány pomocí issues a ticketovacího systému na GitHubu. Pro běžnou komunikaci nám posloužil portál messenger.com, na němž jsme v rámci naší diskuze vyprodukovali přes tři a půl tisíce zpráv. Zajmavostí je i průběžná integrace projektu, která byla realizovaná na severech travis.com, jejíž účelem byl průběžný překlad celého programu a také kontrola na nepřeložitelný kód a chybu v něm. Dále pak výpis testů, které byly standardně spouštěny po přeložení projektu. Na obrázku můžete vidět výpis aktivit jednotlivých členů týmů v čase tvoření projektu a množství celkových úprav kódu.
+
+CELKOVÉ TESTOVÁNÍ
+Testy probíhaly buď jako unit testování, kdy jsme testovali zda například volaná funkce reaguje správně na vstupy. Tyto unit testy byly na vlastním zvážení a pokud je někdo vytvořil, tak bylo doporučeno integrovat je do společného Makefilu pro ověření. Hlavní část testování se však týkala testů interpretu, kdy bylo potřeba ověřit, zda výstup interpretu souhlasí s výstupem JAVY s obohacené o podporu IFJ16 a zda také sedí návratové kódy. K testování byl vytvořen BASH script volaný z Makefilu a výstupní hodnoty z Javy a IFJ16 byly ukládány do .log souboru pro případnou pozdější analýzu. Testů jsme měli v době odevzdání projektu 287.
+
